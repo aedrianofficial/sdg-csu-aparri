@@ -432,6 +432,33 @@
                                 </li>
                             </ul>
                         </li>
+                        <li class="nav-item {{ request()->routeIs('auth.activity_logs.*') ? 'menu-open' : '' }}">
+                            <a href="#"
+                                class="nav-link {{ request()->routeIs('auth.activity_logs.*') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-box-seam-fill"></i>
+                                <p>
+                                    Activity Logs
+                                    <i class="nav-arrow bi bi-chevron-right"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="{{ route('auth.activity_logs.all_activity_logs') }}"
+                                        class="nav-link {{ request()->routeIs('auth.activity_logs.all_activity_logs') ? 'active' : '' }}">
+                                        <i class="nav-icon bi bi-circle"></i>
+                                        <p>All Activity Logs</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('auth.activity_logs.my_activity_logs') }}"
+                                        class="nav-link {{ request()->routeIs('auth.activity_logs.my_activity_logs') ? 'active' : '' }}">
+                                        <i class="nav-icon bi bi-circle"></i>
+                                        <p>My Activity Logs</p>
+                                    </a>
+                                </li>
+
+                            </ul>
+                        </li>
                         <li class="nav-item">
                             <a href="{{ route('users.index') }}"
                                 class="nav-link {{ request()->routeIs('users.index') ? 'active' : '' }}">
@@ -441,12 +468,6 @@
                                 </p>
                             </a>
 
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('auth.my_activity_logs') }}" class="nav-link">
-                                <i class="nav-icon bi bi-palette"></i>
-                                <p>Activity Logs</p>
-                            </a>
                         </li>
                     </ul> <!--end::Sidebar Menu-->
                 </nav>

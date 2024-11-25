@@ -24,7 +24,7 @@
                     <div class="card">
                         <div class="card-body">
                             <!-- Search and Filter Form -->
-                            <form action="{{ route('auth.my_activity_logs') }}" method="GET" class="mb-4">
+                            <form action="{{ route('auth.activity_logs.my_activity_logs') }}" method="GET" class="mb-4">
                                 <div class="row">
                                     <!-- Search Bar for Description -->
                                     <div class="col-md-3 mb-3">
@@ -88,7 +88,17 @@
                                                 Research</option>
                                         </select>
                                     </div>
-
+                                    <!-- Date Range Filters -->
+                                    <div class="col-md-3 mb-3">
+                                        <label for="start_date" class="form-label">Start Date:</label>
+                                        <input id="start_date" type="date" name="start_date" class="form-control"
+                                            value="{{ request('start_date') }}">
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label for="end_date" class="form-label">End Date:</label>
+                                        <input id="end_date" type="date" name="end_date" class="form-control"
+                                            value="{{ request('end_date') }}">
+                                    </div>
 
                                 </div>
 
@@ -96,7 +106,8 @@
                                 <div class="row">
                                     <div class="col-md-12 text-left">
                                         <button type="submit" class="btn btn-primary">Filter</button>
-                                        <a href="{{ route('auth.my_activity_logs') }}" class="btn btn-secondary">Reset</a>
+                                        <a href="{{ route('auth.activity_logs.my_activity_logs') }}"
+                                            class="btn btn-secondary">Reset</a>
                                     </div>
                                 </div>
                             </form>
@@ -139,22 +150,34 @@
                                 <!-- Custom Pagination Links -->
                                 <nav aria-label="Page navigation example">
                                     <ul class="pagination justify-content-center">
+                                        <!-- Previous Button -->
                                         <li class="page-item {{ $activityLogs->onFirstPage() ? 'disabled' : '' }}">
                                             <a class="page-link" href="{{ $activityLogs->previousPageUrl() }}"
                                                 tabindex="-1">Previous</a>
                                         </li>
-                                        @for ($i = 1; $i <= $activityLogs->lastPage(); $i++)
+
+                                        <!-- Page Numbers -->
+                                        @php
+                                            $start = max($activityLogs->currentPage() - 2, 1); // Start from 2 pages before the current
+                                            $end = min($start + 4, $activityLogs->lastPage()); // Limit range to 5 pages total
+                                            $start = max($end - 4, 1); // Ensure start is at least 1
+                                        @endphp
+
+                                        @for ($i = $start; $i <= $end; $i++)
                                             <li class="page-item {{ $activityLogs->currentPage() == $i ? 'active' : '' }}">
                                                 <a class="page-link"
                                                     href="{{ $activityLogs->url($i) }}">{{ $i }}</a>
                                             </li>
                                         @endfor
+
+                                        <!-- Next Button -->
                                         <li class="page-item {{ $activityLogs->hasMorePages() ? '' : 'disabled' }}">
                                             <a class="page-link" href="{{ $activityLogs->nextPageUrl() }}">Next</a>
                                         </li>
                                     </ul>
                                 </nav>
                             </div>
+
                         </div>
                     </div>
                 </div>

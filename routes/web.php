@@ -72,8 +72,9 @@ Route::middleware(['auth', 'role:admin', NoCache::class])->group(function(){
     //dashboard
     Route::get('auth/dashboard',[AdminController::class, 'index'])->name('auth.dashboard');
 
-    Route::get('auth/my-activity-logs',[AdminController::class, 'my_activity_logs'])->name('auth.my_activity_logs');
-    
+    Route::get('auth/my-activity-logs',[AdminController::class, 'my_activity_logs'])->name('auth.activity_logs.my_activity_logs');
+    Route::get('auth/all-activity-logs',[AdminController::class, 'all_activity_logs'])->name('auth.activity_logs.all_activity_logs');
+
     //user-profile
     Route::get('auth/profile/show/{id}', [AuthProfileController::class, 'show'])->name('auth.profile.show');
     Route::get('auth/profile/{id}/edit', [AuthProfileController::class, 'edit'])->name('auth.profile.edit');

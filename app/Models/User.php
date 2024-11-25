@@ -59,7 +59,11 @@ class User extends Authenticatable
         return $this->morphMany(Notification::class, 'notifiable')
             ->orderBy('created_at', 'desc');
     }
-
+    public function activityLogs()
+    {
+        return $this->morphMany(ActivityLog::class, 'causer');
+    }
+    
     /**
      * Relationship: A user can have one profile image.
      */

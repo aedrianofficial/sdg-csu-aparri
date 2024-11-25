@@ -10,38 +10,111 @@ use App\Models\Research;
 use App\Models\Sdg;
 use Spatie\Activitylog\Models\Activity;
 use App\Models\Feedback;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
 
-    public function my_activity_logs(Request $request)
+    public function all_activity_logs(Request $request)
     {
-        $userId = auth()->user()->id;
-
-        // Initialize query for activity logs
-        $query = ActivityLog::where('causer_id', $userId);
-
-        // Apply filters if present
+        $query = ActivityLog::query();
+    
+        // Apply user-related filters
+        if ($request->filled('user_id')) {
+            $query->where('causer_id', $request->user_id);
+        }
+    
+        // Apply role filter
+        if ($request->filled('role')) {
+            $query->whereHas('causer', function ($q) use ($request) {
+                $q->where('role', $request->role);
+            });
+        }
+    
+        // Apply general search filter for username, email, or role
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->whereHas('causer', function ($q) use ($searchTerm) {
+                $q->where('username', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('email', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('role', 'like', '%' . $searchTerm . '%');
+            });
+        }
+    
+        // Apply filters for event type and description
         if ($request->filled('event')) {
             $query->where('event', $request->event);
         }
+    
+        if ($request->filled('description')) {
+            $query->where('description', 'like', '%' . $request->description . '%');
+        }
+    
+        // Apply date range filter
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('created_at', [
+                $request->start_date . ' 00:00:00',
+                $request->end_date . ' 23:59:59',
+            ]);
+        }
+    
+        // Apply type filter
+        if ($request->filled('type')) {
+            $query->where('subject_type', 'App\\Models\\' . $request->type);
+        }
+    
+        // Paginate and retrieve activity logs
+        $activityLogs = $query->orderBy('created_at', 'desc')->paginate(10);
+    
+        // Fetch users for filters
+        $users = User::select('id', 'first_name', 'last_name', 'username', 'role')->get();
+    
+        return view('auth.activity_logs.all_activity_logs', compact('activityLogs', 'users'));
+    }
+        
 
+    public function my_activity_logs(Request $request)
+    {
+        $userId = auth()->user()->id;
+    
+        // Initialize query for activity logs
+        $query = ActivityLog::where('causer_id', $userId);
+    
+        // Apply event filter
+        if ($request->filled('event')) {
+            $query->where('event', $request->event);
+        }
+    
+        // Apply type filter
         if ($request->filled('type')) {
             // Assuming subject_type is stored as the full class name
             $query->where('subject_type', 'App\Models\\' . $request->type);
         }
-
+    
         // Apply search filter for description
         if ($request->filled('title')) {
             $query->where('description', 'like', '%' . $request->title . '%');
         }
-
+    
+        // Apply date range filters
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('created_at', [
+                $request->start_date . ' 00:00:00',
+                $request->end_date . ' 23:59:59',
+            ]);
+        } elseif ($request->filled('start_date')) {
+            $query->where('created_at', '>=', $request->start_date . ' 00:00:00');
+        } elseif ($request->filled('end_date')) {
+            $query->where('created_at', '<=', $request->end_date . ' 23:59:59');
+        }
+    
         // Retrieve activity logs for the authenticated user with pagination
         $activityLogs = $query->orderBy('created_at', 'desc')->paginate(10);
-
-        return view('auth.activity_logs.index', compact('activityLogs'));
+    
+        return view('auth.activity_logs.my_activity_logs', compact('activityLogs'));
     }
+    
     public function index()
     {
         // Fetch projects from the database
