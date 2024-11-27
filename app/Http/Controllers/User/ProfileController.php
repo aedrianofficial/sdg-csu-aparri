@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Contributor;
+namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ProfileController extends Controller
 {
@@ -33,16 +33,13 @@ class ProfileController extends Controller
         //
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         // Retrieve the user by ID
         $user = User::with('userImage')->findOrFail($id);
 
         // Pass the user data to the view
-        return view('contributor.user_profile.show', compact('user'));
+        return view('website.sdg_content.user_profile.show', compact('user'));
     }
 
     /**
@@ -54,7 +51,7 @@ class ProfileController extends Controller
         $user = User::with('userImage')->findOrFail($id);
 
         // Pass the user data to the edit view
-        return view('contributor.user_profile.edit', compact('user'));
+        return view('website.sdg_content.user_profile.edit', compact('user'));
     }
 
     /**
@@ -125,8 +122,10 @@ public function update(Request $request, string $id)
     session()->flash('alert-success', 'Profile updated successfully.');
 
     // Assuming you have the user object after the update
-    return to_route('contributor.profile.show', ['id' => $user->id]);
+    return to_route('user.profile.show', ['id' => $user->id]);
 }
+
+
     /**
      * Remove the specified resource from storage.
      */

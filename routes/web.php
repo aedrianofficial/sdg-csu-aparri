@@ -79,6 +79,7 @@ Route::middleware(['auth', 'role:admin', NoCache::class])->group(function(){
     Route::get('auth/profile/show/{id}', [AuthProfileController::class, 'show'])->name('auth.profile.show');
     Route::get('auth/profile/{id}/edit', [AuthProfileController::class, 'edit'])->name('auth.profile.edit');
     Route::put('auth/profile/{user}/update', [AuthProfileController::class, 'update'])->name('auth.profile.update');
+    //notifications
     Route::get('auth/notifications',[NotificationController::class, 'admin_notification'])->name('admin.notifications');
     
     //user-management
@@ -338,6 +339,7 @@ Route::middleware(['auth', 'role:publisher', NoCache::class])->group(function(){
     Route::get('publisher/profile/{id}/edit', [PublisherProfileController::class, 'edit'])->name('publisher.profile.edit');
     Route::put('publisher/profile/{user}/update', [PublisherProfileController::class, 'update'])->name('publisher.profile.update');
     Route::get('publisher/notifications',[NotificationController::class, 'publisher_notification'])->name('publisher.notifications');
+    Route::get('publisher/activity-logs',[PublisherController::class, 'activity_logs'])->name('publisher.activity_logs');
   
 
          //project/program
@@ -377,6 +379,12 @@ Route::middleware(['auth', 'role:publisher', NoCache::class])->group(function(){
 Route::middleware(NoCache::class)->group(function(){
     //website dashboard
     Route::get('/',[WebsiteController::class, 'home2',NoCache::class])->name('website.home2');
+
+    //user profile
+    Route::get('user/profile/show/{id}', [\App\Http\Controllers\User\ProfileController::class, 'show'])->name('user.profile.show');
+    Route::get('user/profile/{id}/edit', [\App\Http\Controllers\User\ProfileController::class, 'edit'])->name('user.profile.edit');
+    Route::put('user/profile/{user}/update', [\App\Http\Controllers\User\ProfileController::class, 'update'])->name('user.profile.update');
+
 
     //report
     Route::get('/sdg/reports2', [WebsiteController::class, 'sdg_report_main2'])->name('website.sdg_report_main2');

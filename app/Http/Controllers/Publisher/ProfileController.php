@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Publisher;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
 class ProfileController extends Controller
@@ -74,8 +75,16 @@ public function update(Request $request, string $id)
     // Get the user by ID
     $user = User::findOrFail($id); // Fetch user by ID
 
+    // Prepare data for update, excluding date_of_birth if it is not provided
+    $updateData = $request->only('first_name', 'last_name', 'username', 'phone_number', 'address', 'bio');
+
+    // Only update 'date_of_birth' if a new value is provided (not null)
+    if ($request->has('date_of_birth') && $request->date_of_birth != null) {
+        $updateData['date_of_birth'] = $request->date_of_birth;
+    }
+
     // Update user profile details
-    $user->update($request->only('first_name','last_name', 'username', 'phone_number', 'address', 'date_of_birth', 'bio'));
+    $user->update($updateData);
 
     // Handle image upload if provided
     if ($request->hasFile('avatar')) {
@@ -85,26 +94,33 @@ public function update(Request $request, string $id)
         // Save the image to the designated directory
         $image->move(public_path('images/users'), $imagePath);
 
-        // If the user already has a profile image, delete the old one
+            // If the user already has a profile image, delete the old one
         if ($user->userImage) {
-            $oldImagePath = public_path('images/users/' . $user->userImage->image_path);
+            // Get the image path from the database, which should only be the filename
+            $oldImagePath = public_path('images/users/' . basename($user->userImage->image_path)); // Using basename to strip the URL
+
+            // Log the file path
+            Log::debug("Deleting old image at path: " . $oldImagePath);
+
             if (file_exists($oldImagePath)) {
                 unlink($oldImagePath); // Delete old image
             }
-            $user->userImage->update(['image_path' => $imagePath]); // Update existing image
+            
+            // Update the image path in the database with the new image filename
+            $user->userImage->update(['image_path' => $imagePath]); // Update the existing image
         } else {
             // Otherwise, create a new record for the profile image
             $user->userImage()->create(['image_path' => $imagePath]);
         }
+
+
     }
 
     // Redirect back with a success message
-    
     session()->flash('alert-success', 'Profile updated successfully.');
 
     // Assuming you have the user object after the update
     return to_route('publisher.profile.show', ['id' => $user->id]);
-    
 }
 
     /**

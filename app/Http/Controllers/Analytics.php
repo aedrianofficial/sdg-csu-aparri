@@ -15,6 +15,10 @@ class Analytics extends Controller
 {
     public function reviewStatusAnalytics()
     {
+        $totalProjects = Project::count();
+        $totalReports = Report::count();
+        $totalResearch = Research::count();
+    
         // Fetch and count review statuses for Projects
         $projectStatusCounts = Project::select('review_status_id', DB::raw('count(*) as count'))
             ->groupBy('review_status_id')
@@ -48,8 +52,13 @@ class Analytics extends Controller
             'projectStatusCounts' => $projectStatusCounts,
             'reportStatusCounts' => $reportStatusCounts,
             'researchStatusCounts' => $researchStatusCounts,
-            'statuses' => $statuses
+            'statuses' => $statuses,
+            'totalProjects' =>$totalProjects,
+            'totalReports' =>$totalReports,
+            'totalResearch'=>$totalResearch
+        
         ]);
+        
     }
     public function myStatusAnalytics()
 {
@@ -73,6 +82,12 @@ class Analytics extends Controller
         ->groupBy('review_status_id')
         ->get()
         ->pluck('count', 'review_status_id');
+
+
+         // Get total counts for Projects, Reports, and Research
+    $myTotalProjects = Project::where('user_id', auth()->id())->count();
+    $myTotalReports = Report::where('user_id', auth()->id())->count();
+    $myTotalResearch = Research::where('user_id', auth()->id())->count();
 
     // Status mapping
     $myStatuses = [
@@ -105,7 +120,10 @@ class Analytics extends Controller
         'myProjectStatusCounts' => $myProjectStatus,
         'myReportStatusCounts' => $myReportStatus,
         'myResearchStatusCounts' => $myResearchStatus,
-        'myStatuses' => $myStatuses
+        'myStatuses' => $myStatuses,
+        'myTotalProjects'=>$myTotalProjects,
+        'myTotalReports' =>$myTotalReports,
+        'myTotalResearch' =>$myTotalResearch
     ]);
 }
 public function myReviewActivity()

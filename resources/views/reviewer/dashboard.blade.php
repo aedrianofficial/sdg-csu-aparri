@@ -86,21 +86,24 @@
                                         <div class="card-body">
                                             <div class="row">
                                                 <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;">Projects Status</h5>
+                                                    <h5 class="mb-3" style="font-weight: 500;"><span
+                                                            id="totalProjectsHeader"></span></h5>
                                                     <div class="chart-container"
                                                         style="position: relative; height: 350px; width: 100%;">
                                                         <canvas id="projectChart"></canvas>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;">Reports Status</h5>
+                                                    <h5 class="mb-3" style="font-weight: 500;"><span
+                                                            id="totalReportsHeader"></span></h5>
                                                     <div class="chart-container"
                                                         style="position: relative; height: 350px; width: 100%;">
                                                         <canvas id="reportChart"></canvas>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;">Research Status</h5>
+                                                    <h5 class="mb-3" style="font-weight: 500;"><span
+                                                            id="totalResearchHeader"></span></h5>
                                                     <div class="chart-container"
                                                         style="position: relative; height: 350px; width: 100%;">
                                                         <canvas id="researchChart"></canvas>
@@ -114,37 +117,40 @@
                         </div>
                     </div>
 
-                    <!-- My Review Status Overview -->
+                    <!-- My Projects, My Reports, and My Research Status -->
                     <div class="content">
                         <div class="container">
                             <div class="row text-center">
                                 <div class="col-md-12 mb-4">
                                     <div class="card card-primary card-outline">
                                         <div class="card-header">
-                                            <h4 class="text-center mb-4" style="font-weight: 600;">My Review Status Overview
-                                            </h4>
+                                            <h4 class="text-center mb-4" style="font-weight: 600;">My Projects, My Reports,
+                                                and My Research Status</h4>
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
                                                 <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;">Projects</h5>
+                                                    <h5 class="mb-3" style="font-weight: 500;"><span
+                                                        id="myTotalProjectsHeader"></span></h5>
                                                     <div class="chart-container"
                                                         style="position: relative; height: 350px; width: 100%;">
-                                                        <canvas id="reviewProjectChart"></canvas>
+                                                        <canvas id="myProjectChart"></canvas>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;">Reports</h5>
+                                                    <h5 class="mb-3" style="font-weight: 500;"><span
+                                                        id="myTotalReportsHeader"></span></h5>
                                                     <div class="chart-container"
                                                         style="position: relative; height: 350px; width: 100%;">
-                                                        <canvas id="reviewReportChart"></canvas>
+                                                        <canvas id="myReportChart"></canvas>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;">Research</h5>
+                                                    <h5 class="mb-3" style="font-weight: 500;"><span
+                                                        id="myTotalResearchHeader"></span></h5>
                                                     <div class="chart-container"
                                                         style="position: relative; height: 350px; width: 100%;">
-                                                        <canvas id="reviewResearchChart"></canvas>
+                                                        <canvas id="myResearchChart"></canvas>
                                                     </div>
                                                 </div>
                                             </div>
@@ -211,12 +217,19 @@
     <!--chart for review statuses of projects, reports, research-->
     <script>
         $(document).ready(function() {
+
+
             // Fetch and update chart data via AJAX
             function fetchReviewStatusData() {
                 $.ajax({
                     url: "{{ route('analytics.reviewStatusAnalytics') }}", // Add correct route
                     method: 'GET',
-                    success: function(response) {
+                    success: function(response) { // Update headers with total counts
+                        $('#totalProjectsHeader').text(`Projects Status (${response.totalProjects})`);
+                        $('#totalReportsHeader').text(`Reports Status (${response.totalReports})`);
+                        $('#totalResearchHeader').text(`Research Status (${response.totalResearch})`);
+
+                        // Update the charts
                         updateChart(projectChart, response.projectStatusCounts, response.statuses,
                             'Projects');
                         updateChart(reportChart, response.reportStatusCounts, response.statuses,
@@ -339,38 +352,45 @@
 
             // Automatically refresh the data every 30 seconds
             setInterval(fetchReviewStatusData, 30000); // 30,000 ms = 30 seconds
+
+
         });
     </script>
     <!-- Chart for review statuses of my projects, reports, and research -->
     <script>
         $(document).ready(function() {
             // Fetch and update chart data via AJAX
-            function fetchMyReviewActivityData() {
+            function fetchMyStatusData() {
                 $.ajax({
-                    url: "{{ route('analytics.myReviewActivity') }}", // Ensure the route is correct
+                    url: "{{ route('analytics.myStatusAnalytics') }}", // Ensure the route is correct
                     method: 'GET',
                     success: function(response) {
-                        updateChart(reviewProjectChart, response.projects, ["Reviewed", "Rejected",
-                            "Requested Change"
-                        ]);
-                        updateChart(reviewReportChart, response.reports, ["Reviewed", "Rejected",
-                            "Requested Change"
-                        ]);
-                        updateChart(reviewResearchChart, response.research, ["Reviewed", "Rejected",
-                            "Requested Change"
-                        ]);
+
+                        $('#myTotalProjectsHeader').text(
+                            `My Projects Status (${response.myTotalProjects})`);
+                        $('#myTotalReportsHeader').text(`My Reports Status (${response.myTotalReports})`);
+                        $('#myTotalResearchHeader').text(
+                            `My Research Status (${response.myTotalResearch})`);
+
+                        updateChart(myProjectChart, response.myProjectStatusCounts, response
+                            .myStatuses);
+                        updateChart(myReportChart, response.myReportStatusCounts, response.myStatuses);
+                        updateChart(myResearchChart, response.myResearchStatusCounts, response
+                            .myStatuses);
                     },
                     error: function(xhr, status, error) {
-                        console.error("Error fetching review activity data:", error);
+                        console.error("Error fetching status data:", error);
                     }
                 });
             }
 
             // Function to update a chart
-            function updateChart(chart, data, labels) {
-                const chartData = labels.map(label => data[label.toLowerCase().replace(" ", "_")] || 0);
+            function updateChart(chart, data, myStatuses) {
+                const chartLabels = Object.values(myStatuses); // Labels from myStatuses
+                const chartData = chartLabels.map((_, index) => data[chartLabels[index]] ||
+                    0); // Use labels for mapping
 
-                chart.data.labels = labels; // Set new labels
+                chart.data.labels = chartLabels; // Set new labels
                 chart.data.datasets[0].data = chartData; // Set new data
                 chart.update(); // Update the chart
             }
@@ -384,6 +404,7 @@
                         display: true,
                         position: 'bottom',
                         labels: {
+
                             maxWidth: 100,
                             boxWidth: 10,
                         },
@@ -403,56 +424,82 @@
             };
 
             // Initialize pie charts with professional styling
-            var reviewProjectChart = new Chart(document.getElementById('reviewProjectChart').getContext('2d'), {
+            var myProjectChart = new Chart(document.getElementById('myProjectChart').getContext('2d'), {
                 type: 'pie',
                 data: {
                     labels: [],
                     datasets: [{
-                        label: 'Project Reviews',
+                        label: 'My Projects',
                         data: [],
-                        backgroundColor: ['#4BC0C0', '#FF6384', '#36A2EB'],
+                        backgroundColor: ['#4BC0C0', '#FF6384', '#36A2EB', '#FFCE56', '#9966FF'],
                         hoverOffset: 10
                     }]
                 },
-                options: chartOptions
+                options: {
+                    ...chartOptions,
+                    plugins: {
+                        ...chartOptions.plugins,
+                        legend: {
+                            ...chartOptions.plugins.legend,
+                            align: 'start', // Align legend to the left
+                        }
+                    }
+                }
             });
 
-            var reviewReportChart = new Chart(document.getElementById('reviewReportChart').getContext('2d'), {
+            var myReportChart = new Chart(document.getElementById('myReportChart').getContext('2d'), {
                 type: 'pie',
                 data: {
                     labels: [],
                     datasets: [{
-                        label: 'Report Reviews',
+                        label: 'My Reports',
                         data: [],
-                        backgroundColor: ['#9966FF', '#FF9F40', '#FF6384'],
+                        backgroundColor: ['#9966FF', '#FF9F40', '#FF6384', '#36A2EB', '#4BC0C0'],
                         hoverOffset: 10
                     }]
                 },
-                options: chartOptions
+                options: {
+                    ...chartOptions,
+                    plugins: {
+                        ...chartOptions.plugins,
+                        legend: {
+                            ...chartOptions.plugins.legend,
+                            align: 'start', // Align legend to the left
+                        }
+                    }
+                }
             });
 
-            var reviewResearchChart = new Chart(document.getElementById('reviewResearchChart').getContext('2d'), {
+            var myResearchChart = new Chart(document.getElementById('myResearchChart').getContext('2d'), {
                 type: 'pie',
                 data: {
                     labels: [],
                     datasets: [{
-                        label: 'Research Reviews',
+                        label: 'My Research',
                         data: [],
-                        backgroundColor: ['#FF9F40', '#4BC0C0', '#9966FF'],
+                        backgroundColor: ['#FF9F40', '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB'],
                         hoverOffset: 10
                     }]
                 },
-                options: chartOptions
+                options: {
+                    ...chartOptions,
+                    plugins: {
+                        ...chartOptions.plugins,
+                        legend: {
+                            ...chartOptions.plugins.legend,
+                            align: 'start', // Align legend to the left
+                        }
+                    }
+                }
             });
 
             // Fetch and update data on page load
-            fetchMyReviewActivityData();
+            fetchMyStatusData();
 
             // Automatically refresh the data every 30 seconds
-            setInterval(fetchMyReviewActivityData, 30000);
+            setInterval(fetchMyStatusData, 30000);
         });
     </script>
-
 
     <!-- Chart for overall status of SDG projects, reports, research-->
     <!-- Chart for overall status of SDG projects, reports, research-->

@@ -86,21 +86,24 @@
                                         <div class="card-body">
                                             <div class="row">
                                                 <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;">Projects Status</h5>
+                                                    <h5 class="mb-3" style="font-weight: 500;"><span
+                                                            id="totalProjectsHeader"></span></h5>
                                                     <div class="chart-container"
                                                         style="position: relative; height: 350px; width: 100%;">
                                                         <canvas id="projectChart"></canvas>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;">Reports Status</h5>
+                                                    <h5 class="mb-3" style="font-weight: 500;"><span
+                                                            id="totalReportsHeader"></span></h5>
                                                     <div class="chart-container"
                                                         style="position: relative; height: 350px; width: 100%;">
                                                         <canvas id="reportChart"></canvas>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;">Research Status</h5>
+                                                    <h5 class="mb-3" style="font-weight: 500;"><span
+                                                            id="totalResearchHeader"></span></h5>
                                                     <div class="chart-container"
                                                         style="position: relative; height: 350px; width: 100%;">
                                                         <canvas id="researchChart"></canvas>
@@ -127,21 +130,24 @@
                                         <div class="card-body">
                                             <div class="row">
                                                 <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;">My Projects Status</h5>
+                                                    <h5 class="mb-3" style="font-weight: 500;"><span
+                                                        id="myTotalProjectsHeader"></span></h5>
                                                     <div class="chart-container"
                                                         style="position: relative; height: 350px; width: 100%;">
                                                         <canvas id="myProjectChart"></canvas>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;">My Reports Status</h5>
+                                                    <h5 class="mb-3" style="font-weight: 500;"><span
+                                                        id="myTotalReportsHeader"></span></h5>
                                                     <div class="chart-container"
                                                         style="position: relative; height: 350px; width: 100%;">
                                                         <canvas id="myReportChart"></canvas>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;">My Research Status</h5>
+                                                    <h5 class="mb-3" style="font-weight: 500;"><span
+                                                        id="myTotalResearchHeader"></span></h5>
                                                     <div class="chart-container"
                                                         style="position: relative; height: 350px; width: 100%;">
                                                         <canvas id="myResearchChart"></canvas>
@@ -211,12 +217,19 @@
     <!--chart for review statuses of projects, reports, research-->
     <script>
         $(document).ready(function() {
+
+
             // Fetch and update chart data via AJAX
             function fetchReviewStatusData() {
                 $.ajax({
                     url: "{{ route('analytics.reviewStatusAnalytics') }}", // Add correct route
                     method: 'GET',
-                    success: function(response) {
+                    success: function(response) { // Update headers with total counts
+                        $('#totalProjectsHeader').text(`Projects Status (${response.totalProjects})`);
+                        $('#totalReportsHeader').text(`Reports Status (${response.totalReports})`);
+                        $('#totalResearchHeader').text(`Research Status (${response.totalResearch})`);
+
+                        // Update the charts
                         updateChart(projectChart, response.projectStatusCounts, response.statuses,
                             'Projects');
                         updateChart(reportChart, response.reportStatusCounts, response.statuses,
@@ -339,6 +352,8 @@
 
             // Automatically refresh the data every 30 seconds
             setInterval(fetchReviewStatusData, 30000); // 30,000 ms = 30 seconds
+
+
         });
     </script>
     <!-- Chart for review statuses of my projects, reports, and research -->
@@ -350,6 +365,13 @@
                     url: "{{ route('analytics.myStatusAnalytics') }}", // Ensure the route is correct
                     method: 'GET',
                     success: function(response) {
+
+                        $('#myTotalProjectsHeader').text(
+                            `My Projects Status (${response.myTotalProjects})`);
+                        $('#myTotalReportsHeader').text(`My Reports Status (${response.myTotalReports})`);
+                        $('#myTotalResearchHeader').text(
+                            `My Research Status (${response.myTotalResearch})`);
+
                         updateChart(myProjectChart, response.myProjectStatusCounts, response
                             .myStatuses);
                         updateChart(myReportChart, response.myReportStatusCounts, response.myStatuses);

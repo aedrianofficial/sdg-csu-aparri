@@ -37,9 +37,9 @@ scratch. This page gets rid of all links and provides the needed markup only.
         <nav class="main-header navbar navbar-expand-md navbar-light navbar-white">
             <div class="container">
                 <a href="{{ route('website.home2') }}" class="navbar-brand">
-                    <img src="{{ asset('assets/website/images/csulogo.png') }}" alt="Logo" class="brand-image"
+                    <img src="{{ asset('assets/website/images/csu-sdg-logo.png') }}" alt="Logo" class="brand-image"
                         style="opacity: .8">
-                    <span class="brand-text font-weight-light d-none d-md-inline">CSU- Aparri SDG</span>
+                    <span class="brand-text font-weight-light d-none d-md-inline">SDG CSU-APARRI</span>
                     <!-- Hidden on mobile -->
                 </a>
 
@@ -74,13 +74,23 @@ scratch. This page gets rid of all links and provides the needed markup only.
                     {{-- Check if user is authenticated --}}
                     @if (Auth::check())
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="bi bi-person-circle"></i> {{ Auth::user()->first_name }}
-                                {{ Auth::user()->last_name }}
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            @if (!(Auth::user()->userImage && file_exists(public_path('images/users/' . basename(Auth::user()->userImage->image_path)))))
+                                <img src="{{ asset('assets/website/images/user-png.png') }}" alt="Default User Image" 
+                                    class="rounded-circle" width="30" height="30">
+                            @else
+                                <img src="{{ Auth::user()->userImage->image_path }}" alt="User Image" 
+                                    class="rounded-circle" width="30" height="30">
+                            @endif
+                            <span class="ms-2">
+                                {{ Auth::user()->first_name }} {{ Auth::user()->last_name }}
+                            </span>
                             </a>
+                        
                             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="#">Profile</a>
+                                <a class="dropdown-item"
+                                    href="{{ route('user.profile.show', ['id' => Auth::user()->id]) }}">Profile</a>
                                 <a class="dropdown-item" href="{{ route('logout') }}"
                                     onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
                                 <form id="logout-form" action="{{ route('logout') }}" method="POST"
@@ -165,13 +175,15 @@ scratch. This page gets rid of all links and provides the needed markup only.
         integrity="sha256-whL0tQWoY1Ku1iskqPFvmZ+CHsvmRWx/PIoEvIeWh4I=" crossorigin="anonymous"></script>
     <!--end::Required Plugin(popperjs for Bootstrap 5)-->
 
+    {{-- sweet alert --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{{ asset('assets/auth/vendors/js/vendor.bundle.base.js') }}"></script>
     <!--leaflet-->
     <script src="{{ asset('assets/auth/js/leaflet.js') }}" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
         crossorigin=""></script>
     <script src="{{ asset('assets/auth/js/Control.Geocoder.js') }}"></script>
 
-    <!--fontawesome-->
+       <!--fontawesome-->
     <script src="https://kit.fontawesome.com/f60b315caa.js" crossorigin="anonymous"></script>
     <!--begin::OverlayScrollbars Configure-->
     <script>
@@ -282,6 +294,18 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <script src="{{ asset('assets/website/plugins/bootstrap/bootstrap.bundle.min.js') }}"></script>
     <!-- Script App -->
     <script src="{{ asset('assets/website/js/home.min.js') }}"></script>
+
+ 
+    <script src="{{ asset('assets/website/plugins/bs-custom-file-input.min.js') }}"></script>
+    <script>
+        @if (Session::has('alert-success'))
+            Swal.fire({
+                title: "Good job!",
+                text: "{{ Session::get('alert-success') }}",
+                icon: "success"
+            });
+        @endif
+    </script>
     @yield('scripts')
 </body>
 

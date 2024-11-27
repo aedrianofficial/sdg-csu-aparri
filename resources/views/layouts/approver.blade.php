@@ -234,11 +234,11 @@
                         </a> </li> <!--end::Fullscreen Toggle--> <!--begin::User Menu Dropdown-->
                     <li class="nav-item dropdown user-menu"> <a href="#" class="nav-link dropdown-toggle"
                             data-bs-toggle="dropdown">
-                            @if (Auth::user()->userImage)
-                                <img src="{{ Auth::user()->userImage->image_path }}" alt="image"
+                            @if (!(Auth::user()->userImage && Auth::user()->userImage->existsOnDisk()))
+                                <img src="{{ asset('assets/website/images/user-png.png') }}" alt="image"
                                     class="user-image rounded-circle shadow">
                             @else
-                                <img src="path/to/default/image.jpg" alt="image"
+                                <img src="{{ Auth::user()->userImage->image_path }}" alt="image"
                                     class="user-image rounded-circle shadow">
                             @endif
                             <span class="d-none d-md-inline">{{ Auth::user()->first_name }}
@@ -248,12 +248,12 @@
                         <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
                             <!--begin::User Image-->
                             <li class="user-header text-bg-primary">
-                                @if (Auth::user()->userImage)
-                                    <img src="{{ Auth::user()->userImage->image_path }}" alt="image"
-                                        class="rounded-circle shadow">
+                                @if (!(Auth::user()->userImage && Auth::user()->userImage->existsOnDisk()))
+                                    <img src="{{ asset('assets/website/images/user-png.png') }}"
+                                        alt="Default User Image" class="rounded-circle" width="150">
                                 @else
-                                    <img src="path/to/default/image.jpg" alt="image"
-                                        class="rounded-circle shadow">
+                                    <img src="{{ Auth::user()->userImage->image_path }}" alt="User Image"
+                                        class="rounded-circle" width="150">
                                 @endif
                                 <p>
                                     {{ Auth::user()->first_name }} {{ Auth::user()->last_name }} - Approver
@@ -275,7 +275,8 @@
                             <!--end::Menu Body-->
                             <!--begin::Menu Footer-->
                             <li class="user-footer">
-                                <a href="#" class="btn btn-default btn-flat">Profile</a>
+                                <a href="{{ route('approver.profile.show', ['id' => Auth::user()->id]) }}"
+                                    class="btn btn-default btn-flat">Profile</a>
 
                                 <!-- Sign Out Form -->
                                 <form method="POST" action="{{ route('logout') }}" class="d-inline">

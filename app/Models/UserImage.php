@@ -22,11 +22,12 @@ class UserImage extends Model
      * This ensures that the correct URL is returned for the image_path field.
      */
     protected function imagePath(): Attribute
-    {
-        return Attribute::make(
-            get: fn($value) => $value ? asset($this->userUploads . $value) : null
-        );
-    }
+{
+    return Attribute::make(
+        get: fn($value) => $value ? asset('images/users/' . $value) : null
+    );
+}
+
 
     /**
      * Relationship: Each image belongs to a single user.
@@ -35,4 +36,9 @@ class UserImage extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+    public function existsOnDisk(): bool
+{
+    $filePath = public_path('images/users/' . basename($this->image_path));
+    return file_exists($filePath);
+}
 }
