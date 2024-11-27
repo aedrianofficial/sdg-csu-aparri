@@ -300,8 +300,9 @@
             <!--begin::Sidebar Brand-->
             <div class="sidebar-brand">
                 <a href="./index.html" class="brand-link">
-                    <img src="" alt="Logo" class="brand-image opacity-75 shadow">
-                    <span class="brand-text fw-light">SDG</span>
+                    <img src="{{ asset('assets/website/images/csu-sdg-logo.png') }}" alt="Logo"
+                        class="brand-image opacity-75">
+                    <span class="brand-text fw-light">SDG CSU-APARRI</span>
                 </a>
             </div>
             <!--end::Sidebar Brand-->
