@@ -55,14 +55,17 @@ scratch. This page gets rid of all links and provides the needed markup only.
                             <a href="{{ route('website.home2') }}" class="nav-link">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('website.sdg_report_main2') }}" class="nav-link">SDG Reports</a>
+                            <a href="{{ route('website.sdg_report_main2') }}" class="nav-link">Reports</a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('website.sdg_project_main2') }}" class="nav-link">SDG Projects</a>
+                            <a href="{{ route('website.sdg_project_main2') }}" class="nav-link">Projects</a>
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('website.sdg_research_main2') }}" class="nav-link">Research &
                                 Extensions</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('website.yearly_overview') }}" class="nav-link">Yearly Overview</a>
                         </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link">Contact</a>
@@ -294,9 +297,10 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <script src="{{ asset('assets/website/plugins/bootstrap/bootstrap.bundle.min.js') }}"></script>
     <!-- Script App -->
     <script src="{{ asset('assets/website/js/home.min.js') }}"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
  
     <script src="{{ asset('assets/website/plugins/bs-custom-file-input.min.js') }}"></script>
+    
     <script>
         @if (Session::has('alert-success'))
             Swal.fire({

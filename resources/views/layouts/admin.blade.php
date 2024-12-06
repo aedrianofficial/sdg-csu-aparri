@@ -325,11 +325,10 @@
                     <!--begin::Sidebar Menu-->
                     <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu"
                         data-accordion="false">
-
                         <li class="nav-item">
                             <a href="{{ route('auth.dashboard') }}"
                                 class="nav-link {{ request()->routeIs('auth.dashboard') ? 'active' : '' }}">
-                                <i class="nav-icon bi bi-palette"></i>
+                                <i class="nav-icon bi bi-house-door"></i>
                                 <p>Dashboard</p>
                             </a>
                         </li>
@@ -337,7 +336,7 @@
                         <li class="nav-item {{ request()->routeIs('projects.*') ? 'menu-open' : '' }}">
                             <a href="#"
                                 class="nav-link {{ request()->routeIs('projects.*') ? 'active' : '' }}">
-                                <i class="nav-icon bi bi-box-seam-fill"></i>
+                                <i class="nav-icon bi bi-briefcase"></i>
                                 <p>
                                     Projects/Programs
                                     <i class="nav-arrow bi bi-chevron-right"></i>
@@ -347,21 +346,21 @@
                                 <li class="nav-item">
                                     <a href="{{ route('projects.create') }}"
                                         class="nav-link {{ request()->routeIs('projects.create') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                        <i class="nav-icon bi bi-plus-circle"></i>
                                         <p>Create Project</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('projects.index') }}"
                                         class="nav-link {{ request()->routeIs('projects.index') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                        <i class="nav-icon bi bi-list-ul"></i> <!-- Changed to list icon -->
                                         <p>All Projects</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('projects.my_projects') }}"
                                         class="nav-link {{ request()->routeIs('projects.my_projects') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                        <i class="nav-icon bi bi-person-lines-fill"></i>
                                         <p>My Projects</p>
                                     </a>
                                 </li>
@@ -370,7 +369,7 @@
 
                         <li class="nav-item {{ request()->routeIs('reports.*') ? 'menu-open' : '' }}">
                             <a href="#" class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
-                                <i class="nav-icon bi bi-box-seam-fill"></i>
+                                <i class="nav-icon bi bi-file-earmark-bar-graph"></i> <!-- Changed to reports icon -->
                                 <p>
                                     Reports
                                     <i class="nav-arrow bi bi-chevron-right"></i>
@@ -380,32 +379,33 @@
                                 <li class="nav-item">
                                     <a href="{{ route('reports.create') }}"
                                         class="nav-link {{ request()->routeIs('reports.create') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                        <i class="nav-icon bi bi-plus-circle"></i>
                                         <p>Create Report</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('reports.index') }}"
                                         class="nav-link {{ request()->routeIs('reports.index') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                            <i class="nav-icon bi bi-list-ul"></i> <!-- Changed to list icon -->
                                         <p>All Reports</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('reports.my_reports') }}"
                                         class="nav-link {{ request()->routeIs('reports.my_reports') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                        <i class="nav-icon bi bi-person-lines-fill"></i>
                                         <p>My Reports</p>
                                     </a>
                                 </li>
                             </ul>
                         </li>
+
                         <li class="nav-item {{ request()->routeIs('research.*') ? 'menu-open' : '' }}">
                             <a href="#"
                                 class="nav-link {{ request()->routeIs('research.*') ? 'active' : '' }}">
-                                <i class="nav-icon bi bi-box-seam-fill"></i>
+                                <i class="nav-icon bi bi-journal-text"></i> <!-- Changed to journal icon -->
                                 <p>
-                                    Research
+                                    Research & Extensions
                                     <i class="nav-arrow bi bi-chevron-right"></i>
                                 </p>
                             </a>
@@ -413,30 +413,31 @@
                                 <li class="nav-item">
                                     <a href="{{ route('research.create') }}"
                                         class="nav-link {{ request()->routeIs('research.create') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                        <i class="nav-icon bi bi-plus-circle"></i>
                                         <p>Create Research</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('research.index') }}"
                                         class="nav-link {{ request()->routeIs('research.index') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                            <i class="nav-icon bi bi-list-ul"></i> <!-- Changed to list icon -->
                                         <p>All Research</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('research.my_research') }}"
                                         class="nav-link {{ request()->routeIs('research.my_research') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                        <i class="nav-icon bi bi-person-lines-fill"></i>
                                         <p>My Research</p>
                                     </a>
                                 </li>
                             </ul>
                         </li>
+
                         <li class="nav-item {{ request()->routeIs('auth.activity_logs.*') ? 'menu-open' : '' }}">
                             <a href="#"
                                 class="nav-link {{ request()->routeIs('auth.activity_logs.*') ? 'active' : '' }}">
-                                <i class="nav-icon bi bi-box-seam-fill"></i>
+                                <i class="nav-icon bi bi-clock"></i> <!-- Changed to clock icon -->
                                 <p>
                                     Activity Logs
                                     <i class="nav-arrow bi bi-chevron-right"></i>
@@ -446,33 +447,32 @@
                                 <li class="nav-item">
                                     <a href="{{ route('auth.activity_logs.all_activity_logs') }}"
                                         class="nav-link {{ request()->routeIs('auth.activity_logs.all_activity_logs') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                        <i class="nav-icon bi bi-list-task"></i>
                                         <p>All Activity Logs</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('auth.activity_logs.my_activity_logs') }}"
                                         class="nav-link {{ request()->routeIs('auth.activity_logs.my_activity_logs') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                        <i class="nav-icon bi bi-person-lines-fill"></i>
                                         <p>My Activity Logs</p>
                                     </a>
                                 </li>
-
                             </ul>
                         </li>
+
                         <li class="nav-item">
                             <a href="{{ route('users.index') }}"
                                 class="nav-link {{ request()->routeIs('users.index') ? 'active' : '' }}">
-                                <i class="nav-icon bi bi-box-seam-fill"></i>
-                                <p>
-                                    Users
-                                </p>
+                                <i class="nav-icon bi bi-people-fill"></i>
+                                <p>Users</p>
                             </a>
-
                         </li>
                     </ul> <!--end::Sidebar Menu-->
                 </nav>
-            </div> <!--end::Sidebar Wrapper-->
+            </div>
+            <!--end::Sidebar Wrapper-->
+
         </aside> <!--end::Sidebar-->
         <!--end::Sidebar--> <!--begin::App Main-->
 

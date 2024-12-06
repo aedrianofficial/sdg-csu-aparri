@@ -15,7 +15,7 @@ use App\Models\Sdg;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Log;
 
 class ProjectController extends Controller
 {
@@ -49,7 +49,7 @@ class ProjectController extends Controller
         }
     
         // Fetch the filtered list of projects and paginate
-        $projects = $query->paginate(5); // Paginate the results, 5 projects per page
+        $projects = $query->orderBy('id', 'desc')->orderBy('id', 'desc')->paginate(5); // Paginate the results, 5 projects per page
     
         // Fetch all SDGs for the filter dropdown
         $reviewStatuses = ReviewStatus::whereNotIn('status', ['Need Changes', 'Rejected'])->get(); // Exclude specific statuses
@@ -87,7 +87,7 @@ class ProjectController extends Controller
             }
         
             // Fetch the filtered list of projects and paginate
-            $projects = $query->paginate(5); // Paginate the results, 5 projects per page
+            $projects = $query->orderBy('id', 'desc')->paginate(5); // Paginate the results, 5 projects per page
         
            $sdgs = SDG::all();
         
@@ -121,7 +121,7 @@ class ProjectController extends Controller
             }
         
             // Fetch the filtered list of projects and paginate
-            $projects = $query->paginate(5); // Paginate the results, 5 projects per page
+            $projects = $query->orderBy('id', 'desc')->paginate(5); // Paginate the results, 5 projects per page
         
            $sdgs = SDG::all();
         
@@ -373,15 +373,16 @@ class ProjectController extends Controller
         try {
             DB::beginTransaction();
 
-         // Handle file upload
+            Log::info('About to handle image upload');
+
+            // Initialize the variable outside the conditional to avoid reference issues
+            $projectimg = $project->projectimg;
+            
             if ($request->hasFile('image')) {
                 // Get the uploaded file and convert it to binary data
                 $file = $request->file('image');
                 $fileData = file_get_contents($file); // Convert the file to binary data
-
-                // Check if a project image record already exists for this project
-                $projectimg = $project->projectimg;
-
+            
                 if ($projectimg) {
                     // Update the existing project image with new binary data
                     $projectimg->update([
@@ -394,11 +395,12 @@ class ProjectController extends Controller
                         'project_id' => $project->id, // Associate with the project
                     ]);
                 }
+                Log::info('Image upload handled successfully');
             } else {
-                // Optionally, handle cases where no file is uploaded
-                return back()->with('error', 'No image file was uploaded.');
+                Log::info('No image file uploaded, proceeding without image');
             }
-
+           
+            $projectimgId = $projectimg ? $projectimg->id : $project->projectimg_id;
             // Update project details
             $project->update([
                 'title' => $request->title,
@@ -407,7 +409,7 @@ class ProjectController extends Controller
                 'review_status_id' => 4,
                 'is_publish' => 0,
                 'user_id' => $user->id, // Ensure the user_id remains the same
-                'projectimg_id' => $projectimg->id,
+                'projectimg_id' => $projectimgId,
                 'location_address' => $request->location_address,
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
@@ -417,7 +419,7 @@ class ProjectController extends Controller
             $project->sdg()->sync($request->sdg);
             $sdgs = $project->sdg()->pluck('name')->implode(', ');
             $publishStatus = $project->is_publish == 1 ? 'Published' : 'Draft';
-
+            Log::info('Project update handled successfully');
             RoleAction::create([
                 'content_id' => $project->id,           
                 'content_type' => Project::class,       

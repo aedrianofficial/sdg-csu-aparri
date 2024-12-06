@@ -71,7 +71,20 @@ class User extends Authenticatable
     {
         return $this->hasOne(UserImage::class, 'user_id');
     }
-
+    public function reports()
+    {
+        return $this->hasMany(Report::class);
+    }
+    
+    public function projects()
+    {
+        return $this->hasMany(Project::class);
+    }
+    
+    public function researches()
+    {
+        return $this->hasMany(Research::class);
+    }
     /**
      * Full address accessor to combine address fields into a readable format.
      *

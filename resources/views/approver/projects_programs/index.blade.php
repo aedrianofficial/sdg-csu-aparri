@@ -98,31 +98,31 @@
                                                 <th>SDG</th>
                                                 <th>Project Status</th>
                                                 <th>Review Status</th>
+                                                <th>Created At</th>
                                                 <th>Action</th>
+                                                <th></th>
+                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach ($projects as $project)
                                                 <tr>
-                                                    <td>{{ Str::limit($project->title, 15, '...') }}</td>
+                                                    <td>{{ $project->title }}</td>
                                                     <td>
                                                         <ul>
                                                             @foreach ($project->sdg as $sdg)
-                                                                <li>{{ Str::limit($sdg->name, 15, '...') }}</li>
+                                                                <li>{{ $sdg->name }}</li>
                                                             @endforeach
                                                         </ul>
                                                     </td>
-                                                    <td>{{ Str::limit($project->project_status, 15, '...') }}</td>
+                                                    <td>{{ $project->project_status }}</td>
                                                     <td>{{ $project->reviewStatus->status ?? 'N/A' }}</td>
+                                                    <td>{{ $project->created_at->format('F j, Y, g:i A') }}</td>
                                                     <td>
                                                         <a href="{{ route('approver.projects.show', $project->id) }}"
                                                             class="btn btn-sm btn-success">View</a>
-                                                        <button type="button" class="btn btn-sm btn-danger"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#rejectModal{{ $project->id }}">Reject</button>
-                                                        <button type="button" class="btn btn-sm btn-primary"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#approveModal{{ $project->id }}">Approve</button>
+                                                      
+                                                       
 
                                                         <!-- 'Reject' Modal -->
                                                         <div class="modal fade" id="rejectModal{{ $project->id }}"
@@ -195,6 +195,15 @@
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                    </td>
+                                                    <td>  <button type="button" class="btn btn-sm btn-danger"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#rejectModal{{ $project->id }}">Reject</button>
+                                                    </td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-sm btn-primary"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#approveModal{{ $project->id }}">Approve</button>
                                                     </td>
                                                 </tr>
                                             @endforeach

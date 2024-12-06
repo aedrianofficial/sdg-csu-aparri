@@ -56,6 +56,8 @@ Route::get('/analytics/sdg-comparison', [Analytics::class, 'getSdgComparisonData
 route::get('/analytics/my-review-activity', [Analytics::class, 'myReviewActivity'])->name('analytics.myReviewActivity');
 route::get('/analytics/my-approval-activity', [Analytics::class, 'myApprovalActivity'])->name('analytics.myApprovalActivity');
 route::get('/analytics/my-publish-activity', [Analytics::class, 'myPublishActivity'])->name('analytics.myPublishActivity');
+Route::get('/analytics/sdg-line-chart', [Analytics::class, 'getSdgLineChartData'])->name('analytics.sdgLineChart');
+
 
 Route::get('/research/{id}/file/download', [ResearchController::class, 'downloadFile'])->name('research.file.download');
 
@@ -375,10 +377,14 @@ Route::middleware(['auth', 'role:publisher', NoCache::class])->group(function(){
 });
 
 
-
+//User
 Route::middleware(NoCache::class)->group(function(){
     //website dashboard
     Route::get('/',[WebsiteController::class, 'home2',NoCache::class])->name('website.home2');
+
+    //Yearly Overview of SDG
+    Route::get('/yearly-overview', [WebsiteController::class, 'yearlyOverview'])->name('website.yearly_overview');
+    Route::get('sdg/{sdg}', [WebsiteController::class, 'display_sdg_content'])->name('website.display_sdg_content');
 
     //user profile
     Route::get('user/profile/show/{id}', [\App\Http\Controllers\User\ProfileController::class, 'show'])->name('user.profile.show');

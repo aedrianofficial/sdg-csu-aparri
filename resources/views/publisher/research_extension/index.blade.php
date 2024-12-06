@@ -119,27 +119,32 @@
                                                 <th>SDGs</th>
                                                 <th>Review Status</th>
                                                 <th>Research Status</th>
+                                                <th>Created At</th>
                                                 <th>Action</th>
+                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach ($researches as $research)
                                                 <tr>
-                                                    <td>{{ Str::limit($research->title, 15, '...') }}</td>
-                                                    <td>{{ Str::limit($research->researchcategory->name ?? 'N/A', 15, '...') }}
+                                                    <td>{{ $research->title }}</td>
+                                                    <td>{{ $research->researchcategory->name ?? 'N/A' }}
                                                     </td>
                                                     <td>
                                                         <ul>
                                                             @foreach ($research->sdg as $sdg)
-                                                                <li>{{ Str::limit($sdg->name, 15, '...') }}</li>
+                                                                <li>{{ $sdg->name }}</li>
                                                             @endforeach
                                                         </ul>
                                                     </td>
                                                     <td>{{ $research->reviewStatus->status ?? 'N/A' }}</td>
                                                     <td>{{ $research->research_status }}</td>
+                                                    <td>{{ $research->created_at->format('F j, Y, g:i A') }}</td>
                                                     <td>
                                                         <a href="{{ route('publisher.research.show', $research->id) }}"
                                                             class="btn btn-sm btn-success">View</a>
+                                                    </td>
+                                                    <td>
                                                         <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
                                                             data-bs-target="#publishModal"
                                                             data-id="{{ $research->id }}">Publish</button>

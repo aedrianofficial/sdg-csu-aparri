@@ -217,8 +217,6 @@
     <!--chart for review statuses of projects, reports, research-->
     <script>
         $(document).ready(function() {
-
-
             // Fetch and update chart data via AJAX
             function fetchReviewStatusData() {
                 $.ajax({
@@ -502,7 +500,6 @@
     </script>
 
     <!-- Chart for overall status of SDG projects, reports, research-->
-    <!-- Chart for overall status of SDG projects, reports, research-->
     <script>
         $(document).ready(function() {
             let combinedChart; // For the combined chart
@@ -640,7 +637,6 @@
             setInterval(fetchReviewStatusData, 30000);
         });
     </script>
-
 
     <!-- locator pin in the map for all projects-->
     <script>

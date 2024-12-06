@@ -108,22 +108,25 @@
                                                 <th>SDG</th>
                                                 <th>Project Status</th>
                                                 <th>Review Status</th>
+                                                <th>Created At</th>
                                                 <th>Action</th>
+                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach ($projects as $project)
                                                 <tr>
-                                                    <td>{{ Str::limit($project->title, 15, '...') }}</td>
+                                                    <td>{{ $project->title }}</td>
                                                     <td>
                                                         <ul class="list-unstyled mb-0">
                                                             @foreach ($project->sdg as $sdg)
-                                                                <li>{{ Str::limit($sdg->name, 15, '...') }}</li>
+                                                                <li>{{ $sdg->name }}</li>
                                                             @endforeach
                                                         </ul>
                                                     </td>
-                                                    <td>{{ Str::limit($project->project_status, 15, '...') }}</td>
+                                                    <td>{{ $project->project_status }}</td>
                                                     <td>{{ $project->reviewStatus->status ?? 'N/A' }}</td>
+                                                    <td>{{ $project->created_at->format('F j, Y, g:i A') }}</td>
                                                     <td>
                                                         @if ($project->reviewStatus->status === 'Need Changes')
                                                             <a href="{{ route('projects.need_changes', $project->id) }}"
@@ -141,11 +144,12 @@
                                                                 View
                                                             </a>
                                                         @endif
-                                                        <a href="{{ route('projects.edit', $project->id) }}"
+
+                                                    </td>
+                                                    <td> <a href="{{ route('projects.edit', $project->id) }}"
                                                             class="btn btn-sm btn-info">
                                                             Edit
-                                                        </a>
-                                                    </td>
+                                                        </a></td>
                                                 </tr>
                                             @endforeach
                                         </tbody>

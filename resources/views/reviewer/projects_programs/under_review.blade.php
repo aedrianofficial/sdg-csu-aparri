@@ -94,42 +94,54 @@
                                             <tr>
                                                 <th>Title</th>
                                                 <th>SDG</th>
-                                                <th>Project Status</ <th>Review Status</th>
+                                                <th>Project Status</th>
+                                                <th>Review Status</th>
+                                                <th>Created At</th>
                                                 <th>Action</th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach ($projects as $project)
                                                 <tr>
-                                                    <td>{{ Str::limit($project->title, 15, '...') }}</td>
+                                                    <td>{{ $project->title }}</td>
                                                     <td>
                                                         <ul>
                                                             @foreach ($project->sdg as $sdg)
-                                                                <li>{{ Str::limit($sdg->name, 15, '...') }}</li>
+                                                                <li>{{ $sdg->name }}</li>
                                                             @endforeach
                                                         </ul>
                                                     </td>
-                                                    <td>{{ Str::limit($project->project_status, 15, '...') }}</td>
+                                                    <td>{{ $project->project_status }}</td>
                                                     <td>{{ $project->reviewStatus->status ?? 'N/A' }}</td>
+                                                    <td>{{ $project->created_at->format('F j, Y, g:i A') }}</td>
                                                     <td>
                                                         <a href="{{ route('reviewer.projects.show', $project->id) }}"
                                                             class="btn btn-sm btn-success">View</a>
-                                                        <!-- Button for 'Need Changes' -->
+
+
+
+                                                        
+                                                    </td>
+                                                    <td><!-- Button for 'Need Changes' -->
                                                         <button type="button" class="btn btn-sm btn-secondary"
                                                             data-bs-toggle="modal"
-                                                            data-bs-target="#needChangesModal{{ $project->id }}">Need
+                                                            data-bs-target="#needChangesModal{{ $project->id }}">
                                                             Changes</button>
-
+                                                    </td>
+                                                    <td>
                                                         <!-- Button for 'Reject' -->
                                                         <button type="button" class="btn btn-sm btn-danger"
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#rejectModal{{ $project->id }}">Reject</button>
 
-                                                        <!-- Forward to Approver Button -->
+                                                    </td>
+                                                    <td><!-- Forward to Approver Button -->
                                                         <button type="button" class="btn btn-sm btn-primary"
                                                             data-bs-toggle="modal"
-                                                            data-bs-target="#confirmReviewModal{{ $project->id }}">Reviewed</button>
-                                                    </td>
+                                                            data-bs-target="#confirmReviewModal{{ $project->id }}">Reviewed</button></td>
                                                 </tr>
 
                                                 <!-- 'Reviewed' Modal -->

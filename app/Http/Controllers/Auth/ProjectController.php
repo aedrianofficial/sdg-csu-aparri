@@ -98,7 +98,7 @@ class ProjectController extends Controller
          }
      
          // Fetch the filtered list of projects and paginate
-         $projects = $query->with(['sdg', 'reviewStatus'])->paginate(5);
+         $projects = $query->with(['sdg', 'reviewStatus'])->orderBy('id', 'desc') ->paginate(5);
      
          // Fetch all SDGs for the filter dropdown
          $reviewStatuses = ReviewStatus::all();
@@ -135,7 +135,7 @@ class ProjectController extends Controller
          }
      
          // Fetch the filtered list of projects and paginate
-         $projects = $query->with(['sdg', 'reviewStatus'])->paginate(5);
+         $projects = $query->with(['sdg', 'reviewStatus'])->orderBy('id', 'desc')->paginate(5);
      
          // Fetch all SDGs for the filter dropdown
          $reviewStatuses = ReviewStatus::all();
@@ -346,7 +346,7 @@ class ProjectController extends Controller
      * Update the specified resource in storage.
      */
     public function update(Request $request, Project $project)
-    {
+    { Log::info('Starting project update for project ID: ' . $project->id);
         $request->validate([
             'title' => ['required', 'min:2', 'max:255'],
             'sdg' => ['required'],
@@ -364,7 +364,8 @@ class ProjectController extends Controller
     
         $user = Auth::user();
         $originalContributor = $project->user_id; // Keep the original contributor ID
-    
+        // Initialize $projectimg
+
         try {
             DB::beginTransaction();
     
@@ -380,14 +381,13 @@ class ProjectController extends Controller
             }
 
 
-                        // Handle file upload
+            Log::info('About to handle image upload');
+            $projectimg = $project->projectimg; // Initialize variable outside the conditional
+
             if ($request->hasFile('image')) {
                 // Get the uploaded file and convert it to binary data
                 $file = $request->file('image');
                 $fileData = file_get_contents($file); // Convert the file to binary data
-
-                // Check if a project image record already exists for this project
-                $projectimg = $project->projectimg;
 
                 if ($projectimg) {
                     // Update the existing project image with new binary data
@@ -401,13 +401,14 @@ class ProjectController extends Controller
                         'project_id' => $project->id, // Associate with the project
                     ]);
                 }
+                Log::info('Image upload handled successfully');
             } else {
-                // Optionally, handle cases where no file is uploaded
-                return back()->with('error', 'No image file was uploaded.');
+                Log::info('No image file uploaded, proceeding without image');
             }
 
 
     
+            // Continue with the project update
             $is_publish = $request->review_status_id == 3 ? 1 : ($request->is_publish ?? 0);
             $project->update([
                 'title' => $request->title,
@@ -415,11 +416,13 @@ class ProjectController extends Controller
                 'project_status' => $request->project_status,
                 'review_status_id' => $request->review_status_id ?? 4,
                 'is_publish' => $is_publish,
-                'projectimg_id' => $projectimg->id,
+                'projectimg_id' => $projectimg->id, // Use the existing or newly created image ID
                 'location_address' => $request->location_address,
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
             ]);
+
+            Log::info('Project update handled successfully');
     
             $project->sdg()->sync($request->sdg);
             $sdgs = $project->sdg()->pluck('name')->implode(', ');
@@ -447,7 +450,7 @@ class ProjectController extends Controller
                 'action' => $action
             ]);
     
-            DB::commit();
+       
     
             // Notification logic based on review_status_id
             $projectTitle = addslashes($project->title);
@@ -718,13 +721,14 @@ class ProjectController extends Controller
                     break;
                     
             }
-    
+            DB::commit();
+            Log::info('Project updated successfully: ' . $project->id);
             session()->flash('alert-success', 'Project/Program Updated Successfully!');
             return to_route('projects.index');
     
         } catch (\Exception $ex) {
             DB::rollBack();
-            Log::error('Update failed: ' . $ex->getMessage());
+            Log::error('Update failed for project ID: ' . $project->id . ' - Error: ' . $ex->getMessage());
             return back()->withErrors(['error' => $ex->getMessage()]);
         }
     }

@@ -13,6 +13,60 @@ use Illuminate\Support\Facades\Log;
 
 class Analytics extends Controller
 {
+    public function getSdgLineChartData(Request $request)
+    {
+        try {
+            // Get the year from the request, or default to current year
+            $year = $request->get('year', now()->year);
+    
+            // Months labels
+            $months = [
+                'January', 'February', 'March', 'April', 'May', 
+                'June', 'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+    
+            // Initialize arrays to hold data
+            $reportsData = [];
+            $projectsData = [];
+            $researchData = [];
+    
+            foreach (range(1, 12) as $month) {
+                // Count published reports, projects, and research for each month
+                $reportsCount = Report::whereYear('created_at', $year)
+                    ->whereMonth('created_at', $month)
+                    ->where('is_publish', 1)
+                    ->count();
+    
+                $projectsCount = Project::whereYear('created_at', $year)
+                    ->whereMonth('created_at', $month)
+                    ->where('is_publish', Project::Published)
+                    ->count();
+    
+                $researchCount = Research::whereYear('created_at', $year)
+                    ->whereMonth('created_at', $month)
+                    ->where('is_publish', 1)
+                    ->count();
+    
+                // Append counts to the respective arrays
+                $reportsData[] = $reportsCount;
+                $projectsData[] = $projectsCount;
+                $researchData[] = $researchCount;
+            }
+    
+            return response()->json([
+                'months' => $months,
+                'reportsData' => $reportsData,
+                'projectsData' => $projectsData,
+                'researchData' => $researchData,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching line chart data: ' . $e->getMessage());
+            return response()->json(['error' => 'Unable to fetch data'], 500);
+        }
+    }
+    
+
+
     public function reviewStatusAnalytics()
     {
         $totalProjects = Project::count();

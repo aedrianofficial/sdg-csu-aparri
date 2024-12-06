@@ -96,31 +96,29 @@
                                                 <th>SDG</th>
                                                 <th>Project Status</th>
                                                 <th>Review Status</th>
+                                                <th>Created At</th>
                                                 <th>Action</th>
+                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach ($projects as $project)
                                                 <tr>
-                                                    <td>{{ Str::limit($project->title, 15, '...') }}</td>
+                                                    <td>{{ $project->title }}</td>
                                                     <td>
                                                         <ul>
                                                             @foreach ($project->sdg as $sdg)
-                                                                <li>{{ Str::limit($sdg->name, 15, '...') }}</li>
+                                                                <li>{{ $sdg->name }}</li>
                                                             @endforeach
                                                         </ul>
                                                     </td>
-                                                    <td>{{ Str::limit($project->project_status, 15, '...') }}</td>
+                                                    <td>{{ $project->project_status }}</td>
                                                     <td>{{ $project->reviewStatus->status ?? 'N/A' }}</td>
+                                                    <td>{{ $project->created_at->format('F j, Y, g:i A') }}</td>
                                                     <td>
                                                         <a href="{{ route('publisher.projects.show', $project->id) }}"
                                                             class="btn btn-sm btn-success">View</a>
-                                                        <!-- Publish Button with Modal -->
-                                                        <button type="button" class="btn btn-success btn-sm"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#publishModal{{ $project->id }}">
-                                                            Publish
-                                                        </button>
+                                                       
 
                                                         <!-- Publish Confirmation Modal -->
                                                         <div class="modal fade" id="publishModal{{ $project->id }}"
@@ -154,6 +152,12 @@
                                                             </div>
                                                         </div>
                                                     </td>
+                                                    <td> <!-- Publish Button with Modal -->
+                                                        <button type="button" class="btn btn-primary btn-sm"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#publishModal{{ $project->id }}">
+                                                            Publish
+                                                        </button></td>
                                                 </tr>
                                             @endforeach
                                         </tbody>

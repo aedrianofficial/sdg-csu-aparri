@@ -18,6 +18,7 @@ use App\Models\Sdg;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 
 class ReportController extends Controller
@@ -84,7 +85,7 @@ class ReportController extends Controller
         }
     
         // Fetch the filtered list of reports and paginate with eager loading for related data
-        $reports = $query->with(['reportimg', 'sdg', 'reviewStatus'])->paginate(5);
+        $reports = $query->with(['reportimg', 'sdg', 'reviewStatus'])->orderBy('id', 'desc')->paginate(5);
 
         $reviewStatuses = ReviewStatus::whereNotIn('status', ['Need Changes', 'Rejected'])->get(); // Exclude specific statuses
         $sdgs = SDG::all();
@@ -122,7 +123,7 @@ class ReportController extends Controller
     }
 
     // Fetch the filtered list of rejected reports and paginate with eager loading for related data
-    $reports = $query->with(['reportimg', 'sdg',])->paginate(5);
+    $reports = $query->with(['reportimg', 'sdg',])->orderBy('id', 'desc')->paginate(5);
 
     // Fetch all SDGs for the filter dropdown
     $sdgs = SDG::all();
@@ -187,7 +188,7 @@ public function show_request_changes($id, Request $request)
             }
         
             // Fetch the filtered list of reports and paginate with eager loading for related data
-            $reports = $query->with(['reportimg', 'sdg', 'reviewStatus'])->paginate(5);
+            $reports = $query->with(['reportimg', 'sdg', 'reviewStatus'])->orderBy('id', 'desc')->paginate(5);
         
             // Fetch all SDGs for the filter dropdown
             $sdgs = SDG::all();
@@ -416,15 +417,15 @@ public function show_request_changes($id, Request $request)
     try {
         DB::beginTransaction();
 
-        // Handle file upload
+       // Handle file upload
+        Log::info('About to handle image upload');
+        $reportimg = $report->reportimg; // Initialize variable outside the conditional
+
         if ($request->hasFile('image')) {
             // Get the uploaded file and convert it to binary data
             $file = $request->file('image');
             $fileData = file_get_contents($file); // Convert the file to binary data
-        
-            // Check if a report image record already exists for this report
-            $reportimg = $report->reportimg;
-        
+
             if ($reportimg) {
                 // Update the existing report image with new binary data
                 $reportimg->update([
@@ -437,9 +438,9 @@ public function show_request_changes($id, Request $request)
                     'report_id' => $report->id, // Associate with the report
                 ]);
             }
+            Log::info('Image upload handled successfully');
         } else {
-            // Optionally, handle cases where no file is uploaded
-            return back()->with('error', 'No image file was uploaded.');
+            Log::info('No image file uploaded, proceeding without image');
         }
 
         // Fetch related title
@@ -456,14 +457,16 @@ public function show_request_changes($id, Request $request)
         $report->update([
             'title' => $request->title,
             'description' => $request->description,
-            'user_id' => $user->id,
-            'review_status_id' => 4,
-            'is_publish' => 0,
-            'reportimg_id' => $reportimg ? $reportimg->id : null,
+            'user_id' => $user->id, // Ensure the user_id remains the same
+            'review_status_id' => 4, // Default to 4
+            'is_publish' => 0, // Default to not published
+            'reportimg_id' => $reportimg ? $reportimg->id : $report->reportimg_id, // Use existing image ID if no new image is uploaded
             'related_type' => $request->related_type,
             'related_id' => $request->related_id,
-            'related_title' => $relatedTitle
+            'related_title' => $relatedTitle,
         ]);
+
+        Log::info('Report update handled successfully');
 
         $report->sdg()->sync($request->sdg);
         $sdgs = $report->sdg()->pluck('name')->implode(', ');

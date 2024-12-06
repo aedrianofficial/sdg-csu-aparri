@@ -25,7 +25,7 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <h4 class="card-title">My Research/Programs</h4>
+                     
 
                             <!-- Search and Filter Form -->
                             <form action="{{ route('research.my_research') }}" method="GET" class="mb-4">
@@ -131,24 +131,27 @@
                                                 <th> SDGs </th>
                                                 <th> Review Status </th>
                                                 <th> Research Status </th>
+                                                <th>Created At</th>
                                                 <th> Action </th>
+                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach ($researches as $research)
                                                 <tr>
-                                                    <td> {{ Str::limit($research->title, 15, '...') }} </td>
-                                                    <td> {{ Str::limit($research->researchcategory->name ?? 'N/A', 15, '...') }}
+                                                    <td> {{ $research->title }} </td>
+                                                    <td> {{ $research->researchcategory->name ?? 'N/A' }}
                                                     </td>
                                                     <td>
                                                         <ul>
                                                             @foreach ($research->sdg as $sdg)
-                                                                <li>{{ Str::limit($sdg->name, 15, '...') }}</li>
+                                                                <li>{{ $sdg->name }}</li>
                                                             @endforeach
                                                         </ul>
                                                     </td>
                                                     <td> {{ $research->reviewStatus->status ?? 'N/A' }} </td>
                                                     <td> {{ $research->research_status }} </td>
+                                                    <td>{{ $research->created_at->format('F j, Y, g:i A') }}</td>
                                                     <td>
                                                         @if ($research->reviewStatus && $research->reviewStatus->status === 'Need Changes')
                                                             <a href="{{ route('research.need_changes', $research->id) }}"
@@ -160,9 +163,10 @@
                                                             <a href="{{ route('research.show', $research->id) }}"
                                                                 class="btn btn-sm btn-success">View</a>
                                                         @endif
-                                                        <a href="{{ route('research.edit', $research->id) }}"
-                                                            class="btn btn-sm btn-info">Edit</a>
+
                                                     </td>
+                                                    <td> <a href="{{ route('research.edit', $research->id) }}"
+                                                            class="btn btn-sm btn-info">Edit</a></td>
                                                 </tr>
                                             @endforeach
                                         </tbody>

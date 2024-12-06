@@ -79,7 +79,7 @@ class ResearchController extends Controller
         }
     
         // Fetch the filtered list of researches and paginate the results
-        $researches = $query->paginate(5);
+        $researches = $query->orderBy('id', 'desc')->paginate(5);
     
         // Fetch all SDGs and review statuses for the filter dropdowns
         $reviewStatuses = ReviewStatus::all();
@@ -150,7 +150,7 @@ class ResearchController extends Controller
 
 
         // Execute the query and get the filtered reports
-        $researches = $query->with('user')->paginate(5); // Include user relation and paginate results
+        $researches = $query->with('user')->orderBy('id', 'desc')->paginate(5); // Include user relation and paginate results
     
         // Fetch all SDGs for the filter dropdown
         $researchCategories = Researchcategory::all();
@@ -204,7 +204,7 @@ class ResearchController extends Controller
 
 
         // Execute the query and get the filtered reports
-        $researches = $query->with('user')->paginate(5); // Include user relation and paginate results
+        $researches = $query->with('user')->orderBy('id', 'desc')->paginate(5); // Include user relation and paginate results
     
         // Fetch all SDGs for the filter dropdown
         $researchCategories = Researchcategory::all();
@@ -411,7 +411,7 @@ public function under_review(Request $request)
     }
 
     // Fetch the filtered list of researches and paginate the results
-    $researches = $query->paginate(5);
+    $researches = $query->orderBy('id', 'desc')->paginate(5);
 
     // Fetch all research categories and SDGs for the filter dropdowns
     $researchCategories = Researchcategory::all();

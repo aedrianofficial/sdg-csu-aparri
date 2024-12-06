@@ -73,7 +73,7 @@ class ProjectController extends Controller
         }
     
         // Execute the query and get the filtered reports
-        $projects = $query->with('user')->paginate(5); // Include user relation and paginate results
+        $projects = $query->with('user')->orderBy('id', 'desc')->paginate(5); // Include user relation and paginate results
     
         // Fetch all SDGs for the filter dropdown
         $sdgs = SDG::all();
@@ -191,7 +191,7 @@ class ProjectController extends Controller
         }
     
         // Fetch the filtered list of projects and paginate (5 projects per page)
-        $projects = $query->paginate(5);
+        $projects = $query->orderBy('id', 'desc')->paginate(5);
     
         // Fetch all SDGs for the filter dropdown
       
@@ -238,7 +238,7 @@ class ProjectController extends Controller
         }
     
         // Execute the query and get the filtered reports
-        $projectsPaginated = $query->with('user')->paginate(5); // Include user relation and paginate results
+        $projectsPaginated = $query->with('user')->orderBy('id', 'desc')->paginate(5); // Include user relation and paginate results
     
         // Fetch all SDGs for the filter dropdown
         $reviewStatuses = ReviewStatus::whereNotIn('status', ['Need Changes', 'Rejected','Pending Review'])->get(); // Exclude specific statuses

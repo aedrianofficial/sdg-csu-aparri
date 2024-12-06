@@ -94,22 +94,24 @@
                                                 <th>SDG</th>
                                                 <th>Project Status</th>
                                                 <th>Review Status</th>
+                                                <th>Created At</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach ($projectsPaginated as $project)
                                                 <tr>
-                                                    <td>{{ Str::limit($project->title, 15, '...') }}</td>
+                                                    <td>{{$project->title }}</td>
                                                     <td>
                                                         <ul>
                                                             @foreach ($project->sdg as $sdg)
-                                                                <li>{{ Str::limit($sdg->name, 15, '...') }}</li>
+                                                                <li>{{$sdg->name }}</li>
                                                             @endforeach
                                                         </ul>
                                                     </td>
-                                                    <td>{{ Str::limit($project->project_status, 15, '...') }}</td>
+                                                    <td>{{$project->project_status }}</td>
                                                     <td>{{ $project->reviewStatus->status ?? 'N/A' }}</td>
+                                                    <td>{{ $project->created_at->format('F j, Y, g:i A') }}</td>
                                                     <td>
                                                         <a href="{{ route('reviewer.projects.feedback_changes', $project->id) }}"
                                                             class="btn btn-sm btn-success">View</a>

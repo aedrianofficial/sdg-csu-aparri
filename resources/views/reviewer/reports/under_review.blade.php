@@ -82,45 +82,53 @@
                                                 <th>Status</th>
                                                 <th>Review Status</th>
                                                 <th>Project/Research</th>
-                                                <th>Item</th>
+                                                <th>Related Title</th>
+                                                <th>Created At</th>
                                                 <th>Action</th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach ($reports as $report)
                                                 <tr>
-                                                    <td>{{ Str::limit($report->title, 15, '...') }}</td>
+                                                    <td>{{ $report->title }}</td>
                                                     <td>
                                                         <ul>
                                                             @foreach ($report->sdg as $sdg)
-                                                                <li>{{ Str::limit($sdg->name, 15, '...') }}</li>
+                                                                <li>{{ $sdg->name }}</li>
                                                             @endforeach
                                                         </ul>
                                                     </td>
                                                     <td>{{ $report->is_publish == 1 ? 'Published' : 'Draft' }}</td>
                                                     <td>
-                                                        {{ $report->reviewStatus ? Str::limit($report->reviewStatus->status, 15, '...') : 'N/A' }}
+                                                        {{ $report->reviewStatus ? $report->reviewStatus->status : 'N/A' }}
                                                     </td>
                                                     <td>{{ ucfirst($report->related_type) }}</td>
-                                                    <td>{{ Str::limit($report->related_title, 15, '...') }}</td>
+                                                    <td>{{ $report->related_title }}</td>
+                                                    <td>{{ $report->created_at->format('F j, Y, g:i A') }}</td>
                                                     <td>
                                                         <a href="{{ route('reviewer.reports.show', $report->id) }}"
                                                             class="btn btn-sm btn-success">View</a>
-                                                        <!-- Button for 'Need Changes' -->
+                                                    </td>
+                                                    <td> <!-- Button for 'Need Changes' -->
                                                         <button type="button" class="btn btn-sm btn-secondary"
                                                             data-bs-toggle="modal"
-                                                            data-bs-target="#needChangesModal{{ $report->id }}">Need
+                                                            data-bs-target="#needChangesModal{{ $report->id }}">
                                                             Changes</button>
-
+                                                    </td>
+                                                    <td>
                                                         <!-- Button for 'Reject' -->
                                                         <button type="button" class="btn btn-sm btn-danger"
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#rejectModal{{ $report->id }}">Reject</button>
-
-                                                        <!-- Forward to Approver Button -->
-                                                        <button type="button" class="btn btn-sm btn-primary"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#confirmReviewModal{{ $report->id }}">Reviewed</button>
+                                                    </td>
+                                                    <td>
+                                                          <!-- Forward to Approver Button -->
+                                                          <button type="button" class="btn btn-sm btn-primary"
+                                                          data-bs-toggle="modal"
+                                                          data-bs-target="#confirmReviewModal{{ $report->id }}">Reviewed</button>
                                                     </td>
                                                 </tr>
 

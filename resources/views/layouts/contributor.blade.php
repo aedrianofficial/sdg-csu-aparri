@@ -343,7 +343,7 @@
 
                         <li class="nav-item">
                             <a href="{{ route('contributor.dashboard') }}" class="nav-link">
-                                <i class="nav-icon bi bi-palette"></i>
+                                <i class="nav-icon bi bi-house-door"></i> <!-- Changed to home icon -->
                                 <p>Dashboard</p>
                             </a>
                         </li>
@@ -351,7 +351,7 @@
                         <li class="nav-item {{ request()->routeIs('contributor.projects.*') ? 'menu-open' : '' }}">
                             <a href="#"
                                 class="nav-link {{ request()->routeIs('contributor.projects.*') ? 'active' : '' }}">
-                                <i class="nav-icon bi bi-box-seam-fill"></i>
+                                <i class="nav-icon bi bi-briefcase"></i> <!-- Changed to briefcase icon -->
                                 <p>
                                     Projects/Programs
                                     <i class="nav-arrow bi bi-chevron-right"></i>
@@ -361,28 +361,28 @@
                                 <li class="nav-item">
                                     <a href="{{ route('contributor.projects.create') }}"
                                         class="nav-link {{ request()->routeIs('contributor.projects.create') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                        <i class="nav-icon bi bi-plus-circle"></i> <!-- Changed to plus icon -->
                                         <p>Create Project</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('contributor.projects.index') }}"
                                         class="nav-link {{ request()->routeIs('contributor.projects.index') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
-                                        <p>Projects</p>
+                                        <i class="nav-icon bi bi-person-lines-fill"></i><!-- Changed to list icon -->
+                                        <p>My Projects</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('contributor.projects.request_changes') }}"
                                         class="nav-link {{ request()->routeIs('contributor.projects.request_changes') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                        <i class="nav-icon bi bi-pencil"></i> <!-- Changed to pencil icon -->
                                         <p>Need Changes</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('contributor.projects.rejected') }}"
                                         class="nav-link {{ request()->routeIs('contributor.projects.rejected') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                        <i class="nav-icon bi bi-x-circle"></i> <!-- Changed to reject icon -->
                                         <p>Rejected</p>
                                     </a>
                                 </li>
@@ -392,7 +392,7 @@
                         <li class="nav-item {{ request()->routeIs('contributor.reports.*') ? 'menu-open' : '' }}">
                             <a href="#"
                                 class="nav-link {{ request()->routeIs('contributor.reports.*') ? 'active' : '' }}">
-                                <i class="nav-icon bi bi-box-seam-fill"></i>
+                                <i class="nav-icon bi bi-file-earmark-bar-graph"></i> <!-- Changed to reports icon -->
                                 <p>
                                     Reports
                                     <i class="nav-arrow bi bi-chevron-right"></i>
@@ -402,28 +402,28 @@
                                 <li class="nav-item">
                                     <a href="{{ route('contributor.reports.create') }}"
                                         class="nav-link {{ request()->routeIs('contributor.reports.create') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                        <i class="nav-icon bi bi-plus-circle"></i> <!-- Changed to plus icon -->
                                         <p>Create Report</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('contributor.reports.index') }}"
                                         class="nav-link {{ request()->routeIs('contributor.reports.index') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
-                                        <p>Reports</p>
+                                        <i class="nav-icon bi bi-person-lines-fill"></i> <!-- Changed to list icon -->
+                                        <p>My Reports</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('contributor.reports.request_changes') }}"
                                         class="nav-link {{ request()->routeIs('reports.request_changes') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                        <i class="nav-icon bi bi-pencil"></i> <!-- Changed to pencil icon -->
                                         <p>Need Changes</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('contributor.reports.rejected') }}"
                                         class="nav-link {{ request()->routeIs('contributor.reports.rejected') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                        <i class="nav-icon bi bi-x-circle"></i> <!-- Changed to reject icon -->
                                         <p>Rejected</p>
                                     </a>
                                 </li>
@@ -433,7 +433,7 @@
                         <li class="nav-item {{ request()->routeIs('contributor.research.*') ? 'menu-open' : '' }}">
                             <a href="#"
                                 class="nav-link {{ request()->routeIs('contributor.research.*') ? 'active' : '' }}">
-                                <i class="nav-icon bi bi-box-seam-fill"></i>
+                                <i class="nav-icon bi bi-journal-text"></i> <!-- Changed to journal icon -->
                                 <p>
                                     Research & Extension
                                     <i class="nav-arrow bi bi-chevron-right"></i>
@@ -443,42 +443,45 @@
                                 <li class="nav-item">
                                     <a href="{{ route('contributor.research.create') }}"
                                         class="nav-link {{ request()->routeIs('contributor.research.create') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                        <i class="nav-icon bi bi-plus-circle"></i> <!-- Changed to plus icon -->
                                         <p>Create Research</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('contributor.research.index') }}"
                                         class="nav-link {{ request()->routeIs('contributor.research.index') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
-                                        <p>Researches</p>
+                                        <i class="nav-icon bi bi-person-lines-fill"></i>
+                                        <p>My Researches</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('contributor.research.request_changes') }}"
                                         class="nav-link {{ request()->routeIs('contributor.research.request_changes') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                        <i class="nav-icon bi bi-pencil"></i> <!-- Changed to pencil icon -->
                                         <p>Need Changes</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('contributor.research.rejected') }}"
                                         class="nav-link {{ request()->routeIs('contributor.research.rejected') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-circle"></i>
+                                        <i class="nav-icon bi bi-x-circle"></i> <!-- Changed to reject icon -->
                                         <p>Rejected</p>
                                     </a>
                                 </li>
                             </ul>
                         </li>
+
                         <li class="nav-item">
                             <a href="{{ route('contributor.activity_logs') }}" class="nav-link">
-                                <i class="nav-icon bi bi-palette"></i>
+                                <i class="nav-icon bi bi-clock"></i> <!-- Changed to clock icon -->
                                 <p>Activity Logs</p>
                             </a>
                         </li>
                     </ul> <!--end::Sidebar Menu-->
                 </nav>
-            </div> <!--end::Sidebar Wrapper-->
+            </div>
+            <!--end::Sidebar Wrapper-->
+
         </aside> <!--end::Sidebar-->
         <!--end::Sidebar--> <!--begin::App Main-->
 

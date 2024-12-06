@@ -98,26 +98,29 @@
                                                 <th>Status</th>
                                                 <th>Review Status</th>
                                                 <th>Project/Research</th>
-                                                <th>Item</th>
+                                                <th>Related Title</th>
+                                                <th>Created At</th>
                                                 <th>Action</th>
+                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach ($reports as $report)
                                                 <tr>
-                                                    <td>{{ Str::limit($report->title, 15, '...') }}</td>
+                                                    <td>{{ $report->title }}</td>
                                                     <td>
                                                         <ul>
                                                             @foreach ($report->sdg as $sdg)
-                                                                <li>{{ Str::limit($sdg->name, 15, '...') }}</li>
+                                                                <li>{{ $sdg->name }}</li>
                                                             @endforeach
                                                         </ul>
                                                     </td>
                                                     <td>{{ $report->is_publish == 1 ? 'Published' : 'Draft' }}</td>
-                                                    <td>{{ $report->reviewStatus ? Str::limit($report->reviewStatus->status, 15, '...') : 'N/A' }}
+                                                    <td>{{ $report->reviewStatus ? $report->reviewStatus->status : 'N/A' }}
                                                     </td>
                                                     <td>{{ ucfirst($report->related_type) }}</td>
-                                                    <td>{{ Str::limit($report->related_title, 15, '...') }}</td>
+                                                    <td>{{ $report->related_title }}</td>
+                                                    <td>{{ $report->created_at->format('F j, Y, g:i A') }}</td>
                                                     <td>
                                                         @if ($report->reviewStatus && $report->reviewStatus->status === 'Need Changes')
                                                             <a href="{{ route('reports.need_changes', $report->id) }}"
@@ -135,9 +138,10 @@
                                                                 View
                                                             </a>
                                                         @endif
-                                                        <a href="{{ route('reports.edit', $report->id) }}"
-                                                            class="btn btn-sm btn-info">Edit</a>
+                                             
                                                     </td>
+                                                    <td>           <a href="{{ route('reports.edit', $report->id) }}"
+                                                        class="btn btn-sm btn-info">Edit</a></td>
                                                 </tr>
                                             @endforeach
                                         </tbody>

@@ -74,7 +74,7 @@ class ReportController extends Controller
         }
     
         // Execute the query and get the filtered reports
-        $reports = $query->with('user')->paginate(5); // Include user relation and paginate results
+        $reports = $query->with('user')->orderBy('id', 'desc')->paginate(5); // Include user relation and paginate results
     // Fetch review statuses excluding specific ones for filtering dropdowns
     $reviewStatuses = ReviewStatus::whereNotIn('status', ['Need Changes', 'Rejected', 'Pending Review'])->get();
 
@@ -307,7 +307,7 @@ class ReportController extends Controller
         }
     
         // Execute the query and get the filtered reports
-        $reportsPaginated = $query->with('user')->paginate(5); // Include user relation and paginate results
+        $reportsPaginated = $query->with('user')->orderBy('id', 'desc')->paginate(5); // Include user relation and paginate results
     
         // Fetch all SDGs for the filter dropdown
         $sdgs = SDG::all();
@@ -357,7 +357,7 @@ class ReportController extends Controller
         }
     
         // Execute the query and get the filtered reports
-        $reportsPaginated = $query->with('user')->paginate(5); // Include user relation and paginate results
+        $reportsPaginated = $query->with('user')->orderBy('id', 'desc')->paginate(5); // Include user relation and paginate results
     
         // Fetch all SDGs for the filter dropdown
         $sdgs = SDG::all();
@@ -395,7 +395,7 @@ class ReportController extends Controller
         }
     
         // Fetch the filtered list of reports and paginate with eager loading for related data
-        $reports = $query->with(['reportimg', 'sdg', 'reviewStatus', 'user'])->paginate(5);
+        $reports = $query->with(['reportimg', 'sdg', 'reviewStatus', 'user'])->orderBy('id', 'desc')->paginate(5);
     
         // Fetch all SDGs for the filter dropdown
         $sdgs = SDG::all();

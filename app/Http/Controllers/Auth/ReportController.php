@@ -105,7 +105,7 @@ class ReportController extends Controller
         }
     
         // Fetch the filtered list of reports and paginate with eager loading
-        $reports = $query->with(['reportimg', 'sdg', 'reviewStatus'])->paginate(5);
+        $reports = $query->with(['reportimg', 'sdg', 'reviewStatus'])->orderBy('id', 'desc')->paginate(5);
     
         // Fetch all review statuses and SDGs for the filter dropdowns
         $reviewStatuses = ReviewStatus::all();
@@ -143,7 +143,7 @@ class ReportController extends Controller
     }
 
     // Fetch the filtered list of reports and paginate with eager loading
-    $reports = $query->with(['reportimg', 'sdg', 'reviewStatus'])->paginate(5);
+    $reports = $query->with(['reportimg', 'sdg', 'reviewStatus'])->orderBy('id', 'desc')->paginate(5);
 
     // Fetch all review statuses and SDGs for the filter dropdowns
     $reviewStatuses = ReviewStatus::all();
@@ -418,15 +418,15 @@ class ReportController extends Controller
                 // Then attach to the research
                 $report->feedbacks()->syncWithoutDetaching($feedback->id);                
             }
-            //Update image
+            // Initialize reportimg variable outside the conditional to use it later
+            $reportimg = $report->reportimg; 
+
+            // Check if an image file has been uploaded
             if ($request->hasFile('image')) {
                 // Get the uploaded file and convert it to binary data
                 $file = $request->file('image');
                 $fileData = file_get_contents($file); // Convert the file to binary data
-            
-                // Check if a report image record already exists for this report
-                $reportimg = $report->reportimg;
-            
+
                 if ($reportimg) {
                     // Update the existing report image with new binary data
                     $reportimg->update([
@@ -440,8 +440,8 @@ class ReportController extends Controller
                     ]);
                 }
             } else {
-                // Optionally, handle cases where no file is uploaded
-                return back()->with('error', 'No image file was uploaded.');
+                // If no image file is uploaded, the existing reportimg remains unchanged
+                Log::info('No image file uploaded, proceeding without image update');
             }
             
 
@@ -466,7 +466,7 @@ class ReportController extends Controller
                 'related_title' => $relatedTitle,
                 'review_status_id' => $request->review_status_id ?? 4, // Use the provided review_status_id or default to 4
                 'is_publish' => $is_publish, // Set is_publish based on review status
-                'reportimg_id' => $reportimg->id,
+                'reportimg_id' => $reportimg ? $reportimg->id : null, // Ensure the image is linked correctly if present
             ]);
     
             // Sync SDGs

@@ -100,27 +100,29 @@
                                                 <th>Status</th>
                                                 <th>Review Status</th>
                                                 <th>Project/Research</th>
-                                                <th>Item</th>
+                                                <th>Related Title</th>
+                                                <th>Created At</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach ($reports as $report)
                                                 <tr>
-                                                    <td>{{ Str::limit($report->title, 15, '...') }}</td>
+                                                    <td>{{ $report->title }}</td>
                                                     <td>
                                                         <ul>
                                                             @foreach ($report->sdg as $sdg)
-                                                                <li>{{ Str::limit($sdg->name, 15, '...') }}</li>
+                                                                <li>{{ $sdg->name }}</li>
                                                             @endforeach
                                                         </ul>
                                                     </td>
                                                     <td>{{ $report->is_publish == 1 ? 'Published' : 'Draft' }}</td>
                                                     <td>
-                                                        {{ $report->reviewStatus ? Str::limit($report->reviewStatus->status, 15, '...') : 'N/A' }}
+                                                        {{ $report->reviewStatus ? $report->reviewStatus->status : 'N/A' }}
                                                     </td>
                                                     <td>{{ ucfirst($report->related_type) }}</td>
-                                                    <td>{{ Str::limit($report->related_title, 15, '...') }}</td>
+                                                    <td>{{ $report->related_title }}</td>
+                                                    <td>{{ $report->created_at->format('F j, Y, g:i A') }}</td>
                                                     <td>
                                                         <a href="{{ route('contributor.reports.show', $report->id) }}"
                                                             class="btn btn-sm btn-success">View</a>
