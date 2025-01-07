@@ -9,7 +9,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('contributor.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             My Reports
                         </li>
@@ -134,32 +134,33 @@
                             </div>
                             <div class="container">
                                 <!-- Custom Pagination Links -->
-                                <nav aria-label="Page navigation example">
+                                <nav aria-label="Page navigation">
                                     <ul class="pagination justify-content-center">
                                         <!-- Previous Button -->
                                         <li class="page-item {{ $reports->onFirstPage() ? 'disabled' : '' }}">
-                                            <a class="page-link" href="{{ $reports->previousPageUrl() }}"
+                                            <a class="page-link"
+                                                href="{{ $reports->previousPageUrl() . '&' . http_build_query(request()->except('page')) }}"
                                                 tabindex="-1">Previous</a>
                                         </li>
 
                                         <!-- Page Number Links -->
                                         @php
-                                            $currentPage = $reports->currentPage(); // Current page number
-                                            $lastPage = $reports->lastPage(); // Last page number
-                                            $start = max($currentPage - 1, 1); // Calculate start of the visible page items
-                                            $end = min($start + 2, $lastPage); // Calculate end of the visible page items
+                                            $currentPage = $reports->currentPage();
+                                            $lastPage = $reports->lastPage();
+                                            $start = max($currentPage - 1, 1);
+                                            $end = min($start + 2, $lastPage);
                                         @endphp
-
                                         @for ($i = $start; $i <= $end; $i++)
                                             <li class="page-item {{ $currentPage == $i ? 'active' : '' }}">
                                                 <a class="page-link"
-                                                    href="{{ $reports->url($i) }}">{{ $i }}</a>
+                                                    href="{{ $reports->url($i) . '&' . http_build_query(request()->except('page')) }}">{{ $i }}</a>
                                             </li>
                                         @endfor
 
                                         <!-- Next Button -->
                                         <li class="page-item {{ $reports->hasMorePages() ? '' : 'disabled' }}">
-                                            <a class="page-link" href="{{ $reports->nextPageUrl() }}">Next</a>
+                                            <a class="page-link"
+                                                href="{{ $reports->nextPageUrl() . '&' . http_build_query(request()->except('page')) }}">Next</a>
                                         </li>
                                     </ul>
                                 </nav>

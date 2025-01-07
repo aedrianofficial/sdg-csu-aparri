@@ -9,7 +9,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('contributor.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             View Research
                         </li>
@@ -107,15 +107,34 @@
                                         readonly>
                                 </div>
 
-                                <!-- SDGs -->
-                                <div class="mb-3">
+                                   <!-- SDGs -->
+                                   <div class="mb-3">
                                     <label for="sdg" class="form-label">SDGs:</label>
                                     <textarea name="sdg" id="sdg" cols="30" rows="3" class="form-control" readonly>
-                                        @foreach ($research->sdg as $sdg)
+@foreach ($research->sdg as $sdg)
 {{ $sdg->name }}
 @endforeach
-                                    </textarea>
+</textarea>
                                 </div>
+                               <!-- SDG Sub Categories -->
+                               <div class="mb-3">
+                                <label for="sdg_sub_categories" class="form-label">SDG Targets:</label>
+                                <textarea name="sdg_sub_categories" id="sdg_sub_categories" cols="30" rows="5" class="form-control" readonly>
+    @if ($research->sdgSubCategories->isEmpty())
+No SDG Targets available.
+@else
+@foreach ($research->sdgSubCategories as $subCategory)
+{{ $subCategory->sub_category_name }} {{ $subCategory->sub_category_description }}
+@endforeach
+@endif
+</textarea>
+                                <p>
+                                    Source: <a
+                                        href="https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf"
+                                        target="_blank">https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf</a>
+                                </p>
+                            </div>
+             
 
                                 <!-- Description -->
                                 <div class="mb-3">
@@ -133,7 +152,7 @@
                                 <div class="mb-3">
                                     <label for="research_status" class="form-label">Research Status:</label>
                                     <input type="text" name="research_status" id="research_status" class="form-control"
-                                        value="{{ $research->research_status ?? 'N/A' }}" readonly>
+                                        value="{{  $research->status->status ?? 'N/A' }}" readonly>
                                 </div>
 
                                 <!-- Publish Status -->
@@ -168,7 +187,15 @@
                                         @endforeach
                                     @endif
                                 </div>
-
+                                @if ($research->file_link)
+                                    <div class="mb-3">
+                                        <label for="file_link" class="form-label">Full Version File:</label>
+                                        <a href="{{ $research->file_link }}"
+                                            target="_blank">{{ $research->file_link }}</a>
+                                    </div>
+                                @else
+                                    <p>Full Version File: No file link available.</p>
+                                @endif
                                 <!-- Created By -->
                                 <div class="mb-3">
                                     <label for="created_by" class="form-label">Created by:</label>

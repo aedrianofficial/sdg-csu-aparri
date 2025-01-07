@@ -24,7 +24,6 @@ class ProjectRequest extends FormRequest
         return [
             'title' => ['required', 'min:2', 'max:255'],
             'sdg' => ['required'],
-            'project_status' => ['required', 'in:Proposed,On-Going,On-Hold,Completed,Rejected'],
             'is_publish' => ['nullable'],
             'image' => 'required|image|mimes:png,jpg,jpeg,gif,svg,webp|max:2048', // 2 MB max file size
             'description' => ['required', 'min:10'],

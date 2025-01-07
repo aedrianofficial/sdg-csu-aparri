@@ -8,6 +8,8 @@ use App\Models\Report;
 use App\Models\Research;
 use App\Models\Researchcategory;
 use App\Models\Sdg;
+use App\Models\StatusReport;
+use App\Models\TerminalReport;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
@@ -15,95 +17,194 @@ use Illuminate\Support\Facades\Log;
 
 class WebsiteController extends Controller
 {
+
+   
+
+    public function projectsByCoordinates($latitude, $longitude)
+{
+    // Fetch published projects based on the given coordinates
+    $projects = Project::where('is_publish', 1)
+        ->where('latitude', $latitude)
+        ->where('longitude', $longitude)
+        ->orderBy('id', 'desc')
+        ->paginate(6);
+
+  // Get the address of the first project, if available
+    $address = $projects->first()->location_address ?? 'Address not available';
+
+    // Fetch SDGs with the count of published projects
+    $sdgs = Sdg::withCount([
+        'project' => function ($query) {
+            $query->where('is_publish', 1);
+        }
+    ])->get();
+
+    return view('website.sdg_content.projects_programs.projects_by_coordinates', [
+        'projects' => $projects,
+        'latitude' => $latitude,
+        'longitude' => $longitude,
+        'address' => $address,
+        'sdgs' => $sdgs
+    ]);
+}
+
     //Yearly Overview
     public function yearlyOverview(Request $request)
-{
-    $year = $request->get('year', date('Y'));
+    {
+        $year = $request->get('year', date('Y'));
+    
+        // Total Published Counts for the year
+        $totalPublishedStatusReports = StatusReport::whereYear('created_at', $year)
+            ->where('is_publish', StatusReport::Published)
+            ->count();
+    
+        $totalPublishedTerminalReports = TerminalReport::whereYear('created_at', $year)
+            ->where('is_publish', TerminalReport::Published)
+            ->count();
+    
+        $totalPublishedProjects = Project::whereYear('created_at', $year)
+            ->where('is_publish', Project::Published)
+            ->count();
+    
+        $totalPublishedResearch = Research::whereYear('created_at', $year)
+            ->where('is_publish', Research::Published)
+            ->count();
+    
+      // Fetch SDGs with the count of related projects, status reports, terminal reports, and research for the year
+        $sdgs = Sdg::withCount([
+            'project' => fn ($query) => $query->whereYear('projects.created_at', $year)->where('projects.is_publish', Project::Published),
+            'research' => fn ($query) => $query->whereYear('research.created_at', $year)->where('research.is_publish', Research::Published),
+        ])->get()->map(function ($sdg) use ($year) {
+            // Count status reports related to the SDG for the specified year
+            $statusReportCount = StatusReport::where('is_publish', 1)
+                ->whereYear('created_at', $year) // Filter by created_at year
+                ->where(function ($query) use ($sdg) {
+                    $query->where('related_type', 'App\Models\Project')
+                        ->whereHas('related', function ($query) use ($sdg) {
+                            $query->whereHas('sdg', function ($query) use ($sdg) {
+                                $query->where('sdgs.id', $sdg->id);
+                            });
+                        })
+                        ->orWhere(function ($query) use ($sdg) {
+                            $query->where('related_type', 'App\Models\Research')
+                                ->whereHas('related', function ($query) use ($sdg) {
+                                    $query->whereHas('sdg', function ($query) use ($sdg) {
+                                        $query->where('sdgs.id', $sdg->id);
+                                    });
+                                });
+                        });
+                })->count();
 
-    // Total Published Counts for the year
-    $totalPublishedReports = Report::whereYear('created_at', $year)->where('is_publish', Report::Published)->count();
-    $totalPublishedProjects = Project::whereYear('created_at', $year)->where('is_publish', Project::Published)->count();
-    $totalPublishedResearch = Research::whereYear('created_at', $year)->where('is_publish', Research::Published)->count();
+    // Count terminal reports related to the SDG for the specified year
+    $terminalReportCount = TerminalReport::where('is_publish', 1)
+        ->whereYear('created_at', $year) // Filter by created_at year
+        ->where(function ($query) use ($sdg) {
+            $query->where('related_type', 'App\Models\Project')
+                ->whereHas('related', function ($query) use ($sdg) {
+                    $query->whereHas('sdg', function ($query) use ($sdg) {
+                        $query->where('sdgs.id', $sdg->id);
+                    });
+                })
+                ->orWhere(function ($query) use ($sdg) {
+                    $query->where('related_type', 'App\Models\Research')
+                        ->whereHas('related', function ($query) use ($sdg) {
+                            $query->whereHas('sdg', function ($query) use ($sdg) {
+                                $query->where('sdgs.id', $sdg->id);
+                            });
+                        });
+                });
+        })->count();
 
-    // Fetch SDGs with the count of related projects, reports, and research for the year
-    $sdgs = Sdg::withCount([
-        'project' => fn ($query) => $query->whereYear('projects.created_at', $year)->where('projects.is_publish', Project::Published),
-        'report' => fn ($query) => $query->whereYear('reports.created_at', $year)->where('reports.is_publish', Report::Published),
-        'research' => fn ($query) => $query->whereYear('research.created_at', $year)->where('research.is_publish', Research::Published),
-    ])->get()->map(function ($sdg) {
-        $sdg->total_count = $sdg->project_count + $sdg->report_count + $sdg->research_count;
-        return $sdg;
-    });
-
-    // Most Popular SDGs
-    $popularReportSdg = Sdg::withCount(['report' => fn ($query) => $query->whereYear('reports.created_at', $year)->where('reports.is_publish', Report::Published)])
-        ->orderBy('report_count', 'desc')->first();
-
-    $popularProjectSdg = Sdg::withCount(['project' => fn ($query) => $query->whereYear('projects.created_at', $year)->where('projects.is_publish', Project::Published)])
-        ->orderBy('project_count', 'desc')->first();
-
-    $popularResearchSdg = Sdg::withCount(['research' => fn ($query) => $query->whereYear('research.created_at', $year)->where('research.is_publish', Research::Published)])
-        ->orderBy('research_count', 'desc')->first();
-
-    // Top Contributors (at least one contribution in projects, or non-zero contributions overall)
-    $topContributors = User::withCount([
-        'reports' => fn ($query) => $query->whereYear('created_at', $year)->where('is_publish', 1),
-        'projects' => fn ($query) => $query->whereYear('created_at', $year)->where('is_publish', 1),
-        'researches' => fn ($query) => $query->whereYear('created_at', $year)->where('is_publish', 1),
-    ])
-        ->havingRaw('projects_count > 0 OR (reports_count + researches_count) > 0') // Ensure at least one project OR contributions in other categories
-        ->orderByDesc('reports_count')
+    // Calculate total count for the SDG
+    $sdg->total_count = $sdg->project_count + $statusReportCount + $terminalReportCount + $sdg->research_count;
+    return $sdg;
+});
+    
+      
+    
+        // Most Popular SDG for Projects
+        $popularProjectSdg = Sdg::withCount(['project' => fn ($query) => $query->whereYear('projects.created_at', $year)->where('projects.is_publish', Project::Published)])
+            ->orderBy('project_count', 'desc')->first();
+    
+        // Most Popular SDG for Research
+       
+        $popularResearchSdg = Sdg::withCount(['research' => fn ($query) => $query->whereYear('research.created_at', $year)->where('research.is_publish', Research::Published)])
+            ->orderBy('research_count', 'desc')->first();
+    
+       // Top Contributor for Projects
+        $topContributorForProjects = User::withCount([
+            'projects' => fn ($query) => $query->whereYear('created_at', $year)->where('is_publish', 1),
+        ])
+        ->having('projects_count', '>', 0) // Only get users with more than 0 projects
         ->orderByDesc('projects_count')
-        ->take(3)
-        ->get();
+        ->first();
 
-    // Return response for AJAX
-    if ($request->ajax()) {
-        $html = view('website.sdg_content.yearly_overview.partial', compact(
-            'totalPublishedReports', 'totalPublishedProjects', 'totalPublishedResearch',
-            'popularReportSdg', 'popularProjectSdg', 'popularResearchSdg',
-            'topContributors', 'sdgs','year'
-        ))->render();
+        // Top Contributor for Research
+        $topContributorForResearch = User::withCount([
+            'researches' => fn ($query) => $query->whereYear('created_at', $year)->where('is_publish', 1),
+        ])
+        ->having('researches_count', '>', 0) // Only get users with more than 0 researches
+        ->orderByDesc('researches_count')
+        ->first();
 
-        return response()->json(['html' => $html]);
+        // Top Contributor for Status Reports
+        $topContributorForStatusReports = User::withCount([
+            'statusReports' => fn ($query) => $query->whereYear('created_at', $year)->where('is_publish', 1),
+        ])
+        ->having('status_reports_count', '>', 0) // Only get users with more than 0 status reports
+        ->orderByDesc('status_reports_count')
+        ->first();
+    
+        // Top Contributor for Terminal Reports
+        $topContributorForTerminalReports = User::withCount([
+            'terminalReports' => fn ($query) => $query->whereYear('created_at', $year)->where('is_publish', 1),
+        ])
+        ->having('terminal_reports_count', '>', 0) // Only get users with more than 0 reports
+        ->orderByDesc('terminal_reports_count')
+        ->first();
+    
+        // Return response for AJAX
+        if ($request->ajax()) {
+            $html = view('website.sdg_content.yearly_overview.partial', compact(
+                'totalPublishedStatusReports', 'totalPublishedTerminalReports', 'totalPublishedProjects', 'totalPublishedResearch',
+                 'popularProjectSdg', 'popularResearchSdg',
+                'topContributorForProjects', 'topContributorForResearch', 'topContributorForStatusReports', 'topContributorForTerminalReports', 'sdgs', 'year'
+            ))->render();
+    
+            return response()->json(['html' => $html]);
+        }
+    
+        // Default view for non-AJAX request
+        return view('website.sdg_content.yearly_overview.index', compact(
+            'totalPublishedStatusReports', 'totalPublishedTerminalReports', 'totalPublishedProjects', 'totalPublishedResearch',
+             'popularProjectSdg', 'popularResearchSdg',
+            'topContributorForProjects', 'topContributorForResearch', 'topContributorForStatusReports', 'topContributorForTerminalReports', 'sdgs', 'year'
+        ));
     }
 
-    // Default view for non-AJAX request
-    return view('website.sdg_content.yearly_overview.index', compact(
-        'totalPublishedReports', 'totalPublishedProjects', 'totalPublishedResearch',
-        'popularReportSdg', 'popularProjectSdg', 'popularResearchSdg',
-        'topContributors', 'sdgs', 'year'
-    ));
-    }
     public function display_sdg_content(Sdg $sdg, Request $request)
     {
         try {
             Log::info('Request Data:', $request->all());
             $year = $request->get('year', date('Y'));
         
-            // Fetch SDGs with the count of related projects, reports, and research for the year
+            // Fetch SDGs with the count of related projects and research for the year
             $sdgs = Sdg::withCount([
                 'project' => fn ($query) => $query->whereYear('projects.created_at', $year)->where('projects.is_publish', Project::Published),
-                'report' => fn ($query) => $query->whereYear('reports.created_at', $year)->where('reports.is_publish', Report::Published),
                 'research' => fn ($query) => $query->whereYear('research.created_at', $year)->where('research.is_publish', Research::Published),
             ])->get()->map(function ($sdg) {
-                $sdg->total_count = $sdg->project_count + $sdg->report_count + $sdg->research_count;
+                $sdg->total_count = $sdg->project_count + $sdg->research_count; // Removed report_count
                 return $sdg;
             });
         
-            // Fetch paginated published reports for the selected SDG and year
-            $reports = $sdg->report()
-                ->where('is_publish', 1)
-                ->whereYear('reports.created_at', $year)
-                ->orderBy('id', 'desc')
-                ->paginate(4);
-        
+            // Fetch paginated published projects for the selected SDG and year
             $projects = $sdg->project()
-                ->where('project_status', 'published')
+                ->where('is_publish', 1)
                 ->whereYear('projects.created_at', $year)
                 ->orderBy('id', 'desc')
                 ->paginate(4);
         
+            // Fetch paginated published research for the selected SDG and year
             $research = $sdg->research()
                 ->where('is_publish', 1)
                 ->whereYear('research.created_at', $year)
@@ -114,7 +215,6 @@ class WebsiteController extends Controller
                 // Return a partial view or JSON response for AJAX requests
                 return response()->json([
                     'html' => view('website.sdg_content.project_research_report.partial', [
-                        'reports' => $reports,
                         'projects' => $projects,
                         'research' => $research,
                         'sdg' => $sdg,
@@ -126,7 +226,6 @@ class WebsiteController extends Controller
         
             return view('website.sdg_content.project_research_report.index', [
                 'sdgs' => $sdgs,
-                'reports' => $reports,
                 'projects' => $projects,
                 'research' => $research,
                 'sdg' => $sdg,
@@ -141,7 +240,6 @@ class WebsiteController extends Controller
             ]);
             return response()->json(['error' => 'An error occurred while fetching yearly data.'], 500);
         }
-        
     }
     
     
@@ -245,41 +343,127 @@ class WebsiteController extends Controller
             'sdgs' => $sdgs
         ]);
     }
-    
-  
-
-    public function display_single_project2($project_id)
+    public function showStatusReportProjectPublished(string $id, Request $request)
     {
-        // Fetch the specific project
-        $project = Project::where('id', $project_id)
-            ->where('is_publish', 1) // Ensure the project is published
-            ->firstOrFail();
-    
-        // Fetch the latest 5 published projects
-        $latestProjects = Project::where('is_publish', 1)
-            ->orderBy('id', 'desc')
-            ->take(5)
-            ->get();
-    
-        // Fetch SDGs with the count of related published projects
+        // Find the status report by its ID, including the user who logged it
+        $statusReport = StatusReport::with('loggedBy')->findOrFail($id);
         $sdgs = Sdg::withCount([
             'project' => function ($query) {
                 $query->where('is_publish', 1);
             }
         ])->get();
-    
-        // Fetch related published reports
-        $reports = Report::where('related_id', $project_id)
-            ->where('is_publish', 1)
-            ->paginate(6);
-    
-        return view('website.sdg_content.projects_programs.single2', [
-            'project' => $project,
-            'latestProjects' => $latestProjects,
-            'sdgs' => $sdgs,
-            'reports' => $reports,
-        ]);
+
+        // Return the view for showing the status report details, including notification data
+        return view('website.sdg_content.status_report.project.single', compact('statusReport','sdgs'));
     }
+
+    public function showTerminalReportProjectPublished(string $id, Request $request)
+    {
+        // Find the terminal report by its ID, including the user who logged it
+        $terminalReport = TerminalReport::with(['cooperatingAgency', 'fundingAgency', 'researchers', 'terminalReportFiles'])
+            ->findOrFail($id);
+    
+        // Check if the terminal report is published
+        if (!$terminalReport->is_publish) {
+            // Handle the case where the report is not published (e.g., redirect or show a message)
+            return redirect()->back()->with('error', 'This terminal report is not published.');
+        }
+    
+        // Get the first terminal report file
+        $terminalReportFile = $terminalReport->terminalReportFiles->first();
+        $sdgs = Sdg::withCount([
+            'project' => function ($query) {
+                $query->where('is_publish', 1);
+            }
+        ])->get();
+      
+        // Return the view for showing the terminal report details, including notification data
+        return view('website.sdg_content.terminal_report.project.single', compact('terminalReport', 'terminalReportFile','sdgs'));
+    }
+    public function showStatusReportResearchPublished(string $id, Request $request)
+    {
+        // Find the status report by its ID, including the user who logged it
+        $statusReport = StatusReport::with('loggedBy')->findOrFail($id);
+        $sdgs = Sdg::withCount([
+            'project' => function ($query) {
+                $query->where('is_publish', 1);
+            }
+        ])->get();
+
+        // Return the view for showing the status report details, including notification data
+        return view('website.sdg_content.status_report.research.single', compact('statusReport','sdgs'));
+    }
+
+    public function showTerminalReportResearchPublished(string $id, Request $request)
+    {
+        // Find the terminal report by its ID, including the user who logged it
+        $terminalReport = TerminalReport::with(['cooperatingAgency', 'fundingAgency', 'researchers', 'terminalReportFiles'])
+            ->findOrFail($id);
+    
+        // Check if the terminal report is published
+        if (!$terminalReport->is_publish) {
+            // Handle the case where the report is not published (e.g., redirect or show a message)
+            return redirect()->back()->with('error', 'This terminal report is not published.');
+        }
+    
+        // Get the first terminal report file
+        $terminalReportFile = $terminalReport->terminalReportFiles->first();
+        $sdgs = Sdg::withCount([
+            'project' => function ($query) {
+                $query->where('is_publish', 1);
+            }
+        ])->get();
+      
+        // Return the view for showing the terminal report details, including notification data
+        return view('website.sdg_content.terminal_report.research.single', compact('terminalReport', 'terminalReportFile','sdgs'));
+    }
+  
+
+    public function display_single_project2($project_id)
+{
+    // Fetch the specific project
+    $project = Project::where('id', $project_id)
+        ->where('is_publish', 1) // Ensure the project is published
+        ->firstOrFail();
+
+    // Fetch the latest 5 published projects
+    $latestProjects = Project::where('is_publish', 1)
+        ->orderBy('id', 'desc')
+        ->take(5)
+        ->get();
+
+    // Fetch SDGs with the count of related published projects
+    $sdgs = Sdg::withCount([
+        'project' => function ($query) {
+            $query->where('is_publish', 1);
+        }
+    ])->get();
+
+   
+
+    // Fetch Status Reports based on the specified criteria
+    $statusReports = StatusReport::where('related_id', $project_id)
+        ->where('is_publish', 1)
+        ->where('review_status_id', 3)
+        ->where('related_type', 'App\Models\Project')
+        ->whereIn('log_status', ['Proposed', 'On-Going', 'On-Hold', 'Rejected']) // Proposed, On-Going, On-Hold, Rejected
+        ->get();
+
+    // Fetch Terminal Reports based on the specified criteria
+    $terminalReports = TerminalReport::where('related_id', $project_id)
+        ->where('is_publish', 1)
+        ->where('review_status_id', 3)
+        ->where('related_type', 'App\Models\Project') // Ensure it's related to Project
+        ->get();
+
+    return view('website.sdg_content.projects_programs.single2', [
+        'project' => $project,
+        'latestProjects' => $latestProjects,
+        'sdgs' => $sdgs,
+        'statusReports' => $statusReports,
+        'terminalReports' => $terminalReports,
+    ]);
+}
     
     
 
@@ -355,9 +539,27 @@ class WebsiteController extends Controller
             }
         ])->get();
     
+        
+    // Fetch Status Reports based on the specified criteria
+            $statusReports = StatusReport::where('related_id', $research_id)
+            ->where('is_publish', 1)
+            ->where('review_status_id', 3)
+            ->where('related_type', 'App\Models\Research') // Ensure it's related to Project
+            ->whereIn('log_status', ['Proposed', 'On-Going', 'On-Hold', 'Rejected']) // Proposed, On-Going, On-Hold, Rejected
+            ->get();
+
+        // Fetch Terminal Reports based on the specified criteria
+        $terminalReports = TerminalReport::where('related_id', $research_id)
+            ->where('is_publish', 1)
+            ->where('review_status_id', 3)
+            ->where('related_type', 'App\Models\Research') // Ensure it's related to Project
+            ->get();
+
         return view('website.sdg_content.research_extension.single2', [
             'research' => $research,
             'researchCategories' => $researchCategories,
+            'statusReports'=>$statusReports,
+            'terminalReports'=>$terminalReports,
             'latestResearch' => $latestResearch,
             'sdgs' => $sdgs,
         ]);

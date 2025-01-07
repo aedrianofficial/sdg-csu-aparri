@@ -1,7 +1,7 @@
 @extends('layouts.website2')
 @section('title', 'View Profile')
 @section('styles')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
             color: #1a202c;
@@ -147,6 +147,26 @@
                                     </div>
                                     <div class="col-sm-9 text-secondary">
                                         {{ $user->username }}
+                                    </div>
+                                </div>
+                                <hr>
+                                <!-- College -->
+                                <div class="row">
+                                    <div class="col-sm-3 icon-text">
+                                        <i class="fas fa-university"></i> College
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        {{ $user->college->name ?? 'Not Provided' }}
+                                    </div>
+                                </div>
+                                <hr>
+                                <!-- Campus -->
+                                <div class="row">
+                                    <div class="col-sm-3 icon-text">
+                                        <i class="fas fa-building"></i>CSU Campus
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        {{ $user->campus->name ?? 'Not Provided' }}
                                     </div>
                                 </div>
                                 <hr>

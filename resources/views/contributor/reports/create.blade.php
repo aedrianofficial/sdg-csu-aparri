@@ -12,7 +12,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('contributor.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             Create Report
                         </li>
@@ -77,6 +77,9 @@
                                 <!-- "Submit for Review" Button -->
                                 <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal"
                                     data-bs-target="#confirmationModal">Submit</button>
+                                <button type="button" class="btn btn-secondary" id="cancelButton">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
 
                                 <!-- Confirmation Modal -->
                                 <div class="modal fade" id="confirmationModal" tabindex="-1"
@@ -152,5 +155,29 @@
                 $('#reportForm').submit(); // Submit the form when confirmed
             });
         });
+    </script>
+     <script>
+        let isDirty = false;
+
+        // Track changes in input fields
+        document.querySelectorAll('input, textarea').forEach(input => {
+            input.addEventListener('input', () => {
+                isDirty = true;
+            });
+        });
+
+        // Handle the cancel button click
+        document.getElementById('cancelButton').addEventListener('click', function() {
+            if (isDirty) {
+                const confirmationMessage = 'You have unsaved changes. Are you sure you want to leave?';
+                if (confirm(confirmationMessage)) {
+                    isDirty = false; // Reset the dirty flag
+                    window.location.href = '{{ route('contributor.reports.index') }}'; // Redirect to home or desired route
+                }
+            } else {
+                window.location.href = '{{ route('contributor.reports.index') }}'; // Redirect to home or desired route
+            }
+        });
+
     </script>
 @endsection

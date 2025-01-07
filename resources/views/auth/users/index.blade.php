@@ -10,7 +10,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('auth.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active">User Management</li>
                     </ol>
                 </div>
@@ -80,14 +80,70 @@
                                     <table class="table table-striped">
                                         <thead>
                                             <tr>
-                                                <th>First Name</th>
-                                                <th>Last Name</th>
-                                                <th>Username</th>
-                                                <th>Email</th>
-                                                <th>Role</th>
+                                                <th>
+                                                    <a
+                                                        href="{{ route('users.index', array_merge(request()->query(), ['sort_by' => 'first_name', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc'])) }}">
+                                                        First Name
+                                                        @if (request('sort_by') === 'first_name')
+                                                            <i
+                                                                class="fa fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                                        @endif
+                                                    </a>
+                                                </th>
+                                                <th>
+                                                    <a
+                                                        href="{{ route('users.index', array_merge(request()->query(), ['sort_by' => 'last_name', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc'])) }}">
+                                                        Last Name
+                                                        @if (request('sort_by') === 'last_name')
+                                                            <i
+                                                                class="fa fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                                        @endif
+                                                    </a>
+                                                </th>
+                                                <th>
+                                                    <a
+                                                        href="{{ route('users.index', array_merge(request()->query(), ['sort_by' => 'username', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc'])) }}">
+                                                        Username
+                                                        @if (request('sort_by') === 'username')
+                                                            <i
+                                                                class="fa fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                                        @endif
+                                                    </a>
+                                                </th>
+                                                <th>
+                                                    <a
+                                                        href="{{ route('users.index', array_merge(request()->query(), ['sort_by' => 'email', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc'])) }}">
+                                                        Email
+                                                        @if (request('sort_by') === 'email')
+                                                            <i
+                                                                class="fa fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                                        @endif
+                                                    </a>
+                                                </th>
+                                                <th>
+                                                    <a
+                                                        href="{{ route('users.index', array_merge(request()->query(), ['sort_by' => 'role', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc'])) }}">
+                                                        Role
+                                                        @if (request('sort_by') === 'role')
+                                                            <i
+                                                                class="fa fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                                        @endif
+                                                    </a>
+                                                </th>
+                                                <th>
+                                                    <a
+                                                        href="{{ route('users.index', array_merge(request()->query(), ['sort_by' => 'created_at', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc'])) }}">
+                                                        Created At
+                                                        @if (request('sort_by') === 'created_at')
+                                                            <i
+                                                                class="fa fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                                        @endif
+                                                    </a>
+                                                </th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
+
                                         <tbody>
                                             @foreach ($users as $user)
                                                 <tr>
@@ -96,6 +152,7 @@
                                                     <td>{{ $user->username ?? 'N/A' }}</td>
                                                     <td>{{ $user->email ?? 'N/A' }}</td>
                                                     <td>{{ ucfirst($user->role) ?? 'N/A' }}</td>
+                                                    <td>{{ $user->created_at->format('F j, Y, g:i A') }}</td>
                                                     <td>
                                                         <a href="{{ route('users.show', $user->id) }}"
                                                             class="btn btn-sm btn-success">View</a>
@@ -123,10 +180,10 @@
 
                                         <!-- Page Number Links -->
                                         @php
-                                            $currentPage = $users->currentPage(); // Current page number
-                                            $lastPage = $users->lastPage(); // Last page number
-                                            $start = max($currentPage - 1, 1); // Calculate start of the visible page items
-                                            $end = min($start + 2, $lastPage); // Calculate end of the visible page items
+                                            $currentPage = $users->currentPage();
+                                            $lastPage = $users->lastPage();
+                                            $start = max($currentPage - 1, 1);
+                                            $end = min($start + 2, $lastPage);
                                         @endphp
 
                                         @for ($i = $start; $i <= $end; $i++)
@@ -142,6 +199,7 @@
                                     </ul>
                                 </nav>
                             </div>
+
                         </div>
                     </div>
                 </div>

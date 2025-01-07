@@ -46,4 +46,12 @@ class Feedback extends Model
         return $this->belongsToMany(Research::class, 'feedback_research', 'feedback_id', 'research_id');
     }
 
+    public function statusReports()
+    {
+        return $this->belongsToMany(StatusReport::class, 'feedback_status_report', 'feedback_id', 'status_report_id');
+    }
+    public function terminalReports()
+    {
+        return $this->belongsToMany(TerminalReport::class, 'feedback_terminal_report','feedback_id', 'terminal_report_id');
+    }
 }

@@ -3,7 +3,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Contributor Dashboard</title><!--begin::Primary Meta Tags-->
+    <title>@yield('title', 'Contributor')</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="title" content="">
@@ -22,7 +22,7 @@
         integrity="sha256-Qsx5lrStHZyR9REqhUF8iQt73X06c8LGIUPzpOhwRrI=" crossorigin="anonymous">
     <!--end::Third Party Plugin(Bootstrap Icons)--><!--begin::Required Plugin(AdminLTE)-->
 
-    <!--end::Required Plugin(AdminLTE)--><!-- apexcharts -->
+    <link rel="icon" href="{{ asset('assets/website/images/favicon.ico') }}" type="image/x-icon">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css"
         integrity="sha256-4MX+61mt9NVvvuPjUWdUdyfZfxSB1/Rf9WtqRHgG5S0=" crossorigin="anonymous"><!-- jsvectormap -->
@@ -125,8 +125,9 @@
                 </ul> <!--end::Start Navbar Links--> <!--begin::End Navbar Links-->
                 <ul class="navbar-nav ms-auto"> <!--begin::Navbar Search-->
                     <!--end::Navbar Search-->
-
-                    <li class="nav-item dropdown">
+                    
+                    <!-- Theme toggle dropdown -->
+                    {{-- <li class="nav-item dropdown">
                         <button
                             class="btn btn-link nav-link py-2 px-0 px-lg-2 dropdown-toggle d-flex align-items-center"
                             id="bd-theme" type="button" aria-expanded="false" data-bs-toggle="dropdown"
@@ -152,7 +153,7 @@
                                     Auto
                                     <i class="bi bi-check-lg ms-auto d-none"></i> </button> </li>
                         </ul>
-                    </li>
+                    </li> --}}
 
                     <!--begin::Notifications Dropdown Menu-->
                     <li class="nav-item dropdown">
@@ -195,19 +196,38 @@
                                                 'notification_id' => $notification->id,
                                             ]);
                                         }
-                                    } elseif ($data['type'] === 'report') {
+                                    } elseif ($data['type'] === 'status_report') {
+                                        // Changed from 'report' to 'status_report'
                                         if ($data['status'] === 'request_changes') {
-                                            $route = route('contributor.reports.request_changes.show', [
+                                            $route = route('contributor.status_reports.projects.need_changes', [
                                                 'id' => $notification->related_id,
                                                 'notification_id' => $notification->id,
                                             ]);
                                         } elseif ($data['status'] === 'rejected') {
-                                            $route = route('contributor.reports.rejected_show', [
+                                            $route = route('contributor.status_reports.projects.rejected', [
                                                 'id' => $notification->related_id,
                                                 'notification_id' => $notification->id,
                                             ]);
                                         } elseif (in_array($data['status'], ['approved', 'published', 'reviewed'])) {
-                                            $route = route('contributor.reports.show', [
+                                            $route = route('contributor.status_reports.show_research_published', [
+                                                'id' => $notification->related_id,
+                                                'notification_id' => $notification->id,
+                                            ]);
+                                        }
+                                    } elseif ($data['type'] === 'terminal_report') {
+                                        // Changed from 'report' to 'terminal_report'
+                                        if ($data['status'] === 'request_changes') {
+                                            $route = route('contributor.terminal_reports.projects.need_changes', [
+                                                'id' => $notification->related_id,
+                                                'notification_id' => $notification->id,
+                                            ]);
+                                        } elseif ($data['status'] === 'rejected') {
+                                            $route = route('contributor.terminal_reports.projects.rejected', [
+                                                'id' => $notification->related_id,
+                                                'notification_id' => $notification->id,
+                                            ]);
+                                        } elseif (in_array($data['status'], ['approved', 'published', 'reviewed'])) {
+                                            $route = route('contributor.terminal_reports.show_research_published', [
                                                 'id' => $notification->related_id,
                                                 'notification_id' => $notification->id,
                                             ]);
@@ -294,8 +314,7 @@
                                 @endif
                                 <p>
                                     {{ Auth::user()->first_name }} {{ Auth::user()->last_name }} - Contributor
-                                    <small>Member since
-                                        {{ \Carbon\Carbon::parse(auth()->user()->created_at)->format('F Y') }}</small>
+                                    <small>{{ Auth::user()->college->name }}</small>
                                 </p>
                             </li>
                             <!--end::User Image-->
@@ -389,39 +408,69 @@
                             </ul>
                         </li>
 
-                        <li class="nav-item {{ request()->routeIs('contributor.reports.*') ? 'menu-open' : '' }}">
+                        <li
+                            class="nav-item {{ request()->routeIs('contributor.status_reports.*') ? 'menu-open' : '' }}">
                             <a href="#"
-                                class="nav-link {{ request()->routeIs('contributor.reports.*') ? 'active' : '' }}">
+                                class="nav-link {{ request()->routeIs('contributor.status_reports.*') ? 'active' : '' }}">
                                 <i class="nav-icon bi bi-file-earmark-bar-graph"></i> <!-- Changed to reports icon -->
                                 <p>
-                                    Reports
+                                    Status Reports
                                     <i class="nav-arrow bi bi-chevron-right"></i>
                                 </p>
                             </a>
                             <ul class="nav nav-treeview">
                                 <li class="nav-item">
-                                    <a href="{{ route('contributor.reports.create') }}"
-                                        class="nav-link {{ request()->routeIs('contributor.reports.create') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-plus-circle"></i> <!-- Changed to plus icon -->
-                                        <p>Create Report</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('contributor.reports.index') }}"
-                                        class="nav-link {{ request()->routeIs('contributor.reports.index') ? 'active' : '' }}">
+                                    <a href="{{ route('contributor.status_reports.my_reports') }}"
+                                        class="nav-link {{ request()->routeIs('contributor.status_reports.my_reports') ? 'active' : '' }}">
                                         <i class="nav-icon bi bi-person-lines-fill"></i> <!-- Changed to list icon -->
-                                        <p>My Reports</p>
+                                        <p>My Status Reports</p>
+                                    </a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a href="{{ route('contributor.status_reports.need_changes') }}"
+                                        class="nav-link {{ request()->routeIs('contributor.status_reports.need_changes') ? 'active' : '' }}">
+                                        <i class="nav-icon bi bi-pencil"></i> <!-- Changed to pencil icon -->
+                                        <p>Need Changes</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ route('contributor.reports.request_changes') }}"
+                                    <a href="{{ route('contributor.status_reports.rejected') }}"
+                                        class="nav-link {{ request()->routeIs('contributor.status_reports.rejected') ? 'active' : '' }}">
+                                        <i class="nav-icon bi bi-x-circle"></i> <!-- Changed to reject icon -->
+                                        <p>Rejected</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li
+                            class="nav-item {{ request()->routeIs('contributor.terminal_reports.*') ? 'menu-open' : '' }}">
+                            <a href="#"
+                                class="nav-link {{ request()->routeIs('contributor.terminal_reports.*') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-file-earmark-bar-graph"></i> <!-- Changed to reports icon -->
+                                <p>
+                                    Terminal Reports
+                                    <i class="nav-arrow bi bi-chevron-right"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+
+                                <li class="nav-item">
+                                    <a href="{{ route('contributor.terminal_reports.my_reports') }}"
+                                        class="nav-link {{ request()->routeIs('contributor.terminal_reports.my_reports') ? 'active' : '' }}">
+                                        <i class="nav-icon bi bi-person-lines-fill"></i> <!-- Changed to list icon -->
+                                        <p>My Terminal Reports</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('contributor.terminal_reports.need_changes') }}"
                                         class="nav-link {{ request()->routeIs('reports.request_changes') ? 'active' : '' }}">
                                         <i class="nav-icon bi bi-pencil"></i> <!-- Changed to pencil icon -->
                                         <p>Need Changes</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ route('contributor.reports.rejected') }}"
+                                    <a href="{{ route('contributor.terminal_reports.rejected') }}"
                                         class="nav-link {{ request()->routeIs('contributor.reports.rejected') ? 'active' : '' }}">
                                         <i class="nav-icon bi bi-x-circle"></i> <!-- Changed to reject icon -->
                                         <p>Rejected</p>

@@ -9,7 +9,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('publisher.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             Published Research
                         </li>
@@ -140,7 +140,7 @@
                                                         </ul>
                                                     </td>
                                                     <td>{{ $research->reviewStatus->status ?? 'N/A' }}</td>
-                                                    <td>{{ $research->research_status }}</td>
+                                                    <td>{{  $research->status->status }}</td>
                                                     <td>{{ $research->created_at->format('F j, Y, g:i A') }}</td>
                                                     <td>
                                                         <a href="{{ route('publisher.research.show', $research->id) }}"
@@ -157,7 +157,8 @@
                                     <ul class="pagination justify-content-center">
                                         <!-- Previous Button -->
                                         <li class="page-item {{ $researches->onFirstPage() ? 'disabled' : '' }}">
-                                            <a class="page-link" href="{{ $researches->previousPageUrl() }}"
+                                            <a class="page-link"
+                                                href="{{ $researches->appends(request()->query())->previousPageUrl() }}"
                                                 tabindex="-1">Previous</a>
                                         </li>
 
@@ -172,13 +173,14 @@
                                         @for ($i = $start; $i <= $end; $i++)
                                             <li class="page-item {{ $currentPage == $i ? 'active' : '' }}">
                                                 <a class="page-link"
-                                                    href="{{ $researches->url($i) }}">{{ $i }}</a>
+                                                    href="{{ $researches->appends(request()->query())->url($i) }}">{{ $i }}</a>
                                             </li>
                                         @endfor
 
                                         <!-- Next Button -->
                                         <li class="page-item {{ $researches->hasMorePages() ? '' : 'disabled' }}">
-                                            <a class="page-link" href="{{ $researches->nextPageUrl() }}">Next</a>
+                                            <a class="page-link"
+                                                href="{{ $researches->appends(request()->query())->nextPageUrl() }}">Next</a>
                                         </li>
                                     </ul>
                                 </nav>

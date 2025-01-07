@@ -26,7 +26,7 @@ class ProjectController extends Controller
      public function show_reviewed($id)
      {
          // Fetch the project by its ID
-         $project = Project::with('user', 'sdg')->findOrFail($id);
+         $project = Project::with('user', 'sdg','sdgSubCategories')->findOrFail($id);
  
          // Pass the project to the view
          return view('reviewer.projects_programs.show_reviewed', compact('project'));
@@ -59,6 +59,7 @@ class ProjectController extends Controller
          // Update the project's review status to 'Needs Changes'
          $project->update([
              'review_status_id' => 1,
+             'is_publish' =>  0 
          ]);
      
          // Log the action in the RoleAction table
@@ -147,6 +148,7 @@ class ProjectController extends Controller
          $project = Project::findOrFail($validated['project_id']);
          $project->update([
              'review_status_id' => 2,
+             'is_publish' =>  0
          ]);
      
          // Log the role action for rejection
@@ -451,7 +453,7 @@ class ProjectController extends Controller
      public function show_feedback_changes($id)
     {
         // Fetch the project by its ID
-        $project = Project::with('user', 'sdg', 'feedbacks.user')->findOrFail($id);
+        $project = Project::with('user', 'sdg', 'feedbacks.user','sdgSubCategories')->findOrFail($id);
 
         // Pass the project to the view
         return view('reviewer.feedbacks.need_changes.projects_programs', compact('project'));
@@ -459,7 +461,7 @@ class ProjectController extends Controller
     public function show_feedback_rejected($id)
     {
         // Fetch the project by its ID
-        $project = Project::with('user', 'sdg', 'feedbacks.user')->findOrFail($id);
+        $project = Project::with('user', 'sdg', 'feedbacks.user','sdgSubCategories')->findOrFail($id);
 
         // Pass the project to the view
         return view('reviewer.feedbacks.rejected.projects_programs', compact('project'));
@@ -517,7 +519,7 @@ class ProjectController extends Controller
 public function show(string $id, Request $request)
 {
     // Fetch the project by its ID, including related SDG and project images if needed
-    $project = Project::with(['user', 'sdg', 'projectimg', 'reviewStatus'])->findOrFail($id);
+    $project = Project::with(['user', 'sdg', 'projectimg', 'reviewStatus','sdgSubCategories'])->findOrFail($id);
 
     // Check if there's a notification ID in the request
     $notificationId = $request->query('notification_id');

@@ -9,7 +9,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('reviewer.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             View Report(Need Changes)
                         </li>
@@ -42,7 +42,7 @@
                                                 @endphp
                                                 <textarea name="feedback" id="feedback" class="form-control" rows="{{ $rowCount }}" readonly>{{ $feedbackText }}</textarea>
                                             </div>
-                                            <strong>{{ $feedback->user->name }}</strong>
+                                            <strong>{{ $feedback->user->first_name }} {{ $feedback->user->last_name }}</strong>
                                             <small class="text-muted">on
                                                 {{ $feedback->created_at->format('M d, Y H:i') }}</small>
                                             <hr>

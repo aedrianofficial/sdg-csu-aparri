@@ -9,7 +9,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('reviewer.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             Under Review Projects/Programs
                         </li>
@@ -114,7 +114,7 @@
                                                             @endforeach
                                                         </ul>
                                                     </td>
-                                                    <td>{{ $project->project_status }}</td>
+                                                    <td>{{ $project->status->status }}</td>
                                                     <td>{{ $project->reviewStatus->status ?? 'N/A' }}</td>
                                                     <td>{{ $project->created_at->format('F j, Y, g:i A') }}</td>
                                                     <td>
@@ -123,7 +123,7 @@
 
 
 
-                                                        
+
                                                     </td>
                                                     <td><!-- Button for 'Need Changes' -->
                                                         <button type="button" class="btn btn-sm btn-secondary"
@@ -141,7 +141,8 @@
                                                     <td><!-- Forward to Approver Button -->
                                                         <button type="button" class="btn btn-sm btn-primary"
                                                             data-bs-toggle="modal"
-                                                            data-bs-target="#confirmReviewModal{{ $project->id }}">Reviewed</button></td>
+                                                            data-bs-target="#confirmReviewModal{{ $project->id }}">Reviewed</button>
+                                                    </td>
                                                 </tr>
 
                                                 <!-- 'Reviewed' Modal -->
@@ -256,28 +257,34 @@
                                     <ul class="pagination justify-content-center">
                                         <!-- Previous Button -->
                                         <li class="page-item {{ $projects->onFirstPage() ? 'disabled' : '' }}">
-                                            <a class="page-link" href="{{ $projects->previousPageUrl() }}"
-                                                tabindex="-1">Previous</a>
+                                            <a class="page-link"
+                                                href="{{ $projects->appends(request()->query())->previousPageUrl() }}"
+                                                tabindex="-1">
+                                                Previous
+                                            </a>
                                         </li>
 
                                         <!-- Page Number Links -->
                                         @php
-                                            $currentPage = $projects->currentPage();
-                                            $lastPage = $projects->lastPage();
-                                            $start = max($currentPage - 1, 1);
-                                            $end = min($start + 2, $lastPage);
+                                            $currentPage = $projects->currentPage(); // Current page number
+                                            $lastPage = $projects->lastPage(); // Last page number
+                                            $start = max($currentPage - 1, 1); // Calculate start of the visible page items
+                                            $end = min($start + 2, $lastPage); // Calculate end of the visible page items
                                         @endphp
 
                                         @for ($i = $start; $i <= $end; $i++)
                                             <li class="page-item {{ $currentPage == $i ? 'active' : '' }}">
                                                 <a class="page-link"
-                                                    href="{{ $projects->url($i) }}">{{ $i }}</a>
+                                                    href="{{ $projects->appends(request()->query())->url($i) }}">{{ $i }}</a>
                                             </li>
                                         @endfor
 
                                         <!-- Next Button -->
                                         <li class="page-item {{ $projects->hasMorePages() ? '' : 'disabled' }}">
-                                            <a class="page-link" href="{{ $projects->nextPageUrl() }}">Next</a>
+                                            <a class="page-link"
+                                                href="{{ $projects->appends(request()->query())->nextPageUrl() }}">
+                                                Next
+                                            </a>
                                         </li>
                                     </ul>
                                 </nav>

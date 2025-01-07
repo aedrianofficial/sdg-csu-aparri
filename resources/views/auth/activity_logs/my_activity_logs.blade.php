@@ -9,7 +9,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('auth.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">My Activity Logs</li>
                     </ol>
                 </div>
@@ -118,14 +118,57 @@
                                     <table id="activity-logs-table" class="table table-striped">
                                         <thead>
                                             <tr>
-                                                <th>Log Name</th>
-                                                <th>Description</th>
-                                                <th>Event</th>
-                                                <th>Role</th>
-                                                <th>Type</th> <!-- New column -->
-                                                <th>Timestamp</th>
+                                                <th>
+                                                    <a href="{{ route('auth.activity_logs.my_activity_logs', array_merge(request()->query(), ['sort_by' => 'log_name', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc'])) }}">
+                                                        Log Name
+                                                        @if (request('sort_by') === 'log_name')
+                                                            <i class="fa fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                                        @endif
+                                                    </a>
+                                                </th>
+                                                <th>
+                                                    <a href="{{ route('auth.activity_logs.my_activity_logs', array_merge(request()->query(), ['sort_by' => 'description', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc'])) }}">
+                                                        Description
+                                                        @if (request('sort_by') === 'description')
+                                                            <i class="fa fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                                        @endif
+                                                    </a>
+                                                </th>
+                                                <th>
+                                                    <a href="{{ route('auth.activity_logs.my_activity_logs', array_merge(request()->query(), ['sort_by' => 'event', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc'])) }}">
+                                                        Event
+                                                        @if (request('sort_by') === 'event')
+                                                            <i class="fa fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                                        @endif
+                                                    </a>
+                                                </th>
+                                                <th>
+                                                    <a href="{{ route('auth.activity_logs.my_activity_logs', array_merge(request()->query(), ['sort_by' => 'role', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc'])) }}">
+                                                        Role
+                                                        @if (request('sort_by') === 'role')
+                                                            <i class="fa fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                                        @endif
+                                                    </a>
+                                                </th>
+                                                <th>
+                                                    <a href="{{ route('auth.activity_logs.my_activity_logs', array_merge(request()->query(), ['sort_by' => 'subject_type', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc'])) }}">
+                                                        Type
+                                                        @if (request('sort_by') === 'subject_type')
+                                                            <i class="fa fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                                        @endif
+                                                    </a>
+                                                </th>
+                                                <th>
+                                                    <a href="{{ route('auth.activity_logs.my_activity_logs', array_merge(request()->query(), ['sort_by' => 'created_at', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc'])) }}">
+                                                        Timestamp
+                                                        @if (request('sort_by') === 'created_at')
+                                                            <i class="fa fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                                        @endif
+                                                    </a>
+                                                </th>
                                             </tr>
                                         </thead>
+                                        
                                         <tbody>
                                             @foreach ($activityLogs as $log)
                                                 @php
@@ -152,32 +195,33 @@
                                     <ul class="pagination justify-content-center">
                                         <!-- Previous Button -->
                                         <li class="page-item {{ $activityLogs->onFirstPage() ? 'disabled' : '' }}">
-                                            <a class="page-link" href="{{ $activityLogs->previousPageUrl() }}"
-                                                tabindex="-1">Previous</a>
+                                            <a class="page-link"
+                                               href="{{ $activityLogs->previousPageUrl() . '&' . http_build_query(request()->except('page')) }}"
+                                               tabindex="-1">Previous</a>
                                         </li>
-
+                            
                                         <!-- Page Numbers -->
                                         @php
                                             $start = max($activityLogs->currentPage() - 2, 1); // Start from 2 pages before the current
                                             $end = min($start + 4, $activityLogs->lastPage()); // Limit range to 5 pages total
                                             $start = max($end - 4, 1); // Ensure start is at least 1
                                         @endphp
-
+                            
                                         @for ($i = $start; $i <= $end; $i++)
                                             <li class="page-item {{ $activityLogs->currentPage() == $i ? 'active' : '' }}">
                                                 <a class="page-link"
-                                                    href="{{ $activityLogs->url($i) }}">{{ $i }}</a>
+                                                   href="{{ $activityLogs->url($i) . '&' . http_build_query(request()->except('page')) }}">{{ $i }}</a>
                                             </li>
                                         @endfor
-
+                            
                                         <!-- Next Button -->
                                         <li class="page-item {{ $activityLogs->hasMorePages() ? '' : 'disabled' }}">
-                                            <a class="page-link" href="{{ $activityLogs->nextPageUrl() }}">Next</a>
+                                            <a class="page-link"
+                                               href="{{ $activityLogs->nextPageUrl() . '&' . http_build_query(request()->except('page')) }}">Next</a>
                                         </li>
                                     </ul>
                                 </nav>
                             </div>
-
                         </div>
                     </div>
                 </div>

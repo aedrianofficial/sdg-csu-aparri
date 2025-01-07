@@ -32,4 +32,8 @@ class ReviewStatus extends Model
     {
         return $this->hasMany(Report::class, 'review_status_id');
     }
+    public function statusReports()
+    {
+        return $this->hasMany(StatusReport::class, 'review_status_id');
+    }
 }

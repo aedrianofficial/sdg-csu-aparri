@@ -70,12 +70,22 @@
                                                 <i class="fas fa-download"></i>
                                                 <a href="{{ route('research.file.download', $file->id) }}" target="_blank"
                                                     rel="noopener noreferrer">
-                                                    Download {{ $file->original_filename ?? $research->title }}
+                                                    Download Abstract: {{ $file->original_filename ?? $research->title }}
                                                 </a>
                                             </li>
                                         @endforeach
                                     @endif
                                 </ul>
+                            </div>
+                            <div class="research-detail-item mb-2">
+                                <strong><i class="fas fa-file"></i> Full version File:</strong>
+                                @if ($research->file_link)
+                                    
+                                        <a href="{{ $research->file_link }}" target="_blank">{{ $research->file_link }}</a>
+                             
+                                @else
+                                    <p>No full version file link available.</p>
+                                @endif
                             </div>
 
 
@@ -124,6 +134,90 @@
                         </div>
                     </div>
                 </div>
+                 <!-- SDG Sub Categories -->
+                 <div class="card card-primary card-outline mt-4">
+                    <div class="card-header">
+                        <h5 class="card-title m-0">SDG Targets:</h5>
+                    </div>
+                    <div class="card-body">
+                        @if ($research->sdgSubCategories->isEmpty())
+                            <p>No SDG Targets available.</p>
+                        @else
+                            <ul class="list-unstyled">
+                                @foreach ($research->sdgSubCategories as $subCategory)
+                                    <li>
+                                        <strong>{{ $subCategory->sub_category_name }}:</strong>
+                                        <span>{{ $subCategory->sub_category_description }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                        <p class="mt-2">
+                            Source: <a
+                                href="https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf"
+                                target="_blank">https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf</a>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h3>Related Reports</h3>
+                
+                        @if($statusReports->isEmpty() && $terminalReports->isEmpty())
+                          
+                        <div class="alert">
+                            <strong class="text-danger">No related reports available.</strong>
+                        </div>
+                            
+                        @else
+                            <div class="row">
+                                @foreach($statusReports as $statusReport)
+                                    <div class="col-lg-3 col-6">
+                                        <div class="small-box 
+                                            @if($statusReport->log_status == 'Proposed') bg-info 
+                                            @elseif($statusReport->log_status == 'On-Going') bg-primary 
+                                            @elseif($statusReport->log_status == 'On-Hold') bg-warning 
+                                            @elseif($statusReport->log_status == 'Rejected') bg-danger 
+                                            @endif">
+                                            <div class="inner">
+                                                <br>
+                                                <p>{{ $statusReport->log_status }}</p>
+                                            </div>
+                                            <div class="icon">
+                                                <i class="fas 
+                                                    @if($statusReport->log_status == 'Proposed') fa-lightbulb 
+                                                    @elseif($statusReport->log_status == 'On-Going') fa-spinner 
+                                                    @elseif($statusReport->log_status == 'On-Hold') fa-pause 
+                                                    @elseif($statusReport->log_status == 'Rejected') fa-times-circle 
+                                                    @endif"></i>
+                                            </div>
+                                            <a href="{{ route('website.status_reports.show_research_published', $statusReport->id) }}" class="small-box-footer"> More info <i class="fas fa-arrow-circle-right"></i></a>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                
+                            <div class="row">
+                                @foreach($terminalReports as $terminalReport)
+                                    <div class="col-lg-3 col-6">
+                                        <div class="small-box bg-success">
+                                            <div class="inner">
+                                                <br>
+                                                <p>Completed</p>
+                                            </div>
+                                            <div class="icon">
+                                                <i class="fas fa-check-circle"></i>
+                                            </div>
+                                            <a href="{{ route('website.terminal_reports.show_research_published', $terminalReport->id) }}" class="small-box-footer"> More info <i class="fas fa-arrow-circle-right"></i></a>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
             </div>
 
             <!-- SDGs Section -->
@@ -161,7 +255,7 @@
                         </ul>
                     </div>
                 </div>
-
+            
                 <!-- Research Categories Section -->
                 <div class="card card-widget card-info card-outline mt-3">
                     <div class="card-header">

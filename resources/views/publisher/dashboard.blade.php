@@ -60,7 +60,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('website.home2') }}">Home</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             Dashboard
                         </li>
@@ -73,40 +73,26 @@
         <div class="container-fluid"> <!--begin::Row-->
             <div class="row"> <!--begin::Col-->
                 <div class="col-12">
-                    <!-- Project, Report, and Research Status Overview -->
+                
+                    <!-- My Overview Status -->
                     <div class="content">
                         <div class="container">
-                            <div class="row text-center">
+                            <div class="row justify-content-center text-center">
                                 <div class="col-md-12 mb-4">
                                     <div class="card card-primary card-outline">
                                         <div class="card-header">
-                                            <h4 class="text-center mb-4" style="font-weight: 600;">Project, Report, and
-                                                Research Status Overview</h4>
+                                            <h4 class="text-center mb-4" style="font-weight: 600;">
+                                                My Publish Activity
+                                            </h4>
                                         </div>
                                         <div class="card-body">
-                                            <div class="row">
-                                                <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;"><span
-                                                            id="totalProjectsHeader"></span></h5>
+                                            <div class="row justify-content-center">
+                                                <div class="col-md-12 mb-4">
+                                                    <h5 class="mb-3" style="font-weight: 500;">Publish Activity Overview
+                                                        (<span id="publishActivityTotalCount"></span>)</h5>
                                                     <div class="chart-container"
-                                                        style="position: relative; height: 350px; width: 100%;">
-                                                        <canvas id="projectChart"></canvas>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;"><span
-                                                            id="totalReportsHeader"></span></h5>
-                                                    <div class="chart-container"
-                                                        style="position: relative; height: 350px; width: 100%;">
-                                                        <canvas id="reportChart"></canvas>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;"><span
-                                                            id="totalResearchHeader"></span></h5>
-                                                    <div class="chart-container"
-                                                        style="position: relative; height: 350px; width: 100%;">
-                                                        <canvas id="researchChart"></canvas>
+                                                        style="position: relative; height: 350px; width: 100%; display: flex; justify-content: center;">
+                                                        <canvas id="myPublishActivityChart"></canvas>
                                                     </div>
                                                 </div>
                                             </div>
@@ -117,49 +103,8 @@
                         </div>
                     </div>
 
-                    <!-- My Projects, My Reports, and My Research Status -->
-                    <div class="content">
-                        <div class="container">
-                            <div class="row text-center">
-                                <div class="col-md-12 mb-4">
-                                    <div class="card card-primary card-outline">
-                                        <div class="card-header">
-                                            <h4 class="text-center mb-4" style="font-weight: 600;">My Projects, My Reports,
-                                                and My Research Status</h4>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="row">
-                                                <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;"><span
-                                                        id="myTotalProjectsHeader"></span></h5>
-                                                    <div class="chart-container"
-                                                        style="position: relative; height: 350px; width: 100%;">
-                                                        <canvas id="myProjectChart"></canvas>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;"><span
-                                                        id="myTotalReportsHeader"></span></h5>
-                                                    <div class="chart-container"
-                                                        style="position: relative; height: 350px; width: 100%;">
-                                                        <canvas id="myReportChart"></canvas>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;"><span
-                                                        id="myTotalResearchHeader"></span></h5>
-                                                    <div class="chart-container"
-                                                        style="position: relative; height: 350px; width: 100%;">
-                                                        <canvas id="myResearchChart"></canvas>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
+
 
                     <!-- SDG Contributions Overview -->
                     <div class="content">
@@ -214,187 +159,49 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
 
-    <!--chart for review statuses of projects, reports, research-->
-    <script>
-        $(document).ready(function() {
 
-
-            // Fetch and update chart data via AJAX
-            function fetchReviewStatusData() {
-                $.ajax({
-                    url: "{{ route('analytics.reviewStatusAnalytics') }}", // Add correct route
-                    method: 'GET',
-                    success: function(response) { // Update headers with total counts
-                        $('#totalProjectsHeader').text(`Projects Status (${response.totalProjects})`);
-                        $('#totalReportsHeader').text(`Reports Status (${response.totalReports})`);
-                        $('#totalResearchHeader').text(`Research Status (${response.totalResearch})`);
-
-                        // Update the charts
-                        updateChart(projectChart, response.projectStatusCounts, response.statuses,
-                            'Projects');
-                        updateChart(reportChart, response.reportStatusCounts, response.statuses,
-                            'Reports');
-                        updateChart(researchChart, response.researchStatusCounts, response.statuses,
-                            'Research');
-                    }
-                });
-            }
-
-            // Function to update a chart
-            function updateChart(chart, data, statuses, label) {
-                const chartLabels = Object.values(statuses); // Labels from statuses
-                const chartData = chartLabels.map((_, index) => data[index + 1] || 0);
-
-                chart.data.labels = chartLabels; // Set new labels
-                chart.data.datasets[0].data = chartData; // Set new data
-                chart.update(); // Update the chart
-            }
-
-            // Chart options for a professional look
-            const chartOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'bottom', // Move legend below the chart
-                        labels: {
-                            maxWidth: 100, // Set maximum width for legend labels
-                            boxWidth: 10, // Width of the color box
-                        },
-                    },
-                    title: {
-                        display: false, // Set to false to not display default title
-                    },
-                    tooltip: {
-                        enabled: true,
-                        callbacks: {
-                            label: function(context) {
-                                return `${context.label}: ${context.raw}`;
-                            }
-                        }
-                    }
-                }
-            };
-
-            // Initialize pie charts with professional styling
-            var projectChart = new Chart(document.getElementById('projectChart').getContext('2d'), {
-                type: 'pie',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Projects',
-                        data: [],
-                        backgroundColor: ['#4BC0C0', '#FF6384', '#36A2EB', '#FFCE56', '#9966FF'],
-                        hoverOffset: 10
-                    }]
-                },
-                options: {
-                    ...chartOptions,
-                    plugins: {
-                        ...chartOptions.plugins,
-                        legend: {
-                            ...chartOptions.plugins.legend,
-                            align: 'start',
-                        }
-                    }
-                }
-            });
-
-            var reportChart = new Chart(document.getElementById('reportChart').getContext('2d'), {
-                type: 'pie',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Reports',
-                        data: [],
-                        backgroundColor: ['#9966FF', '#FF9F40', '#FF6384', '#36A2EB', '#4BC0C0'],
-                        hoverOffset: 10
-                    }]
-                },
-                options: {
-                    ...chartOptions,
-                    plugins: {
-                        ...chartOptions.plugins,
-                        legend: {
-                            ...chartOptions.plugins.legend,
-                            align: 'start',
-                        }
-                    }
-                }
-            });
-
-            var researchChart = new Chart(document.getElementById('researchChart').getContext('2d'), {
-                type: 'pie',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Research',
-                        data: [],
-                        backgroundColor: ['#FF9F40', '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB'],
-                        hoverOffset: 10
-                    }]
-                },
-                options: {
-                    ...chartOptions,
-                    plugins: {
-                        ...chartOptions.plugins,
-                        legend: {
-                            ...chartOptions.plugins.legend,
-                            align: 'start', // Align legend to the left
-                        }
-                    }
-                }
-            });
-
-            // Fetch and update data on page load
-            fetchReviewStatusData();
-
-            // Automatically refresh the data every 30 seconds
-            setInterval(fetchReviewStatusData, 30000); // 30,000 ms = 30 seconds
-
-
-        });
-    </script>
-    <!-- Chart for review statuses of my projects, reports, and research -->
+    <!--my overview status-->
     <script>
         $(document).ready(function() {
             // Fetch and update chart data via AJAX
-            function fetchMyStatusData() {
+            function fetchPublishActivityData() {
                 $.ajax({
-                    url: "{{ route('analytics.myStatusAnalytics') }}", // Ensure the route is correct
+                    url: "{{ route('analytics.myPublishActivity') }}", // Ensure the route is correct
                     method: 'GET',
                     success: function(response) {
-
-                        $('#myTotalProjectsHeader').text(
-                            `My Projects Status (${response.myTotalProjects})`);
-                        $('#myTotalReportsHeader').text(`My Reports Status (${response.myTotalReports})`);
-                        $('#myTotalResearchHeader').text(
-                            `My Research Status (${response.myTotalResearch})`);
-
-                        updateChart(myProjectChart, response.myProjectStatusCounts, response
-                            .myStatuses);
-                        updateChart(myReportChart, response.myReportStatusCounts, response.myStatuses);
-                        updateChart(myResearchChart, response.myResearchStatusCounts, response
-                            .myStatuses);
+                        const totalPublished = response.projects.published + response.status_reports.published + response.terminal_reports.published + response.research.published;
+    
+                        // Update the total count element
+                        $('#publishActivityTotalCount').text(totalPublished);
+                        updatePublishActivityChart(response);
                     },
                     error: function(xhr, status, error) {
-                        console.error("Error fetching status data:", error);
+                        console.error("Error fetching publish activity data:", error);
                     }
                 });
             }
-
-            // Function to update a chart
-            function updateChart(chart, data, myStatuses) {
-                const chartLabels = Object.values(myStatuses); // Labels from myStatuses
-                const chartData = chartLabels.map((_, index) => data[chartLabels[index]] ||
-                    0); // Use labels for mapping
-
-                chart.data.labels = chartLabels; // Set new labels
-                chart.data.datasets[0].data = chartData; // Set new data
-                chart.update(); // Update the chart
+    
+            // Function to update the publish activity chart
+            function updatePublishActivityChart(data) {
+                const publishActivityData = [
+                    data.projects.published,
+                    data.status_reports.published,
+                    data.terminal_reports.published,
+                    data.research.published
+                ];
+    
+                const publishActivityLabels = [
+                    'Projects',
+                    'Status Reports',
+                    'Terminal Reports',
+                    'Research'
+                ];
+    
+                myPublishActivityChart.data.labels = publishActivityLabels;
+                myPublishActivityChart.data.datasets[0].data = publishActivityData;
+                myPublishActivityChart.update();
             }
-
+    
             // Chart options for a professional look
             const chartOptions = {
                 responsive: true,
@@ -402,9 +209,8 @@
                 plugins: {
                     legend: {
                         display: true,
-                        position: 'bottom',
+                        position : 'bottom',
                         labels: {
-
                             maxWidth: 100,
                             boxWidth: 10,
                         },
@@ -422,84 +228,30 @@
                     }
                 }
             };
-
-            // Initialize pie charts with professional styling
-            var myProjectChart = new Chart(document.getElementById('myProjectChart').getContext('2d'), {
+    
+            // Initialize the pie chart for publish activity
+            var myPublishActivityChart = new Chart(document.getElementById('myPublishActivityChart').getContext('2d'), {
                 type: 'pie',
                 data: {
                     labels: [],
                     datasets: [{
-                        label: 'My Projects',
+                        label: 'Publish Activity',
                         data: [],
-                        backgroundColor: ['#4BC0C0', '#FF6384', '#36A2EB', '#FFCE56', '#9966FF'],
+                        backgroundColor: ['#4BC0C8', '#FF6384', '#36A2EB'], // Custom colors for the sections
                         hoverOffset: 10
                     }]
                 },
-                options: {
-                    ...chartOptions,
-                    plugins: {
-                        ...chartOptions.plugins,
-                        legend: {
-                            ...chartOptions.plugins.legend,
-                            align: 'start', // Align legend to the left
-                        }
-                    }
-                }
+                options: chartOptions
             });
-
-            var myReportChart = new Chart(document.getElementById('myReportChart').getContext('2d'), {
-                type: 'pie',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'My Reports',
-                        data: [],
-                        backgroundColor: ['#9966FF', '#FF9F40', '#FF6384', '#36A2EB', '#4BC0C0'],
-                        hoverOffset: 10
-                    }]
-                },
-                options: {
-                    ...chartOptions,
-                    plugins: {
-                        ...chartOptions.plugins,
-                        legend: {
-                            ...chartOptions.plugins.legend,
-                            align: 'start', // Align legend to the left
-                        }
-                    }
-                }
-            });
-
-            var myResearchChart = new Chart(document.getElementById('myResearchChart').getContext('2d'), {
-                type: 'pie',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'My Research',
-                        data: [],
-                        backgroundColor: ['#FF9F40', '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB'],
-                        hoverOffset: 10
-                    }]
-                },
-                options: {
-                    ...chartOptions,
-                    plugins: {
-                        ...chartOptions.plugins,
-                        legend: {
-                            ...chartOptions.plugins.legend,
-                            align: 'start', // Align legend to the left
-                        }
-                    }
-                }
-            });
-
+    
             // Fetch and update data on page load
-            fetchMyStatusData();
-
+            fetchPublishActivityData();
+    
             // Automatically refresh the data every 30 seconds
-            setInterval(fetchMyStatusData, 30000);
+            setInterval(fetchPublishActivityData, 30000);
         });
     </script>
+
 
     <!-- Chart for overall status of SDG projects, reports, research-->
     <!-- Chart for overall status of SDG projects, reports, research-->
@@ -513,28 +265,32 @@
                     url: "{{ route('analytics.sdgComparison') }}", // Update this route to fetch SDG comparison data
                     method: 'GET',
                     success: function(response) {
-                        // Combine data from projects, reports, and research
+                        // Combine data from projects, status reports, terminal reports, and research
                         const combinedLabels = response
                             .sdgLabels; // Assuming this contains unique SDG labels
                         const combinedData = [];
                         const projectData = response.projectData; // Array of project counts
-                        const reportData = response.reportData; // Array of report counts
+                        const statusReportData = response
+                            .statusReportData; // Array of status report counts
+                        const terminalReportData = response
+                            .terminalReportData; // Array of terminal report counts
                         const researchData = response.researchData; // Array of research counts
 
-                        // Aggregate data from projects, reports, and research
+                        // Aggregate data from projects, status reports, terminal reports, and research
                         for (let i = 0; i < combinedLabels.length; i++) {
-                            combinedData.push((projectData[i] || 0) + (reportData[i] || 0) + (
-                                researchData[i] || 0));
+                            combinedData.push((projectData[i] || 0) + (statusReportData[i] || 0) + (
+                                terminalReportData[i] || 0) + (researchData[i] || 0));
                         }
 
-                        updateCombinedChart(combinedData, combinedLabels, projectData, reportData,
-                            researchData);
+                        updateCombinedChart(combinedData, combinedLabels, projectData, statusReportData,
+                            terminalReportData, researchData);
                     }
                 });
             }
 
             // Function to update the combined chart
-            function updateCombinedChart(data, labels, projectData, reportData, researchData) {
+            function updateCombinedChart(data, labels, projectData, statusReportData, terminalReportData,
+                researchData) {
                 if (combinedChart) {
                     combinedChart.data.labels = labels; // Set new labels
                     combinedChart.data.datasets[0].data = data; // Set new data
@@ -542,10 +298,11 @@
                         const index = context.dataIndex;
                         const totalCount = context.raw; // Total count from combined data
                         const projects = projectData[index] || 0; // Count of projects
-                        const reports = reportData[index] || 0; // Count of reports
+                        const statusReports = statusReportData[index] || 0; // Count of status reports
+                        const terminalReports = terminalReportData[index] || 0; // Count of terminal reports
                         const research = researchData[index] || 0; // Count of research
 
-                        return `Total: ${totalCount} (Projects: ${projects}, Reports: ${reports}, Research: ${research})`;
+                        return `Total: ${totalCount} (Projects: ${projects}, Status Reports: ${statusReports}, Terminal Reports: ${terminalReports}, Research: ${research})`;
                     };
                     combinedChart.update(); // Update the chart
                 }
@@ -629,7 +386,6 @@
                 });
             }
 
-
             // Initialize charts on page load
             initCombinedChart();
 
@@ -689,35 +445,72 @@
 
             var mapProjects = @json($projects);
 
+            // Group projects by coordinates
+            var groupedProjects = {};
+
             mapProjects.forEach(function(project) {
                 if (project.latitude && project.longitude) {
-                    var marker = L.marker([project.latitude, project.longitude], {
-                            icon: locatorIcon
-                        })
-                        .addTo(map)
-                        .bindPopup(`
-                        <div style="font-size: 14px;">
-                            <strong>
-                                <a href="/sdg/project2/${project.id}">
-                                    <i class="fas fa-project-diagram"></i> ${project.title}
-                                </a><span>(Click to view more info)</span>
-                            </strong><br><br>
-                            <i class="fas fa-map-marker-alt"></i> <strong>Address:</strong> ${project.location_address}<br>
-                            <i class="fas fa-globe"></i> <strong>Coordinates:</strong> ${project.latitude}, ${project.longitude}
-                        </div>
-                    `);
-
-                    if ('ontouchstart' in window || navigator.maxTouchPoints) {
-                        marker.on('click', function(e) {
-                            this.openPopup();
-                        });
-                    } else {
-                        marker.on('mouseover', function(e) {
-                            this.openPopup();
-                        });
+                    var coords = `${project.latitude},${project.longitude}`;
+                    if (!groupedProjects[coords]) {
+                        groupedProjects[coords] = [];
                     }
+                    groupedProjects[coords].push(project);
                 }
             });
+
+            // Loop through the grouped projects
+            for (const coords in groupedProjects) {
+                const projectsAtCoords = groupedProjects[coords];
+                const [latitude, longitude] = coords.split(',');
+
+                var marker = L.marker([latitude, longitude], {
+                        icon: locatorIcon
+                    })
+                    .addTo(map)
+                    .bindPopup(function() {
+                        let popupContent =
+                            `<div style="font-size: 14px;"><strong>Projects at this location:</strong><br><br>`;
+
+                        // Display up to 5 projects
+                        const visibleProjects = projectsAtCoords.slice(0, 5);
+                        visibleProjects.forEach(project => {
+                            popupContent += `
+                        <a href="/sdg/project/${project.id}">
+                            <i class="fas fa-project-diagram"></i> ${project.title} 
+                        </a><br>
+                    `;
+                        });
+
+                        // Add "Click to see more" if there are more than 5 projects
+                        if (projectsAtCoords.length > 5) {
+                            popupContent += `<br>
+                        <a href="/sdg/projects/coordinates/${latitude}/${longitude}" data-coordinates="${coords}">
+                            <strong>Click to see more projects</strong>
+                        </a><br>
+                    `;
+                        }
+
+                        // Add the address and coordinates
+                        popupContent += `
+                    <br><i class="fas fa-map-marker-alt"></i> <strong>Address:</strong> ${projectsAtCoords[0].location_address}<br>
+                    <i class="fas fa-globe"></i> <strong>Coordinates:</strong> ${latitude}, ${longitude}
+                </div>`;
+
+                        return popupContent;
+                    });
+
+                if ('ontouchstart' in window || navigator.maxTouchPoints) {
+                    marker.on('click', function(e) {
+                        this.openPopup();
+                    });
+                } else {
+                    marker.on('mouseover', function(e) {
+                        this.openPopup();
+                    });
+                }
+            }
+
+
         });
     </script>
 @endsection

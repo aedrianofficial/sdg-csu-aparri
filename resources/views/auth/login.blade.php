@@ -1,11 +1,17 @@
 @extends('layouts.guest')
+@section('title', 'User Login')
 @section('content')
     <div class="app-content-header">
         <div class="container-fluid">
             <div class="row justify-content-center">
                 <div class="col-sm-4">
                     <div class="card">
-                        <div class="card-header text-center">{{ __('Login') }}</div>
+                        <div class="card-header text-center">
+                            <img src="{{ asset('assets/website/images/csu-sdg-logo.png') }}" alt="Logo"
+                                class="img-fluid mb-3" style="max-width: 200px;">
+                            <h3>Login</h3>
+                            <p class="text-muted">Welcome back! Please enter your credentials to access your account.</p>
+                        </div>
                         <div class="card-body">
                             <form id="login-form" method="POST" action="{{ route('login') }}">
                                 @csrf
@@ -33,15 +39,19 @@
                                         autocomplete="current-password">
                                     <div id="password_error" class="invalid-feedback">Password must be at least 8
                                         characters.</div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="show-password">
+                                        <label class="form-check-label" for="show-password">Show Password</label>
+                                    </div>
                                 </div>
 
                                 <!-- Remember Me -->
-                                <div class="mb-3 form-group">
+                                {{-- <div class="mb-3 form-group">
                                     <div class="form-check">
                                         <input type="checkbox" name="remember" id="remember" class="form-check-input">
                                         <label class="form-check-label" for="remember">{{ __('Remember Me') }}</label>
                                     </div>
-                                </div>
+                                </div> --}}
 
                                 <!-- Forgot Password and Login Button -->
                                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -119,6 +129,11 @@
                 if (!isLoginValid || !isPasswordValid) {
                     event.preventDefault(); // Prevent form submission if validation fails
                 }
+            });
+            // Show Password Functionality
+            document.getElementById("show-password").addEventListener("change", function() {
+                const passwordField = document.getElementById("password");
+                passwordField.type = this.checked ? "text" : "password"; // Toggle password visibility
             });
         });
     </script>

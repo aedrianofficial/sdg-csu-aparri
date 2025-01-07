@@ -30,7 +30,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('publisher.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">Notifications</li>
                     </ol>
                 </div>
@@ -70,17 +70,22 @@
                                                     'notification_id' => $notification->id,
                                                 ]),
                                             };
-                                        } elseif ($data['type'] === 'report') {
-                                            $route = match ($data['status']) {
-                                                'submitted for publishing' => route('publisher.reports.show', [
-                                                    'id' => $notification->related_id,
-                                                    'notification_id' => $notification->id,
-                                                ]),
-                                                default => route('publisher.reports.show', [
-                                                    'id' => $notification->related_id,
-                                                    'notification_id' => $notification->id,
-                                                ]),
-                                            };
+                                        } elseif (
+                                            $data['type'] === 'status report' &&
+                                            $data['status'] === 'submitted for publishing'
+                                        ) {
+                                            $route = route('publisher.status_reports.show_project', [
+                                                'id' => $notification->related_id,
+                                                'notification_id' => $notification->id,
+                                            ]);
+                                        } elseif (
+                                            $data['type'] === 'terminal report' &&
+                                            $data['status'] === 'submitted for publishing'
+                                        ) {
+                                            $route = route('publisher.terminal_reports.show_project', [
+                                                'id' => $notification->related_id,
+                                                'notification_id' => $notification->id,
+                                            ]);
                                         } elseif ($data['type'] === 'research') {
                                             $route = match ($data['status']) {
                                                 'submitted for publishing' => route('publisher.research.show', [

@@ -10,7 +10,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('auth.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             Create Reports
                         </li>
@@ -84,7 +84,9 @@
                                     data-bs-target="#submitReviewModal">Submit for Review</button>
                                 <button type="button" class="btn btn-success me-2" data-bs-toggle="modal"
                                     data-bs-target="#publishModal">Publish Immediately</button>
-
+                                <button type="button" class="btn btn-secondary" id="cancelButton">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
                                 <!-- Hidden Inputs -->
                                 <input type="hidden" name="submit_type" id="submit_type">
 
@@ -112,8 +114,8 @@
                                 </div>
 
                                 <!-- "Publish Immediately" Confirmation Modal -->
-                                <div class="modal fade" id="publishModal" tabindex="-1" aria-labelledby="publishModalLabel"
-                                    aria-hidden="true">
+                                <div class="modal fade" id="publishModal" tabindex="-1"
+                                    aria-labelledby="publishModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
@@ -192,5 +194,27 @@
             document.getElementById('report-form').submit();
         });
     </script>
+    <script>
+        let isDirty = false;
 
+        // Track changes in input fields
+        document.querySelectorAll('input, textarea').forEach(input => {
+            input.addEventListener('input', () => {
+                isDirty = true;
+            });
+        });
+
+        // Handle the cancel button click
+        document.getElementById('cancelButton').addEventListener('click', function() {
+            if (isDirty) {
+                const confirmationMessage = 'You have unsaved changes. Are you sure you want to leave?';
+                if (confirm(confirmationMessage)) {
+                    isDirty = false; // Reset the dirty flag
+                    window.location.href = '{{ route('reports.index') }}'; // Redirect to home or desired route
+                }
+            } else {
+                window.location.href = '{{ route('reports.index') }}'; // Redirect to home or desired route
+            }
+        });
+    </script>
 @endsection

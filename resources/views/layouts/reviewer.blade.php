@@ -3,7 +3,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Reviewer Dashboard</title><!--begin::Primary Meta Tags-->
+    <title>@yield('title', 'Reviewer')</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="title" content="">
     <meta name="author" content="">
@@ -22,7 +22,7 @@
         integrity="sha256-Qsx5lrStHZyR9REqhUF8iQt73X06c8LGIUPzpOhwRrI=" crossorigin="anonymous">
     <!--end::Third Party Plugin(Bootstrap Icons)--><!--begin::Required Plugin(AdminLTE)-->
 
-    <!--end::Required Plugin(AdminLTE)--><!-- apexcharts -->
+    <link rel="icon" href="{{ asset('assets/website/images/favicon.ico') }}" type="image/x-icon">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css"
         integrity="sha256-4MX+61mt9NVvvuPjUWdUdyfZfxSB1/Rf9WtqRHgG5S0=" crossorigin="anonymous"><!-- jsvectormap -->
@@ -126,7 +126,7 @@
                 <ul class="navbar-nav ms-auto"> <!--begin::Navbar Search-->
                     <!--end::Navbar Search-->
 
-                    <li class="nav-item dropdown"> <button
+                    {{-- <li class="nav-item dropdown"> <button
                             class="btn btn-link nav-link py-2 px-0 px-lg-2 dropdown-toggle d-flex align-items-center"
                             id="bd-theme" type="button" aria-expanded="false" data-bs-toggle="dropdown"
                             data-bs-display="static">Toggle theme <span class="theme-icon-active"> <i
@@ -150,7 +150,7 @@
                                     Auto
                                     <i class="bi bi-check-lg ms-auto d-none"></i> </button> </li>
                         </ul>
-                    </li>
+                    </li> --}}
 
                     <!--begin::Notifications Dropdown Menu for Reviewer-->
                     <li class="nav-item dropdown">
@@ -200,7 +200,37 @@
                                                 'notification_id' => $notification->id,
                                             ]);
                                         }
-                                    } elseif ($data['type'] === 'research') {
+                                    } 
+                                    elseif ($data['type'] === 'status_report') {
+                                        // Changed from 'report' to 'status_report'
+                                        if ($data['status'] === 'submitted for review') {
+                                            $route = route('reviewer.status_reports.show_project', [
+                                                'id' => $notification->related_id,
+                                                'notification_id' => $notification->id,
+                                            ]);
+                                        } elseif ($data['status'] === 'resubmitted for review') {
+                                            $route = route('reviewer.status_reports.show_project', [
+                                                'id' => $notification->related_id,
+                                                'notification_id' => $notification->id,
+                                            ]);
+                                        
+                                        }
+                                    } elseif ($data['type'] === 'terminal_report') {
+                                        // Changed from 'report' to 'terminal_report'
+                                        if ($data['status'] === 'submitted for review') {
+                                            $route = route('reviewer.terminal_reports.show_project', [
+                                                'id' => $notification->related_id,
+                                                'notification_id' => $notification->id,
+                                            ]);
+                                        } elseif ($data['status'] === 'resubmitted for review') {
+                                            $route = route('reviewer.terminal_reports.show_project', [
+                                                'id' => $notification->related_id,
+                                                'notification_id' => $notification->id,
+                                            ]);
+                                        
+                                        }
+                                    }
+                                    elseif ($data['type'] === 'research') {
                                         if ($data['status'] === 'submitted for review') {
                                             $route = route('reviewer.research.show', [
                                                 'id' => $notification->related_id,
@@ -272,8 +302,7 @@
                                 @endif
                                 <p>
                                     {{ Auth::user()->first_name }} {{ Auth::user()->last_name }} - Reviewer
-                                    <small>Member since
-                                        {{ \Carbon\Carbon::parse(auth()->user()->created_at)->format('F Y') }}</small>
+                                    <small>{{Auth::user()->college->name}}</small>
                                 </p>
                             </li>
                             <!--end::User Image-->
@@ -367,40 +396,80 @@
                             </ul>
                         </li>
 
-                        <li class="nav-item {{ request()->routeIs('reviewer.reports.*') ? 'menu-open' : '' }}">
+                        <li class="nav-item {{ request()->routeIs('reviewer.status_reports.*') ? 'menu-open' : '' }}">
                             <a href="#"
-                                class="nav-link {{ request()->routeIs('reviewer.reports.*') ? 'active' : '' }}">
+                                class="nav-link {{ request()->routeIs('reviewer.status_reports.*') ? 'active' : '' }}">
                                 <i class="nav-icon bi bi-box-seam-fill"></i>
                                 <p>
-                                    Reports
+                                    Status Reports
                                     <i class="nav-arrow bi bi-chevron-right"></i>
                                 </p>
                             </a>
                             <ul class="nav nav-treeview">
                                 <li class="nav-item">
-                                    <a href="{{ route('reviewer.reports.under_review') }}"
-                                        class="nav-link {{ request()->routeIs('reviewer.reports.under_review') ? 'active' : '' }}">
+                                    <a href="{{ route('reviewer.status_reports.under_review') }}"
+                                        class="nav-link {{ request()->routeIs('reviewer.status_reports.under_review') ? 'active' : '' }}">
                                         <i class="nav-icon bi bi-circle"></i>
                                         <p>Under Review</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ route('reviewer.reports.reviewed_list') }}"
+                                    <a href="{{ route('reviewer.status_reports.reviewed_list') }}"
                                         class="nav-link {{ request()->routeIs('reviewer.reports.reviewed_list') ? 'active' : '' }}">
                                         <i class="nav-icon bi bi-circle"></i>
                                         <p>Reviewed</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ route('reviewer.reports.needchanges_list') }}"
-                                        class="nav-link {{ request()->routeIs('reviewer.reports.needchanges_list') ? 'active' : '' }}">
+                                    <a href="{{ route('reviewer.status_reports.needchanges_list') }}"
+                                        class="nav-link {{ request()->routeIs('reviewer.status_reports.needchanges_list') ? 'active' : '' }}">
                                         <i class="nav-icon bi bi-circle"></i>
                                         <p>Need Changes</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ route('reviewer.reports.rejected') }}"
-                                        class="nav-link {{ request()->routeIs('reviewer.reports.rejected') ? 'active' : '' }}">
+                                    <a href="{{ route('reviewer.status_reports.rejected_list') }}"
+                                        class="nav-link {{ request()->routeIs('reviewer.status_reports.rejected_list') ? 'active' : '' }}">
+                                        <i class="nav-icon bi bi-circle"></i>
+                                        <p>Rejected</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item {{ request()->routeIs('reviewer.terminal_reports.*') ? 'menu-open' : '' }}">
+                            <a href="#"
+                                class="nav-link {{ request()->routeIs('reviewer.terminal_reports.*') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-box-seam-fill"></i>
+                                <p>
+                                    Terminal Reports
+                                    <i class="nav-arrow bi bi-chevron-right"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="{{ route('reviewer.terminal_reports.under_review') }}"
+                                        class="nav-link {{ request()->routeIs('reviewer.terminal_reports.under_review') ? 'active' : '' }}">
+                                        <i class="nav-icon bi bi-circle"></i>
+                                        <p>Under Review</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('reviewer.terminal_reports.reviewed_list') }}"
+                                        class="nav-link {{ request()->routeIs('reviewer.reports.reviewed_list') ? 'active' : '' }}">
+                                        <i class="nav-icon bi bi-circle"></i>
+                                        <p>Reviewed</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('reviewer.terminal_reports.needchanges_list') }}"
+                                        class="nav-link {{ request()->routeIs('reviewer.terminal_reports.needchanges_list') ? 'active' : '' }}">
+                                        <i class="nav-icon bi bi-circle"></i>
+                                        <p>Need Changes</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('reviewer.terminal_reports.rejected_list') }}"
+                                        class="nav-link {{ request()->routeIs('reviewer.terminal_reports.rejected_list') ? 'active' : '' }}">
                                         <i class="nav-icon bi bi-circle"></i>
                                         <p>Rejected</p>
                                     </a>

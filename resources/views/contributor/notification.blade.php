@@ -30,7 +30,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('contributor.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">Notifications</li>
                     </ol>
                 </div>
@@ -78,21 +78,46 @@
                                                     'notification_id' => $notification->id,
                                                 ]),
                                             };
-                                        } elseif ($data['type'] === 'report') {
-                                            $route = match ($data['status']) {
-                                                'request_changes' => route('contributor.reports.request_changes.show', [
+                                        } elseif ($data['type'] === 'status_report') {
+                                            // Changed from 'report' to 'status_report'
+                                            if ($data['status'] === 'request_changes') {
+                                                $route = route('contributor.status_reports.projects.need_changes', [
                                                     'id' => $notification->related_id,
                                                     'notification_id' => $notification->id,
-                                                ]),
-                                                'rejected' => route('contributor.reports.rejected_show', [
+                                                ]);
+                                            } elseif ($data['status'] === 'rejected') {
+                                                $route = route('contributor.status_reports.projects.rejected', [
                                                     'id' => $notification->related_id,
                                                     'notification_id' => $notification->id,
-                                                ]),
-                                                default => route('contributor.reports.show', [
+                                                ]);
+                                            } elseif (
+                                                in_array($data['status'], ['approved', 'published', 'reviewed'])
+                                            ) {
+                                                $route = route('contributor.status_reports.show_research_published', [
                                                     'id' => $notification->related_id,
                                                     'notification_id' => $notification->id,
-                                                ]),
-                                            };
+                                                ]);
+                                            }
+                                        } elseif ($data['type'] === 'terminal_report') {
+                                            // Changed from 'report' to 'terminal_report'
+                                            if ($data['status'] === 'request_changes') {
+                                                $route = route('contributor.terminal_reports.projects.need_changes', [
+                                                    'id' => $notification->related_id,
+                                                    'notification_id' => $notification->id,
+                                                ]);
+                                            } elseif ($data['status'] === 'rejected') {
+                                                $route = route('contributor.terminal_reports.projects.rejected', [
+                                                    'id' => $notification->related_id,
+                                                    'notification_id' => $notification->id,
+                                                ]);
+                                            } elseif (
+                                                in_array($data['status'], ['approved', 'published', 'reviewed'])
+                                            ) {
+                                                $route = route('contributor.terminal_reports.show_research_published', [
+                                                    'id' => $notification->related_id,
+                                                    'notification_id' => $notification->id,
+                                                ]);
+                                            }
                                         } elseif ($data['type'] === 'research') {
                                             $route = match ($data['status']) {
                                                 'request_changes' => route(

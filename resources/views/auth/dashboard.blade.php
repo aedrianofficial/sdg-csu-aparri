@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-
+@section('title', 'Admin Dashboard')
 @section('styles')
     <style>
         #map {
@@ -60,7 +60,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('auth.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             Dashboard
                         </li>
@@ -73,19 +73,20 @@
         <div class="container-fluid"> <!--begin::Row-->
             <div class="row"> <!--begin::Col-->
                 <div class="col-12">
-                    <!-- Project, Report, and Research Status Overview -->
+                    <!-- Project, Status Report, and Terminal Report Status Overview -->
+                    <!-- Project, Status Report, Terminal Report, and Research Status Overview -->
                     <div class="content">
                         <div class="container">
                             <div class="row text-center">
                                 <div class="col-md-12 mb-4">
                                     <div class="card card-primary card-outline">
                                         <div class="card-header">
-                                            <h4 class="text-center mb-4" style="font-weight: 600;">Project, Report, and
-                                                Research Status Overview</h4>
+                                            <h4 class="text-center mb-4" style="font-weight: 600;">Project, Status Report,
+                                                Terminal Report, and Research Status Overview</h4>
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
-                                                <div class="col-md-4 mb-4">
+                                                <div class="col-md-3 mb-4">
                                                     <h5 class="mb-3" style="font-weight: 500;"><span
                                                             id="totalProjectsHeader"></span></h5>
                                                     <div class="chart-container"
@@ -93,15 +94,23 @@
                                                         <canvas id="projectChart"></canvas>
                                                     </div>
                                                 </div>
-                                                <div class="col-md-4 mb-4">
+                                                <div class="col-md-3 mb-4">
                                                     <h5 class="mb-3" style="font-weight: 500;"><span
-                                                            id="totalReportsHeader"></span></h5>
+                                                            id="totalStatusReportsHeader"></span></h5>
                                                     <div class="chart-container"
                                                         style="position: relative; height: 350px; width: 100%;">
-                                                        <canvas id="reportChart"></canvas>
+                                                        <canvas id="statusReportChart"></canvas>
                                                     </div>
                                                 </div>
-                                                <div class="col-md-4 mb-4">
+                                                <div class="col-md-3 mb-4">
+                                                    <h5 class="mb-3" style="font-weight: 500;"><span
+                                                            id="totalTerminalReportsHeader"></span></h5>
+                                                    <div class="chart-container"
+                                                        style="position: relative; height: 350px; width: 100%;">
+                                                        <canvas id="terminalReportChart"></canvas>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 mb-4">
                                                     <h5 class="mb-3" style="font-weight: 500;"><span
                                                             id="totalResearchHeader"></span></h5>
                                                     <div class="chart-container"
@@ -118,36 +127,45 @@
                     </div>
 
                     <!-- My Projects, My Reports, and My Research Status -->
+                    <!-- My Projects, Status Reports, Terminal Reports, and Research Status -->
                     <div class="content">
                         <div class="container">
                             <div class="row text-center">
                                 <div class="col-md-12 mb-4">
                                     <div class="card card-primary card-outline">
                                         <div class="card-header">
-                                            <h4 class="text-center mb-4" style="font-weight: 600;">My Projects, My Reports,
-                                                and My Research Status</h4>
+                                            <h4 class="text-center mb-4" style="font-weight: 600;">My Activity Status
+                                                Overview</h4>
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
-                                                <div class="col-md-4 mb-4">
+                                                <div class="col-md-3 mb-4">
                                                     <h5 class="mb-3" style="font-weight: 500;"><span
-                                                        id="myTotalProjectsHeader"></span></h5>
+                                                            id="myTotalProjectsHeader"></span></h5>
                                                     <div class="chart-container"
                                                         style="position: relative; height: 350px; width: 100%;">
                                                         <canvas id="myProjectChart"></canvas>
                                                     </div>
                                                 </div>
-                                                <div class="col-md-4 mb-4">
+                                                <div class="col-md-3 mb-4">
                                                     <h5 class="mb-3" style="font-weight: 500;"><span
-                                                        id="myTotalReportsHeader"></span></h5>
+                                                            id="myTotalStatusReportsHeader"></span></h5>
                                                     <div class="chart-container"
                                                         style="position: relative; height: 350px; width: 100%;">
-                                                        <canvas id="myReportChart"></canvas>
+                                                        <canvas id="myStatusReportChart"></canvas>
                                                     </div>
                                                 </div>
-                                                <div class="col-md-4 mb-4">
+                                                <div class="col-md-3 mb-4">
                                                     <h5 class="mb-3" style="font-weight: 500;"><span
-                                                        id="myTotalResearchHeader"></span></h5>
+                                                            id="myTotalTerminalReportsHeader"></span></h5>
+                                                    <div class="chart-container"
+                                                        style="position: relative; height: 350px; width: 100%;">
+                                                        <canvas id="myTerminalReportChart"></canvas>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 mb-4">
+                                                    <h5 class="mb-3" style="font-weight: 500;"><span
+                                                            id="myTotalResearchHeader"></span></h5>
                                                     <div class="chart-container"
                                                         style="position: relative; height: 350px; width: 100%;">
                                                         <canvas id="myResearchChart"></canvas>
@@ -222,18 +240,25 @@
                 $.ajax({
                     url: "{{ route('analytics.reviewStatusAnalytics') }}", // Add correct route
                     method: 'GET',
-                    success: function(response) { // Update headers with total counts
+                    success: function(response) {
+                        // Update headers with total counts
                         $('#totalProjectsHeader').text(`Projects Status (${response.totalProjects})`);
-                        $('#totalReportsHeader').text(`Reports Status (${response.totalReports})`);
-                        $('#totalResearchHeader').text(`Research Status (${response.totalResearch})`);
+                        $('#totalStatusReportsHeader').text(
+                            `Status Reports Status (${response.totalStatusReports})`);
+                        $('#totalTerminalReportsHeader').text(
+                            `Terminal Reports Status (${response.totalTerminalReports})`);
+                        $('#totalResearchHeader').text(
+                            `Research Status (${response.totalResearch})`); // Add total research header
 
                         // Update the charts
                         updateChart(projectChart, response.projectStatusCounts, response.statuses,
                             'Projects');
-                        updateChart(reportChart, response.reportStatusCounts, response.statuses,
-                            'Reports');
+                        updateChart(statusReportChart, response.statusReportStatusCounts, response
+                            .statuses, 'Status Reports');
+                        updateChart(terminalReportChart, response.terminalReportStatusCounts, response
+                            .statuses, 'Terminal Reports');
                         updateChart(researchChart, response.researchStatusCounts, response.statuses,
-                            'Research');
+                            'Research'); // Update research chart
                     }
                 });
             }
@@ -299,14 +324,14 @@
                 }
             });
 
-            var reportChart = new Chart(document.getElementById('reportChart').getContext('2d'), {
+            var statusReportChart = new Chart(document.getElementById('statusReportChart').getContext('2d'), {
                 type: 'pie',
                 data: {
                     labels: [],
                     datasets: [{
-                        label: 'Reports',
+                        label: 'Status Reports',
                         data: [],
-                        backgroundColor: ['#9966FF', '#FF9F40', '#FF6384', '#36A2EB', '#4BC0C0'],
+                        backgroundColor: ['#FF9F40', '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB'],
                         hoverOffset: 10
                     }]
                 },
@@ -322,6 +347,29 @@
                 }
             });
 
+            var terminalReportChart = new Chart(document.getElementById('terminalReportChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Terminal Reports',
+                        data: [],
+                        backgroundColor: ['#9966FF', '#FF9F40', '#FF6384', '#36A2EB', '#4BC0C0'],
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    ...chartOptions,
+                    plugins: {
+                        ...chartOptions.plugins,
+                        legend: {
+                            ...chartOptions.plugins.legend,
+                            align: 'start', // Align legend to the left
+                        }
+                    }
+                }
+            });
+
             var researchChart = new Chart(document.getElementById('researchChart').getContext('2d'), {
                 type: 'pie',
                 data: {
@@ -329,7 +377,7 @@
                     datasets: [{
                         label: 'Research',
                         data: [],
-                        backgroundColor: ['#FF9F40', '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB'],
+                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
                         hoverOffset: 10
                     }]
                 },
@@ -350,10 +398,9 @@
 
             // Automatically refresh the data every 30 seconds
             setInterval(fetchReviewStatusData, 30000); // 30,000 ms = 30 seconds
-
-
         });
     </script>
+
     <!-- Chart for review statuses of my projects, reports, and research -->
     <script>
         $(document).ready(function() {
@@ -363,36 +410,33 @@
                     url: "{{ route('analytics.myStatusAnalytics') }}", // Ensure the route is correct
                     method: 'GET',
                     success: function(response) {
-
-                        $('#myTotalProjectsHeader').text(
-                            `My Projects Status (${response.myTotalProjects})`);
-                        $('#myTotalReportsHeader').text(`My Reports Status (${response.myTotalReports})`);
-                        $('#myTotalResearchHeader').text(
-                            `My Research Status (${response.myTotalResearch})`);
-
-                        updateChart(myProjectChart, response.myProjectStatusCounts, response
-                            .myStatuses);
-                        updateChart(myReportChart, response.myReportStatusCounts, response.myStatuses);
-                        updateChart(myResearchChart, response.myResearchStatusCounts, response
-                            .myStatuses);
+                        $('#myTotalProjectsHeader').text(`My Projects Status (${response.myTotalProjects})`);
+                        $('#myTotalStatusReportsHeader').text(`My Status Reports Status (${response.myTotalStatusReports})`);
+                        $('#myTotalTerminalReportsHeader').text(`My Terminal Reports Status (${response.myTotalTerminalReports})`);
+                        $('#myTotalResearchHeader').text(`My Research Status (${response.myTotalResearch})`);
+    
+                        updateChart(myProjectChart, response.myProjectStatusCounts, response.myStatuses);
+                        updateChart(myStatusReportChart, response.myStatusReportStatusCounts, response.myStatuses);
+                        updateChart(myTerminalReportChart, response.myTerminalReportStatusCounts, response.myStatuses);
+                        updateChart(myResearchChart, response.myResearchStatusCounts, response.myStatuses);
                     },
                     error: function(xhr, status, error) {
                         console.error("Error fetching status data:", error);
+                        alert("Failed to fetch status data. Please try again later."); // User feedback
                     }
                 });
             }
-
+    
             // Function to update a chart
             function updateChart(chart, data, myStatuses) {
                 const chartLabels = Object.values(myStatuses); // Labels from myStatuses
-                const chartData = chartLabels.map((_, index) => data[chartLabels[index]] ||
-                    0); // Use labels for mapping
-
+                const chartData = chartLabels.map((label) => data[label] || 0); // Use labels for mapping
+    
                 chart.data.labels = chartLabels; // Set new labels
                 chart.data.datasets[0].data = chartData; // Set new data
                 chart.update(); // Update the chart
             }
-
+    
             // Chart options for a professional look
             const chartOptions = {
                 responsive: true,
@@ -402,7 +446,6 @@
                         display: true,
                         position: 'bottom',
                         labels: {
-
                             maxWidth: 100,
                             boxWidth: 10,
                         },
@@ -420,9 +463,9 @@
                     }
                 }
             };
-
+    
             // Initialize pie charts with professional styling
-            var myProjectChart = new Chart(document.getElementById('myProjectChart').getContext('2d'), {
+            const myProjectChart = new Chart(document.getElementById('myProjectChart').getContext('2d'), {
                 type: 'pie',
                 data: {
                     labels: [],
@@ -444,13 +487,13 @@
                     }
                 }
             });
-
-            var myReportChart = new Chart(document.getElementById('myReportChart').getContext('2d'), {
+    
+            const myStatusReportChart = new Chart(document.getElementById('myStatusReportChart').getContext('2d'), {
                 type: 'pie',
                 data: {
                     labels: [],
                     datasets: [{
-                        label: 'My Reports',
+                        label: 'My Status Reports',
                         data: [],
                         backgroundColor: ['#9966FF', '#FF9F40', '#FF6384', '#36A2EB', '#4BC0C0'],
                         hoverOffset: 10
@@ -467,15 +510,15 @@
                     }
                 }
             });
-
-            var myResearchChart = new Chart(document.getElementById('myResearchChart').getContext('2d'), {
+    
+            const myTerminalReportChart = new Chart(document.getElementById('myTerminalReportChart').getContext('2d'), {
                 type: 'pie',
                 data: {
                     labels: [],
                     datasets: [{
-                        label: 'My Research',
+                        label: 'My Terminal Reports',
                         data: [],
-                        backgroundColor: ['#FF9F40', '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB'],
+                        backgroundColor: [ '#FF9F40', '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB'],
                         hoverOffset: 10
                     }]
                 },
@@ -490,10 +533,33 @@
                     }
                 }
             });
-
+    
+            const myResearchChart = new Chart(document.getElementById('myResearchChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'My Research',
+                        data: [],
+                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    ...chartOptions,
+                    plugins: {
+                        ...chartOptions.plugins,
+                        legend: {
+                            ...chartOptions.plugins.legend,
+                            align: 'start', // Align legend to the left
+                        }
+                    }
+                }
+            });
+    
             // Fetch and update data on page load
             fetchMyStatusData();
-
+    
             // Automatically refresh the data every 30 seconds
             setInterval(fetchMyStatusData, 30000);
         });
@@ -510,28 +576,32 @@
                     url: "{{ route('analytics.sdgComparison') }}", // Update this route to fetch SDG comparison data
                     method: 'GET',
                     success: function(response) {
-                        // Combine data from projects, reports, and research
+                        // Combine data from projects, status reports, terminal reports, and research
                         const combinedLabels = response
-                            .sdgLabels; // Assuming this contains unique SDG labels
+                        .sdgLabels; // Assuming this contains unique SDG labels
                         const combinedData = [];
                         const projectData = response.projectData; // Array of project counts
-                        const reportData = response.reportData; // Array of report counts
+                        const statusReportData = response
+                        .statusReportData; // Array of status report counts
+                        const terminalReportData = response
+                        .terminalReportData; // Array of terminal report counts
                         const researchData = response.researchData; // Array of research counts
 
-                        // Aggregate data from projects, reports, and research
+                        // Aggregate data from projects, status reports, terminal reports, and research
                         for (let i = 0; i < combinedLabels.length; i++) {
-                            combinedData.push((projectData[i] || 0) + (reportData[i] || 0) + (
-                                researchData[i] || 0));
+                            combinedData.push((projectData[i] || 0) + (statusReportData[i] || 0) + (
+                                terminalReportData[i] || 0) + (researchData[i] || 0));
                         }
 
-                        updateCombinedChart(combinedData, combinedLabels, projectData, reportData,
-                            researchData);
+                        updateCombinedChart(combinedData, combinedLabels, projectData, statusReportData,
+                            terminalReportData, researchData);
                     }
                 });
             }
 
             // Function to update the combined chart
-            function updateCombinedChart(data, labels, projectData, reportData, researchData) {
+            function updateCombinedChart(data, labels, projectData, statusReportData, terminalReportData,
+                researchData) {
                 if (combinedChart) {
                     combinedChart.data.labels = labels; // Set new labels
                     combinedChart.data.datasets[0].data = data; // Set new data
@@ -539,10 +609,11 @@
                         const index = context.dataIndex;
                         const totalCount = context.raw; // Total count from combined data
                         const projects = projectData[index] || 0; // Count of projects
-                        const reports = reportData[index] || 0; // Count of reports
+                        const statusReports = statusReportData[index] || 0; // Count of status reports
+                        const terminalReports = terminalReportData[index] || 0; // Count of terminal reports
                         const research = researchData[index] || 0; // Count of research
 
-                        return `Total: ${totalCount} (Projects: ${projects}, Reports: ${reports}, Research: ${research})`;
+                        return `Total: ${totalCount} (Projects: ${projects}, Status Reports: ${statusReports}, Terminal Reports: ${terminalReports}, Research: ${research})`;
                     };
                     combinedChart.update(); // Update the chart
                 }
@@ -626,7 +697,6 @@
                 });
             }
 
-
             // Initialize charts on page load
             initCombinedChart();
 
@@ -638,7 +708,6 @@
         });
     </script>
 
-    <!-- locator pin in the map for all projects-->
     <script>
         $(document).ready(function() {
             // Initialize the map and set the default location to CSU-Aparri
@@ -685,35 +754,72 @@
 
             var mapProjects = @json($projects);
 
+            // Group projects by coordinates
+            var groupedProjects = {};
+
             mapProjects.forEach(function(project) {
                 if (project.latitude && project.longitude) {
-                    var marker = L.marker([project.latitude, project.longitude], {
-                            icon: locatorIcon
-                        })
-                        .addTo(map)
-                        .bindPopup(`
-                        <div style="font-size: 14px;">
-                            <strong>
-                                <a href="/sdg/project2/${project.id}">
-                                    <i class="fas fa-project-diagram"></i> ${project.title}
-                                </a><span>(Click to view more info)</span>
-                            </strong><br><br>
-                            <i class="fas fa-map-marker-alt"></i> <strong>Address:</strong> ${project.location_address}<br>
-                            <i class="fas fa-globe"></i> <strong>Coordinates:</strong> ${project.latitude}, ${project.longitude}
-                        </div>
-                    `);
-
-                    if ('ontouchstart' in window || navigator.maxTouchPoints) {
-                        marker.on('click', function(e) {
-                            this.openPopup();
-                        });
-                    } else {
-                        marker.on('mouseover', function(e) {
-                            this.openPopup();
-                        });
+                    var coords = `${project.latitude},${project.longitude}`;
+                    if (!groupedProjects[coords]) {
+                        groupedProjects[coords] = [];
                     }
+                    groupedProjects[coords].push(project);
                 }
             });
+
+            // Loop through the grouped projects
+            for (const coords in groupedProjects) {
+                const projectsAtCoords = groupedProjects[coords];
+                const [latitude, longitude] = coords.split(',');
+
+                var marker = L.marker([latitude, longitude], {
+                        icon: locatorIcon
+                    })
+                    .addTo(map)
+                    .bindPopup(function() {
+                        let popupContent =
+                            `<div style="font-size: 14px;"><strong>Projects at this location:</strong><br><br>`;
+
+                        // Display up to 5 projects
+                        const visibleProjects = projectsAtCoords.slice(0, 5);
+                        visibleProjects.forEach(project => {
+                            popupContent += `
+                        <a href="/sdg/project/${project.id}">
+                            <i class="fas fa-project-diagram"></i> ${project.title} 
+                        </a><br>
+                    `;
+                        });
+
+                        // Add "Click to see more" if there are more than 5 projects
+                        if (projectsAtCoords.length > 5) {
+                            popupContent += `<br>
+                        <a href="/sdg/projects/coordinates/${latitude}/${longitude}" data-coordinates="${coords}">
+                            <strong>Click to see more projects</strong>
+                        </a><br>
+                    `;
+                        }
+
+                        // Add the address and coordinates
+                        popupContent += `
+                    <br><i class="fas fa-map-marker-alt"></i> <strong>Address:</strong> ${projectsAtCoords[0].location_address}<br>
+                    <i class="fas fa-globe"></i> <strong>Coordinates:</strong> ${latitude}, ${longitude}
+                </div>`;
+
+                        return popupContent;
+                    });
+
+                if ('ontouchstart' in window || navigator.maxTouchPoints) {
+                    marker.on('click', function(e) {
+                        this.openPopup();
+                    });
+                } else {
+                    marker.on('mouseover', function(e) {
+                        this.openPopup();
+                    });
+                }
+            }
+
+
         });
     </script>
 @endsection

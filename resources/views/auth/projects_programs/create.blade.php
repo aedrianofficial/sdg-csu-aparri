@@ -62,7 +62,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('auth.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             Create Projects/Programs
                         </li>
@@ -116,18 +116,30 @@
                                         @endif
                                     </select>
                                 </div>
+                                <!-- Sub-categories Section -->
+                                <div class="mb-3" id="sub-categories" style="display: none;">
+                                    <label for="sdg_sub_categories" class="form-label">Select SDG Targets
+                                        (Optionally)</label>
+                                    <div id="sub-category-checkboxes"></div>
+                                    <p>
+                                        Source: <a
+                                            href="https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf"
+                                            target="_blank">https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf</a>
+                                    </p>
+                                </div>
 
 
                                 <!-- Project Status Dropdown -->
                                 <div class="mb-3">
-                                    <label for="project_status" class="form-label">Project Status</label>
-                                    <select name="project_status" id="project_status" class="form-select" required>
+                                    <label for="status_id" class="form-label">Project Status</label>
+                                    <select name="status_id" id="status_id" class="form-select" required>
                                         <option disabled selected>Choose Status</option>
-                                        <option @selected(old('project_status') == 'Proposed') value="Proposed">Proposed</option>
-                                        <option @selected(old('project_status') == 'On-Going') value="On-Going">On-Going</option>
-                                        <option @selected(old('project_status') == 'On-Hold') value="On-Hold">On-Hold</option>
-                                        <option @selected(old('project_status') == 'Completed') value="Completed">Completed</option>
-                                        <option @selected(old('project_status') == 'Rejected') value="Rejected">Rejected</option>
+                                        @if (count($statuses) > 0)
+                                            @foreach ($statuses as $status)
+                                                <option @selected(old('status_id') == $status->id) value="{{ $status->id }}">
+                                                    {{ $status->status }}</option>
+                                            @endforeach
+                                        @endif
                                     </select>
                                 </div>
 
@@ -168,6 +180,9 @@
                                     data-bs-target="#submitReviewModal">Submit for Review</button>
                                 <button type="button" class="btn btn-success me-2" data-bs-toggle="modal"
                                     data-bs-target="#publishModal">Publish Immediately</button>
+                                <button type="button" class="btn btn-secondary" id="cancelButton">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
 
                                 <!-- Modals for Confirmation -->
                                 <input type="hidden" name="submit_type" id="submit_type">
@@ -239,19 +254,55 @@
                 placeholder: 'Select SDGs',
 
             });
-
+            $('#sdg').on('change', function() {
+                var selectedSdgs = $(this).val();
+                if (selectedSdgs.length > 0) {
+                    $.ajax({
+                        url: '{{ route('sdg.subcategories') }}',
+                        method: 'GET',
+                        data: {
+                            sdg_ids: selectedSdgs
+                        },
+                        success: function(data) {
+                            $('#sub-category-checkboxes').empty();
+                            if (data.length > 0) {
+                                data.forEach(function(subCategory) {
+                                    $('#sub-category-checkboxes').append(
+                                        '<div class="form-check">' +
+                                        '<input class="form-check-input" type="checkbox" name="sdg_sub_category[]" value="' +
+                                        subCategory.id + '" id="subCategory' +
+                                        subCategory.id + '">' +
+                                        '<label class="form-check-label" for="subCategory' +
+                                        subCategory.id + '">' +
+                                        subCategory.sub_category_name + ': ' +
+                                        subCategory.sub_category_description +
+                                        '</label>' +
+                                        '</div>'
+                                    );
+                                });
+                                $('#sub-categories').show();
+                            } else {
+                                $('#sub-c ategories').hide();
+                            }
+                        }
+                    });
+                } else {
+                    $('#sub-categories').hide();
+                }
+            });
             // Initialize map
             var map = L.map('map').setView([18.3515316, 121.6489289], 16);
 
             // Add MapTiler tile layer
-            L.tileLayer('https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=nnLs4mWhpJaZMAiwkL9K', {
-                tileSize: 512,
-                zoomOffset: -1,
-                minZoom: 1,
-                attribution: '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> | ' +
-                    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> Contributors',
-                crossOrigin: true
-            }).addTo(map);
+            L.tileLayer(
+                'https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=nnLs4mWhpJaZMAiwkL9K', {
+                    tileSize: 512,
+                    zoomOffset: -1,
+                    minZoom: 1,
+                    attribution: '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> | ' +
+                        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> Contributors',
+                    crossOrigin: true
+                }).addTo(map);
 
             // Custom icon for markers
             var redMarkerIcon = L.icon({
@@ -274,8 +325,9 @@
 
             // Display default marker and address if not set
             marker = L.marker([defaultLat, defaultLng], {
-                icon: redMarkerIcon
-            }).addTo(map).bindPopup(createPopupMessage(defaultAddress, defaultLat, defaultLng)).openPopup();
+                    icon: redMarkerIcon
+                }).addTo(map).bindPopup(createPopupMessage(defaultAddress, defaultLat, defaultLng))
+                .openPopup();
 
             $('#location_address').val(defaultAddress);
             $('#latitude').val(defaultLat);
@@ -307,8 +359,10 @@
                                     data.forEach(function(item) {
                                         $('#suggestions').append(
                                             '<div class="list-group-item" data-lat="' +
-                                            item.lat + '" data-lng="' + item.lon +
-                                            '">' + item.display_name + '</div>'
+                                            item.lat + '" data-lng="' +
+                                            item.lon +
+                                            '">' + item.display_name +
+                                            '</div>'
                                         );
                                     });
                                     $('#suggestions').show();
@@ -335,8 +389,9 @@
 
                 // Create a new marker at the selected location
                 marker = L.marker([lat, lng], {
-                    icon: redMarkerIcon
-                }).addTo(map).bindPopup(createPopupMessage($(this).text(), lat, lng)).openPopup();
+                        icon: redMarkerIcon
+                    }).addTo(map).bindPopup(createPopupMessage($(this).text(), lat, lng))
+                    .openPopup();
 
                 // Set the map view to the new location
                 map.setView([lat, lng], 16);
@@ -390,7 +445,8 @@
                             $('#latitude').val(lat);
                             $('#longitude').val(lng);
 
-                            marker.bindPopup(createPopupMessage(address, lat, lng)).openPopup();
+                            marker.bindPopup(createPopupMessage(address, lat, lng))
+                                .openPopup();
                         }
                     }
                 });
@@ -407,6 +463,7 @@
 
         });
     </script>
+    <script></script>
     <script>
         document.getElementById('confirmSubmitReview').addEventListener('click', function() {
             document.getElementById('submit_type').value = 'review';
@@ -419,5 +476,27 @@
         });
     </script>
 
+    <script>
+        let isDirty = false;
 
+        // Track changes in input fields
+        document.querySelectorAll('input, textarea').forEach(input => {
+            input.addEventListener('input', () => {
+                isDirty = true;
+            });
+        });
+
+        // Handle the cancel button click
+        document.getElementById('cancelButton').addEventListener('click', function() {
+            if (isDirty) {
+                const confirmationMessage = 'You have unsaved changes. Are you sure you want to leave?';
+                if (confirm(confirmationMessage)) {
+                    isDirty = false; // Reset the dirty flag
+                    window.location.href = '{{ route('projects.index') }}'; // Redirect to home or desired route
+                }
+            } else {
+                window.location.href = '{{ route('projects.index') }}'; // Redirect to home or desired route
+            }
+        });
+    </script>
 @endsection

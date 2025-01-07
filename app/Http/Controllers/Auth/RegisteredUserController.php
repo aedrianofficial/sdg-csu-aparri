@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\College;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -20,7 +21,8 @@ class RegisteredUserController extends Controller
      */
     public function create(): View
     {
-        return view('auth.register');
+        $colleges = College::all();
+        return view('auth.register', compact( 'colleges'));
     }
 
     /**
@@ -36,6 +38,8 @@ class RegisteredUserController extends Controller
             'username' => ['required', 'string', 'max:255', 'unique:users,username'], // Ensure username is unique
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'college_id' => ['required', 'exists:colleges,id'], // Validate the college ID
+            'campus_id' => ['required', 'exists:campuses,id'], // Ensure the campus ID exists
         ]);
     
         $user = User::create([
@@ -43,7 +47,10 @@ class RegisteredUserController extends Controller
             'last_name' => $request->last_name,
             'username' => $request->username,
             'email' => $request->email,
+            'role' => 'contributor',
             'password' => Hash::make($request->password),
+            'college_id' => $request->college_id,
+            'campus_id' => $request->campus_id,
         ]);
     
         event(new Registered($user));
@@ -64,11 +71,13 @@ class RegisteredUserController extends Controller
                 'last_name' => $user->last_name,
                 'username' => $user->username,
                 'email' => $user->email,
+                'college_id' => $user->college_id,
+                'campus_id' => $user->campus_id,
             ]),
             'created_at' => now(),
         ]);
         
-        return redirect(route('website.home2'));
+        return redirect(route('contributor.dashboard'));
     }
     
      public function checkUsername(Request $request)
@@ -76,5 +85,13 @@ class RegisteredUserController extends Controller
         $exists = User::where('username', $request->username)->exists();
         return response()->json(['exists' => $exists]);
     }
-
+    public function checkEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+    
+        $exists = User::where('email', $request->email)->exists();
+        return response()->json(['exists' => $exists]);
+    }
 }

@@ -23,11 +23,11 @@ class ResearchRequest extends FormRequest
     {
         return [
             'title' => ['required', 'min:2', 'max:255'],
+            'status_id' => ['required', 'exists:project_research_statuses,id'], // Update validation rule
             'researchcategory_id' => ['required', 'exists:researchcategories,id'],
-            'research_status' => ['required', 'in:Proposed,On-Going,On-Hold,Completed,Rejected'], 
             'sdg' => ['required', 'array'],
             'is_publish' => ['required', 'boolean'],
-            
+            'file_link' => 'nullable|url',
             'file' => ['file', 'mimes:pdf,docx', 'max:2048'], // Adjust mime types and size as needed
             'description' => ['required', 'min:10'],
         ];

@@ -84,12 +84,19 @@
         </div>
     </div>
 
+    <!-- All Project Locations Map -->
     <div class="content">
         <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <h3 class="mt-5 mb-3" style="font-weight: 500;">Project Locations</h3>
-                    <div id="map" class="card card-primary card-outline" style="height: 400px; border-radius: 10px;">
+            <div class="row text-center">
+                <div class="col-md-12 mb-4">
+                    <div class="card card-primary card-outline">
+                        <div class="card-header">
+                            <h4 class="text-center mb-4" style="font-weight: 600;">All Project Locations
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <div id="map" style="height: 400px; border-radius: 10px;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -178,66 +185,7 @@
         @endif
     </div>
 
-    <!-- Reports Section -->
-    <div class="content-header">
-        <div class="container">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">Latest Reports</h1>
-                </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ route('website.sdg_report_main2') }}">Show All Reports</a>
-                        </li>
-                        <li class="breadcrumb-item active">Home</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="content">
-        <div class="container">
-            @if ($reports !== null && count($reports) > 0)
-                <div class="row">
-                    @foreach ($reports as $report)
-                        <div class="col-lg-4 mb-4"> <!-- Column for each card -->
-                            <div class="card card-success card-outline h-100 d-flex flex-column post">
-                                <div class="card-header">
-                                    <h5 class="card-title m-0 text-truncate" title="{{ $report->title }}">
-                                        {{ Str::limit($report->title, 40) }}
-                                    </h5>
-                                </div>
-                                <div class="card-body d-flex flex-column">
-                                    <a href="{{ route('website.display_single_report2', $report->id) }}">
-                                        <img src="{{ $report->reportimg->image }}" class="card-img-top" alt=""
-                                            style="height: 200px; object-fit: cover;">
-                                    </a>
-                                    <div class="post-meta mt-3">
-                                        <ul class="list-unstyled">
-                                            <li>
-                                                <i class="ion-calendar"></i>
-                                                {{ date('d M Y', strtotime($report->created_at)) }}
-                                            </li>
-                                            <li>
-                                                @foreach ($report->sdg as $report_sdgs)
-                                                    <i class="ion-pricetags">{{ $report_sdgs->name }}&nbsp;</i>
-                                                @endforeach
-                                            </li>
-                                        </ul>
-                                    </div>
 
-                                    <a href="{{ route('website.display_single_report2', $report->id) }}"
-                                        class="btn btn-success mt-auto continue-reading">Continue Reading</a>
-                                </div>
-                            </div>
-                        </div> <!-- End of card column -->
-                    @endforeach
-                </div>
-        </div>
-    @else
-        <h2 class="text-center text-danger mt-5">No Reports added</h2>
-        @endif
-    </div>
 
     <!-- Research Section -->
     <div class="content-header">
@@ -301,9 +249,6 @@
         <h2 class="text-center text-danger mt-5">No Research added</h2>
         @endif
     </div>
-
-
-
 @endsection
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -353,36 +298,71 @@
             });
 
             var mapProjects = @json($mapProjects);
+            // Group projects by coordinates
+            var groupedProjects = {};
 
             mapProjects.forEach(function(project) {
                 if (project.latitude && project.longitude) {
-                    var marker = L.marker([project.latitude, project.longitude], {
-                            icon: locatorIcon
-                        })
-                        .addTo(map)
-                        .bindPopup(`
-                        <div style="font-size: 14px;">
-                            <strong>
-                                <a href="/sdg/project2/${project.id}">
-                                    <i class="fas fa-project-diagram"></i> ${project.title}
-                                </a><span>(Click to view more info)</span>
-                            </strong><br><br>
-                            <i class="fas fa-map-marker-alt"></i> <strong>Address:</strong> ${project.location_address}<br>
-                            <i class="fas fa-globe"></i> <strong>Coordinates:</strong> ${project.latitude}, ${project.longitude}
-                        </div>
-                        `);
-
-                    if ('ontouchstart' in window || navigator.maxTouchPoints) {
-                        marker.on('click', function(e) {
-                            this.openPopup();
-                        });
-                    } else {
-                        marker.on('mouseover', function(e) {
-                            this.openPopup();
-                        });
+                    var coords = `${project.latitude},${project.longitude}`;
+                    if (!groupedProjects[coords]) {
+                        groupedProjects[coords] = [];
                     }
+                    groupedProjects[coords].push(project);
                 }
             });
+
+            // Loop through the grouped projects
+            for (const coords in groupedProjects) {
+                const projectsAtCoords = groupedProjects[coords];
+                const [latitude, longitude] = coords.split(',');
+
+                var marker = L.marker([latitude, longitude], {
+                        icon: locatorIcon
+                    })
+                    .addTo(map)
+                    .bindPopup(function() {
+                        let popupContent =
+                            `<div style="font-size: 14px;"><strong>Projects at this location:</strong><br><br>`;
+
+                        // Display up to 5 projects
+                        const visibleProjects = projectsAtCoords.slice(0, 5);
+                        visibleProjects.forEach(project => {
+                            popupContent += `
+                        <a href="/sdg/project/${project.id}">
+                            <i class="fas fa-project-diagram"></i> ${project.title} 
+                        </a><br>
+                    `;
+                        });
+
+                        // Add "Click to see more" if there are more than 5 projects
+                        if (projectsAtCoords.length > 5) {
+                            popupContent += `<br>
+                        <a href="/sdg/projects/coordinates/${latitude}/${longitude}" data-coordinates="${coords}">
+                            <strong>Click to see more projects</strong>
+                        </a><br>
+                    `;
+                        }
+
+                        // Add the address and coordinates
+                        popupContent += `
+                    <br><i class="fas fa-map-marker-alt"></i> <strong>Address:</strong> ${projectsAtCoords[0].location_address}<br>
+                    <i class="fas fa-globe"></i> <strong>Coordinates:</strong> ${latitude}, ${longitude}
+                </div>`;
+
+                        return popupContent;
+                    });
+
+                if ('ontouchstart' in window || navigator.maxTouchPoints) {
+                    marker.on('click', function(e) {
+                        this.openPopup();
+                    });
+                } else {
+                    marker.on('mouseover', function(e) {
+                        this.openPopup();
+                    });
+                }
+            }
+
         });
     </script>
     <script>
@@ -395,28 +375,32 @@
                     url: "{{ route('analytics.sdgComparison') }}", // Update this route to fetch SDG comparison data
                     method: 'GET',
                     success: function(response) {
-                        // Combine data from projects, reports, and research
+                        // Combine data from projects, status reports, terminal reports, and research
                         const combinedLabels = response
-                            .sdgLabels; // Assuming this contains unique SDG labels
+                        .sdgLabels; // Assuming this contains unique SDG labels
                         const combinedData = [];
                         const projectData = response.projectData; // Array of project counts
-                        const reportData = response.reportData; // Array of report counts
+                        const statusReportData = response
+                        .statusReportData; // Array of status report counts
+                        const terminalReportData = response
+                        .terminalReportData; // Array of terminal report counts
                         const researchData = response.researchData; // Array of research counts
 
-                        // Aggregate data from projects, reports, and research
+                        // Aggregate data from projects, status reports, terminal reports, and research
                         for (let i = 0; i < combinedLabels.length; i++) {
-                            combinedData.push((projectData[i] || 0) + (reportData[i] || 0) + (
-                                researchData[i] || 0));
+                            combinedData.push((projectData[i] || 0) + (statusReportData[i] || 0) + (
+                                terminalReportData[i] || 0) + (researchData[i] || 0));
                         }
 
-                        updateCombinedChart(combinedData, combinedLabels, projectData, reportData,
-                            researchData);
+                        updateCombinedChart(combinedData, combinedLabels, projectData, statusReportData,
+                            terminalReportData, researchData);
                     }
                 });
             }
 
             // Function to update the combined chart
-            function updateCombinedChart(data, labels, projectData, reportData, researchData) {
+            function updateCombinedChart(data, labels, projectData, statusReportData, terminalReportData,
+                researchData) {
                 if (combinedChart) {
                     combinedChart.data.labels = labels; // Set new labels
                     combinedChart.data.datasets[0].data = data; // Set new data
@@ -424,10 +408,11 @@
                         const index = context.dataIndex;
                         const totalCount = context.raw; // Total count from combined data
                         const projects = projectData[index] || 0; // Count of projects
-                        const reports = reportData[index] || 0; // Count of reports
+                        const statusReports = statusReportData[index] || 0; // Count of status reports
+                        const terminalReports = terminalReportData[index] || 0; // Count of terminal reports
                         const research = researchData[index] || 0; // Count of research
 
-                        return `Total: ${totalCount} (Projects: ${projects}, Reports: ${reports}, Research: ${research})`;
+                        return `Total: ${totalCount} (Projects: ${projects}, Status Reports: ${statusReports}, Terminal Reports: ${terminalReports}, Research: ${research})`;
                     };
                     combinedChart.update(); // Update the chart
                 }
@@ -510,7 +495,6 @@
                     }
                 });
             }
-
 
             // Initialize charts on page load
             initCombinedChart();

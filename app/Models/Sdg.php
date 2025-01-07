@@ -15,6 +15,7 @@ class Sdg extends Model
     {
         return $this->belongsToMany(Report::class);
     }
+    
 
     public function project()
     {

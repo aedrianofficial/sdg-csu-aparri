@@ -21,8 +21,6 @@ class Researchfile extends Model
         );
     }
 
-
-
     public function research()
     {
         return $this->belongsTo(Research::class);

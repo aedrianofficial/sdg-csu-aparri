@@ -19,38 +19,38 @@ class AdminController extends Controller
     public function all_activity_logs(Request $request)
     {
         $query = ActivityLog::query();
-    
+
         // Apply user-related filters
         if ($request->filled('user_id')) {
             $query->where('causer_id', $request->user_id);
         }
-    
+
         // Apply role filter
         if ($request->filled('role')) {
             $query->whereHas('causer', function ($q) use ($request) {
                 $q->where('role', $request->role);
             });
         }
-    
+
         // Apply general search filter for username, email, or role
         if ($request->filled('search')) {
             $searchTerm = $request->search;
             $query->whereHas('causer', function ($q) use ($searchTerm) {
                 $q->where('username', 'like', '%' . $searchTerm . '%')
-                  ->orWhere('email', 'like', '%' . $searchTerm . '%')
-                  ->orWhere('role', 'like', '%' . $searchTerm . '%');
+                ->orWhere('email', 'like', '%' . $searchTerm . '%')
+                ->orWhere('role', 'like', '%' . $searchTerm . '%');
             });
         }
-    
+
         // Apply filters for event type and description
         if ($request->filled('event')) {
             $query->where('event', $request->event);
         }
-    
+
         if ($request->filled('description')) {
             $query->where('description', 'like', '%' . $request->description . '%');
         }
-    
+
         // Apply date range filter
         if ($request->filled('start_date') && $request->filled('end_date')) {
             $query->whereBetween('created_at', [
@@ -58,20 +58,35 @@ class AdminController extends Controller
                 $request->end_date . ' 23:59:59',
             ]);
         }
-    
+
         // Apply type filter
         if ($request->filled('type')) {
             $query->where('subject_type', 'App\\Models\\' . $request->type);
         }
-    
+
+        // Sorting
+        $sortBy = $request->get('sort_by', 'created_at'); // Default sort column
+        $sortOrder = $request->get('sort_order', 'desc'); // Default sort order
+
+        // Handle sorting by related fields
+        if (in_array($sortBy, ['username', 'first_name', 'last_name', 'email', 'role'])) {
+            $query->join('users', 'activity_log.causer_id', '=', 'users.id')
+                ->select('activity_log.*') // Ensure only activity_log columns are fetched
+                ->orderBy("users.$sortBy", $sortOrder);
+        } else {
+            $query->orderBy($sortBy, $sortOrder);
+        }
+
         // Paginate and retrieve activity logs
-        $activityLogs = $query->orderBy('created_at', 'desc')->paginate(10);
-    
+        $activityLogs = $query->paginate(10);
+
         // Fetch users for filters
         $users = User::select('id', 'first_name', 'last_name', 'username', 'role')->get();
-    
+
         return view('auth.activity_logs.all_activity_logs', compact('activityLogs', 'users'));
     }
+
+
         
 
     public function my_activity_logs(Request $request)
@@ -79,7 +94,10 @@ class AdminController extends Controller
         $userId = auth()->user()->id;
     
         // Initialize query for activity logs
-        $query = ActivityLog::where('causer_id', $userId);
+        $query = ActivityLog::query()
+            ->where('causer_id', $userId)
+            ->join('users', 'activity_log.causer_id', '=', 'users.id') // Join with users table
+            ->select('activity_log.*', 'users.role'); // Select role from users table
     
         // Apply event filter
         if ($request->filled('event')) {
@@ -88,7 +106,6 @@ class AdminController extends Controller
     
         // Apply type filter
         if ($request->filled('type')) {
-            // Assuming subject_type is stored as the full class name
             $query->where('subject_type', 'App\Models\\' . $request->type);
         }
     
@@ -109,11 +126,23 @@ class AdminController extends Controller
             $query->where('created_at', '<=', $request->end_date . ' 23:59:59');
         }
     
+        // Sorting
+        $sortBy = $request->get('sort_by', 'created_at'); // Default sort column
+        $sortOrder = $request->get('sort_order', 'desc'); // Default sort order
+    
+        // Define allowed sortable columns
+        $sortableColumns = ['log_name', 'description', 'event', 'role', 'subject_type', 'created_at'];
+        if (in_array($sortBy, $sortableColumns)) {
+            $query->orderBy($sortBy, $sortOrder);
+        }
+    
         // Retrieve activity logs for the authenticated user with pagination
-        $activityLogs = $query->orderBy('created_at', 'desc')->paginate(10);
+        $activityLogs = $query->paginate(10);
     
         return view('auth.activity_logs.my_activity_logs', compact('activityLogs'));
     }
+    
+    
     
     public function index()
     {

@@ -169,13 +169,46 @@
                                     <button type="submit" class="btn btn-primary">
                                         <i class="fas fa-save"></i> Save Changes
                                     </button>
+                                    <button type="button" class="btn btn-secondary" id="cancelButton">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
                                 </div>
                             </div>
                         </form>
+
 
                     </div>
                 </div>
             </div>
         </div>
     </div>
+@endsection
+
+
+@section('scripts')
+    <script>
+        let isDirty = false;
+
+        // Track changes in input fields
+        document.querySelectorAll('input, textarea').forEach(input => {
+            input.addEventListener('input', () => {
+                isDirty = true;
+            });
+        });
+
+        // Handle the cancel button click
+        document.getElementById('cancelButton').addEventListener('click', function() {
+            if (isDirty) {
+                const confirmationMessage = 'You have unsaved changes. Are you sure you want to leave?';
+                if (confirm(confirmationMessage)) {
+                    isDirty = false; // Reset the dirty flag
+                    window.location.href = '{{ route('website.home2') }}'; // Redirect to home or desired route
+                }
+            } else {
+                window.location.href = '{{ route('website.home2') }}'; // Redirect to home or desired route
+            }
+        });
+
+    
+    </script>
 @endsection

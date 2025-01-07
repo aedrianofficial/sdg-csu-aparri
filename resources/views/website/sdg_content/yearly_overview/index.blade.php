@@ -36,13 +36,16 @@
         <div id="yearlyData">
             <!-- This section will be dynamically updated -->
             @include('website.sdg_content.yearly_overview.partial', [
-                'totalPublishedReports' => $totalPublishedReports,
+                'totalPublishedStatusReports' => $totalPublishedStatusReports,
+                'totalPublishedTerminalReports' => $totalPublishedTerminalReports,
                 'totalPublishedProjects' => $totalPublishedProjects,
                 'totalPublishedResearch' => $totalPublishedResearch,
-                'popularReportSdg' => $popularReportSdg,
                 'popularProjectSdg' => $popularProjectSdg,
                 'popularResearchSdg' => $popularResearchSdg,
-                'topContributors' => $topContributors,
+                'topContributorForProjects' => $topContributorForProjects,
+                'topContributorForResearch' => $topContributorForResearch,
+                'topContributorForStatusReports' => $topContributorForStatusReports,
+                'topContributorForTerminalReports' => $topContributorForTerminalReports,
                 'sdgs' => $sdgs,
                 'selectedYear' => date('Y'), // Pass the selected year
             ])
@@ -54,7 +57,7 @@
     <script>
         $(document).ready(function() {
             let lineChart;
-
+    
             // Function to fetch line chart data based on the selected year
             function fetchLineChartData(year) {
                 $.ajax({
@@ -67,8 +70,7 @@
                         if (!response.months || response.months.length === 0) {
                             displayNoDataMessage();
                         } else {
-                            updateLineChart(response.months, response.reportsData, response
-                                .projectsData, response.researchData);
+                            updateLineChart(response.months, response.statusReportsData, response.terminalReportsData, response.projectsData, response.researchData);
                         }
                     },
                     error: function() {
@@ -77,21 +79,29 @@
                     }
                 });
             }
-
-            function updateLineChart(months, reportsData, projectsData, researchData) {
+    
+            function updateLineChart(months, statusReportsData, terminalReportsData, projectsData, researchData) {
                 if (lineChart) {
                     lineChart.destroy();
                 }
-
+    
                 const ctx = document.getElementById('sdgLineChart').getContext('2d');
                 lineChart = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: months,
-                        datasets: [{
-                                label: 'Reports',
-                                data: reportsData,
+                        datasets: [
+                            {
+                                label: 'Status Reports',
+                                data: statusReportsData,
                                 borderColor: '#F44336',
+                                fill: false,
+                                tension: 0.4,
+                            },
+                            {
+                                label: 'Terminal Reports',
+                                data: terminalReportsData,
+                                borderColor: '#FF9800',
                                 fill: false,
                                 tension: 0.4,
                             },
@@ -107,7 +117,7 @@
                                 data: researchData,
                                 borderColor: '#558B2F',
                                 fill: false,
-                                tension: 0.4,
+                                tension : 0.4,
                             }
                         ]
                     },
@@ -144,7 +154,7 @@
                     }
                 });
             }
-
+    
             function displayNoDataMessage() {
                 $('#lineChartContainer').html(`
                     <div class="card card-warning card-outline">
@@ -157,10 +167,10 @@
                     </div>
                 `);
             }
-
+    
             // Initial fetch for the current year
             fetchLineChartData(new Date().getFullYear());
-
+    
             // Event listener for year selection
             $('#yearFilter').change(function() {
                 const selectedYear = $(this).val();

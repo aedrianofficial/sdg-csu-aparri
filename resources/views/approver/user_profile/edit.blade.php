@@ -5,7 +5,7 @@
 @section('styles')
     <style>
         body {
-            margin-top: 20px;
+         
             color: #1a202c;
             text-align: left;
             background-color: #e2e8f0;
@@ -46,7 +46,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('approver.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             Edit Profile
                         </li>
@@ -138,10 +138,40 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Save Changes
                             </button>
+                            <button type="button" class="btn btn-secondary" id="cancelButton">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+@endsection
+@section('scripts')
+    <script>
+        let isDirty = false;
+
+        // Track changes in input fields
+        document.querySelectorAll('input, textarea').forEach(input => {
+            input.addEventListener('input', () => {
+                isDirty = true;
+            });
+        });
+
+        // Handle the cancel button click
+        document.getElementById('cancelButton').addEventListener('click', function() {
+            if (isDirty) {
+                const confirmationMessage = 'You have unsaved changes. Are you sure you want to leave?';
+                if (confirm(confirmationMessage)) {
+                    isDirty = false; // Reset the dirty flag
+                    window.location.href = '{{ route('approver.dashboard') }}'; // Redirect to home or desired route
+                }
+            } else {
+                window.location.href = '{{ route('approver.dashboard') }}'; // Redirect to home or desired route
+            }
+        });
+
+        
+    </script>
 @endsection

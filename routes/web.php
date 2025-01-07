@@ -7,17 +7,29 @@ use App\Http\Controllers\Approver\ProfileController as ApproverProfileController
 use App\Http\Controllers\Approver\ProjectController as ApproverProjectController;
 use App\Http\Controllers\Approver\ReportController as ApproverReportController;
 use App\Http\Controllers\Approver\ResearchController as ApproverResearchController;
+use App\Http\Controllers\Approver\StatusReportController as ApproverStatusReportController;
+use App\Http\Controllers\Approver\TerminalReportController as ApproverTerminalReportController;
 use App\Http\Controllers\Auth\AdminController;
+use App\Http\Controllers\Auth\CooperatingAgencyController;
+use App\Http\Controllers\Auth\FundingAgencyController;
 use App\Http\Controllers\Auth\HomeController as AuthHomeController;
 use App\Http\Controllers\Auth\ProfileController as AuthProfileController;
 use App\Http\Controllers\Auth\ProjectController;
 use App\Http\Controllers\Auth\ReportController;
 use App\Http\Controllers\Auth\ResearchController;
+use App\Http\Controllers\Auth\ResearcherController;
+use App\Http\Controllers\Auth\StatusReportController;
+use App\Http\Controllers\Auth\TerminalReportController;
 use App\Http\Controllers\Contributor\ContributorController;
+use App\Http\Controllers\Contributor\CooperatingAgencyController as ContributorCooperatingAgencyController;
+use App\Http\Controllers\Contributor\FundingAgencyController as ContributorFundingAgencyController;
 use App\Http\Controllers\Contributor\ProfileController as ContributorProfileController;
 use App\Http\Controllers\Contributor\ProjectController as ContributorProjectController;
 use App\Http\Controllers\Contributor\ReportController as ContributorReportController;
 use App\Http\Controllers\Contributor\ResearchController as ContributorResearchController;
+use App\Http\Controllers\Contributor\ResearcherController as ContributorResearcherController;
+use App\Http\Controllers\Contributor\StatusReportController as ContributorStatusReportController;
+use App\Http\Controllers\Contributor\TerminalReportController as ContributorTerminalReportController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NotificationController;
@@ -27,12 +39,17 @@ use App\Http\Controllers\Publisher\ProjectController as PublisherProjectControll
 use App\Http\Controllers\Publisher\PublisherController;
 use App\Http\Controllers\Publisher\ReportController as PublisherReportController;
 use App\Http\Controllers\Publisher\ResearchController as PublisherResearchController;
+use App\Http\Controllers\Publisher\StatusReportController as PublisherStatusReportController;
+use App\Http\Controllers\Publisher\TerminalReportController as PublisherTerminalReportController;
 use App\Http\Controllers\Reviewer\FeedbackController as ReviewerFeedbackController;
 use App\Http\Controllers\Reviewer\ProfileController as ReviewerProfileController;
 use App\Http\Controllers\Reviewer\ProjectController as ReviewerProjectController;
 use App\Http\Controllers\Reviewer\ReportController as ReviewerReportController;
 use App\Http\Controllers\Reviewer\ResearchController as ReviewerResearchController;
 use App\Http\Controllers\Reviewer\ReviewerController;
+use App\Http\Controllers\Reviewer\StatusReportController as ReviewerStatusReportController;
+use App\Http\Controllers\Reviewer\TerminalReportController as ReviewerTerminalReportController;
+use App\Http\Controllers\SdgController;
 use App\Http\Controllers\Website\HomeController as WebsiteHomeController;
 use App\Http\Controllers\Website\UserController;
 use App\Http\Controllers\Website\WebsiteController;
@@ -61,7 +78,15 @@ Route::get('/analytics/sdg-line-chart', [Analytics::class, 'getSdgLineChartData'
 
 Route::get('/research/{id}/file/download', [ResearchController::class, 'downloadFile'])->name('research.file.download');
 
+
+// downloading the status report file
+Route::get('/status-report/file/download/{id}', [StatusReportController::class, 'downloadFile'])->name('status.report.file.download');
+// /downloading the terminal report file
+Route::get('/terminal-report/file/download/{id}', [TerminalReportController::class, 'downloadFile'])->name('terminal.report.file.download');
+
 Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+
+Route::get('/sdg/subcategories', [SdgController::class, 'getSubCategories'])->name('sdg.subcategories');
 
 Route::get('/test-timezone', function () {
     return now(); // Should return the current time in Asia/Manila
@@ -99,6 +124,57 @@ Route::middleware(['auth', 'role:admin', NoCache::class])->group(function(){
     Route::get('auth/projects/show/need-changes/{id}',[ProjectController::class, 'need_changes'])->name('projects.need_changes');
     Route::get('auth/projects/show/rejected/{id}',[ProjectController::class, 'rejected'])->name('projects.rejected');
 
+    // Routes for adding new agencies and researchers
+    Route::post('auth/cooperating_agencies/store', [CooperatingAgencyController::class, 'store'])->name('auth.cooperating_agencies.store');
+    Route::post('auth/funding_agencies/store', [FundingAgencyController::class, 'store'])->name('auth.funding_agencies.store');
+    Route::post('auth/researchers/store', [ResearcherController::class, 'store'])->name('auth.researchers.store');
+
+    //status-reports Project
+    Route::get('auth/status-reports/create-project', [StatusReportController::class, 'createProject'])->name('auth.status_reports.create_project');
+    Route::post('auth/status-reports/store-project', [StatusReportController::class, 'storeProject'])->name('auth.status_reports.store_project');
+    Route::get('auth/status-reports-project-published/{id}', [StatusReportController::class, 'showProjectPublished'])->name('auth.status_reports.show_project_published');
+
+    // Terminal Reports Project
+    Route::get('auth/terminal-reports/create-projects', [TerminalReportController::class, 'createProject'])->name('auth.terminal_reports.create_project');
+    Route::post('auth/terminal-reports/store-projects', [TerminalReportController::class, 'storeProject'])->name('auth.terminal_reports.store_project');
+    Route::get('auth/terminal-reports-project-published/{id}', [TerminalReportController::class, 'showProjectPublished'])->name('auth.terminal_reports.show_project_published');
+    Route::get('auth/terminal-reports-project/{id}', [TerminalReportController::class, 'showProject'])->name('auth.terminal_reports.show_project');
+
+    //status-reports Research
+    Route::get('auth/status-reports/create-research', [StatusReportController::class, 'createResearch'])->name('auth.status_reports.create_research');
+    Route::post('auth/status-reports/store-research', [StatusReportController::class, 'storeResearch'])->name('auth.status_reports.store_research');
+    Route::get('auth/status-reports-research-published/{id}', [StatusReportController::class, 'showResearchPublished'])->name('auth.status_reports.show_research_published');
+
+    // Terminal Reports Research
+    Route::get('auth/terminal-reports/create-research', [TerminalReportController::class, 'createResearch'])->name('auth.terminal_reports.create_research');
+    Route::post('auth/terminal-reports/store-research', [TerminalReportController::class, 'storeResearch'])->name('auth.terminal_reports.store_research');
+    Route::get('auth/terminal-reports-research-published/{id}', [TerminalReportController::class, 'showResearchPublished'])->name('auth.terminal_reports.show_research_published');
+    Route::get('auth/terminal-reports-research/{id}', [TerminalReportController::class, 'showResearch'])->name('auth.terminal_reports.show_research');
+
+    //terminal-reports
+    Route::get('auth/terminal-reports', [TerminalReportController::class, 'index'])->name('auth.terminal_reports.index');
+    Route::get('auth/my-terminal-reports', [TerminalReportController::class, 'my_reports'])->name('auth.terminal_reports.my_reports');
+    Route::get('auth/terminal-reports/{id}/edit', [TerminalReportController::class, 'edit'])->name('auth.terminal_reports.edit');
+    Route::put('auth/terminal-reports/{terminalReport}', [TerminalReportController::class, 'update'])->name('auth.terminal_reports.update');
+    Route::get('auth/terminal-reports/projects/{id}/need-changes', [TerminalReportController::class, 'showProjectNeedChanges'])->name('auth.terminal_reports.projects.need_changes');
+    Route::get('auth/terminal-reports/projects/{id}/rejected', [TerminalReportController::class, 'showProjectRejected'])->name('auth.terminal_reports.projects.rejected');
+    Route::get('auth/terminal-reports/research/{id}/need-changes', [TerminalReportController::class, 'showResearchNeedChanges'])->name('auth.terminal_reports.research.need_changes');
+    Route::get('auth/terminal-reports/research/{id}/rejected', [TerminalReportController::class, 'showResearchRejected'])->name('auth.terminal_reports.research.rejected');
+
+    //status-reports
+    Route::get('auth/status-reports', [StatusReportController::class, 'index'])->name('auth.status_reports.index');
+    Route::get('auth/my-status-reports', [StatusReportController::class, 'my_reports'])->name('auth.status_reports.my_reports');
+    Route::get('auth/status-reports/{id}/edit', [StatusReportController::class, 'edit'])->name('auth.status_reports.edit');
+    Route::put('auth/status-reports/{statusReport}', [StatusReportController::class, 'update'])->name('auth.status_reports.update');
+    Route::get('auth/status-reports/projects/{id}/need-changes', [StatusReportController::class, 'showProjectNeedChanges'])
+    ->name('auth.status_reports.projects.need_changes');
+    Route::get('auth/status-reports/projects/{id}/rejected', [StatusReportController::class, 'showProjectRejected'])
+        ->name('auth.status_reports.projects.rejected');
+    Route::get('auth/status-reports/research/{id}/need-changes', [StatusReportController::class, 'showResearchNeedChanges'])
+        ->name('auth.status_reports.research.need_changes');
+    Route::get('auth/status-reports/research/{id}/rejected', [StatusReportController::class, 'showResearchRejected'])
+        ->name('auth.status_reports.research.rejected');
+
     //reports
     Route::resource('auth/reports', ReportController::class);
     Route::get('auth/my_reports/', [ReportController::class, 'my_reports'])->name('reports.my_reports');
@@ -116,13 +192,6 @@ Route::middleware(['auth', 'role:admin', NoCache::class])->group(function(){
     Route::get('auth/research/show/{id}',[ResearchController::class, 'show'])->name('research.show');
     Route::get('auth/research/show/need-changes/{id}',[ResearchController::class, 'need_changes'])->name('research.need_changes');
     Route::get('auth/research/show/rejected/{id}',[ResearchController::class, 'rejected'])->name('research.rejected');
-
-    //Activity Logs
-    Route::get('auth/activity-logs/admin', [AdminController::class, 'adminActivityLogs'])->name('admin_activity_logs');
-    Route::get('auth/activity-logs/{id}', [AdminController::class, 'displayAdminActivityLogs'])->name('admin_activity_logs.show');
-    Route::get('auth/user-activity-logs', [AdminController::class, 'userActivityLogs'])->name('user_activity_logs');
-    Route::get('auth/user-activity-logs/feedback/{id}', [AdminController::class, 'displayUserActivityLogs'])->name('feedback_activity_logs.show');
-
 });
 
 
@@ -139,6 +208,64 @@ Route::middleware(['auth', 'role:contributor', NoCache::class])->group(function(
     Route::get('contributor/profile/show/{id}', [ContributorProfileController::class, 'show'])->name('contributor.profile.show');
     Route::get('contributor/profile/{id}/edit', [ContributorProfileController::class, 'edit'])->name('contributor.profile.edit');
     Route::put('contributor/profile/{user}/update', [ContributorProfileController::class, 'update'])->name('contributor.profile.update');
+
+    // Routes for adding new agencies and researchers
+    Route::post('contributor/cooperating_agencies/store', [ContributorCooperatingAgencyController::class, 'store'])->name('contributor.cooperating_agencies.store');
+    Route::post('contributor/funding_agencies/store', [ContributorFundingAgencyController::class, 'store'])->name('contributor.funding_agencies.store');
+    Route::post('contributor/researchers/store', [ContributorResearcherController::class, 'store'])->name('contributor.researchers.store');
+
+    //** status-reports Project
+    Route::get('contributor/status-reports/create-project', [ContributorStatusReportController::class, 'createProject'])->name('contributor.status_reports.create_project');
+    Route::post('contributor/status-reports/store-project', [ContributorStatusReportController::class, 'storeProject'])->name('contributor.status_reports.store_project');
+    Route::get('contributor/status-reports-project-published/{id}', [ContributorStatusReportController::class, 'showProjectPublished'])->name('contributor.status_reports.show_project_published');
+
+    //** Terminal Reports Project
+    Route::get('contributor/terminal-reports/create-projects', [ContributorTerminalReportController::class, 'createProject'])->name('contributor.terminal_reports.create_project');
+    Route::post('contributor/terminal-reports/store-projects', [ContributorTerminalReportController::class, 'storeProject'])->name('contributor.terminal_reports.store_project');
+    Route::get('contributor/terminal-reports-project-published/{id}', [ContributorTerminalReportController::class, 'showProjectPublished'])->name('contributor.terminal_reports.show_project_published');
+    Route::get('contributor/terminal-reports-project/{id}', [ContributorTerminalReportController::class, 'showProject'])->name('contributor.terminal_reports.show_project');
+
+    //**status-reports Research
+    Route::get('contributor/status-reports/create-research', [ContributorStatusReportController::class, 'createResearch'])->name('contributor.status_reports.create_research');
+    Route::post('contributor/status-reports/store-research', [ContributorStatusReportController::class, 'storeResearch'])->name('contributor.status_reports.store_research');
+    Route::get('contributor/status-reports-research-published/{id}', [ContributorStatusReportController::class, 'showResearchPublished'])->name('contributor.status_reports.show_research_published');
+
+    //** Terminal Reports Research
+    Route::get('contributor/terminal-reports/create-research', [ContributorTerminalReportController::class, 'createResearch'])->name('contributor.terminal_reports.create_research');
+    Route::post('contributor/terminal-reports/store-research', [ContributorTerminalReportController::class, 'storeResearch'])->name('contributor.terminal_reports.store_research');
+    Route::get('contributor/terminal-reports-research-published/{id}', [ContributorTerminalReportController::class, 'showResearchPublished'])->name('contributor.terminal_reports.show_research_published');
+    Route::get('contributor/terminal-reports-research/{id}', [ContributorTerminalReportController::class, 'showResearch'])->name('contributor.terminal_reports.show_research');
+
+
+    //terminal-reports
+    Route::get('contributor/my-terminal-reports', [ContributorTerminalReportController::class, 'my_reports'])->name('contributor.terminal_reports.my_reports');
+    Route::get('contributor/my-terminal-reports/need-changes', [ContributorTerminalReportController::class, 'need_changes'])->name('contributor.terminal_reports.need_changes');
+    Route::get('contributor/my-terminal-reports/rejected', [ContributorTerminalReportController::class, 'rejected'])->name('contributor.terminal_reports.rejected');
+    Route::get('contributor/terminal-reports/{id}/edit', [ContributorTerminalReportController::class, 'edit'])->name('contributor.terminal_reports.edit');
+    Route::put('contributor/terminal-reports/{terminalReport}', [ContributorTerminalReportController::class, 'update'])->name('contributor.terminal_reports.update');
+    Route::get('contributor/terminal-reports/projects/{id}/need-changes', [ContributorTerminalReportController::class, 'showProjectNeedChanges'])->name('contributor.terminal_reports.projects.need_changes');
+    Route::get('contributor/terminal-reports/projects/{id}/rejected', [ContributorTerminalReportController::class, 'showProjectRejected'])->name('contributor.terminal_reports.projects.rejected');
+    Route::get('contributor/terminal-reports/research/{id}/need-changes', [ContributorTerminalReportController::class, 'showResearchNeedChanges'])->name('contributor.terminal_reports.research.need_changes');
+    Route::get('contributor/terminal-reports/research/{id}/rejected', [ContributorTerminalReportController::class, 'showResearchRejected'])->name('contributor.terminal_reports.research.rejected');
+
+    //status-reports
+    Route::get('contributor/my-status-reports', [ContributorStatusReportController::class, 'my_reports'])->name('contributor.status_reports.my_reports');
+
+    Route::get('contributor/my-status-reports/need-changes', [ContributorStatusReportController::class, 'need_changes'])->name('contributor.status_reports.need_changes');
+    Route::get('contributor/my-status-reports/rejected', [ContributorStatusReportController::class, 'rejected'])->name('contributor.status_reports.rejected');
+
+    Route::get('contributor/status-reports/{id}/edit', [ContributorStatusReportController::class, 'edit'])->name('contributor.status_reports.edit');
+    Route::put('contributor/status-reports/{statusReport}', [ContributorStatusReportController::class, 'update'])->name('contributor.status_reports.update');
+    Route::get('contributor/status-reports/projects/{id}/need-changes', [ContributorStatusReportController::class, 'showProjectNeedChanges'])
+    ->name('contributor.status_reports.projects.need_changes');
+    Route::get('contributor/status-reports/projects/{id}/rejected', [ContributorStatusReportController::class, 'showProjectRejected'])
+        ->name('contributor.status_reports.projects.rejected');
+    Route::get('contributor/status-reports/research/{id}/need-changes', [ContributorStatusReportController::class, 'showResearchNeedChanges'])
+        ->name('contributor.status_reports.research.need_changes');
+    Route::get('contributor/status-reports/research/{id}/rejected', [ContributorStatusReportController::class, 'showResearchRejected'])
+        ->name('contributor.status_reports.research.rejected');
+
+
 
     //projects
     Route::get('contributor/projects/index',[ContributorProjectController::class, 'index'])->name('contributor.projects.index');
@@ -225,6 +352,74 @@ Route::middleware(['auth', 'role:reviewer', NoCache::class])->group(function(){
     //rejected list
     Route::get('reviewer/project/rejected', [ReviewerProjectController::class, 'rejected_list'])->name('reviewer.projects.rejected');
     
+
+    //status-reports
+    //Under review status_reports list
+    Route::get('reviewer/status-reports/under-review',[ReviewerStatusReportController::class, 'under_review'])->name('reviewer.status_reports.under_review');
+
+    Route::get('reviewer/status-reports/show-project/{id}',[ReviewerStatusReportController::class, 'showProject'])->name('reviewer.status_reports.show_project');
+    Route::get('reviewer/status-reports/show-research/{id}',[ReviewerStatusReportController::class, 'showResearch'])->name('reviewer.status_reports.show_research');
+
+    Route::post('reviewer/status-reports/need-changes', [ReviewerStatusReportController::class, 'need_changes'])->name('reviewer.status_reports.needchanges');
+    Route::post('reviewer/status-reports/reject', [ReviewerStatusReportController::class, 'reject_report'])->name('reviewer.status_reports.reject');
+    Route::put('reviewer/status-reports/{statusReport}/reviewed', [ReviewerStatusReportController::class, 'reviewed'])
+    ->name('reviewer.status_reports.reviewed');
+
+    //show feedback for changes
+    Route::get('reviewer/status-reports/show/project-need-changes/feedback/{id}',[ReviewerStatusReportController::class, 'showProjectNeedChanges'])->name('reviewer.status_reports.project_need_changes');
+    Route::get('reviewer/status-reports/show/research-need-changes/feedback/{id}',[ReviewerStatusReportController::class, 'showResearchNeedChanges'])->name('reviewer.status_reports.research_need_changes');
+
+    //need changes list
+    Route::get('reviewer/status-reports/need-changes',[ReviewerStatusReportController::class, 'need_changes_list'])->name('reviewer.status_reports.needchanges_list');
+    Route::get('reviewer/status-reports/reviewed-list', [ReviewerStatusReportController::class, 'reviewed_list'])
+    ->name('reviewer.status_reports.reviewed_list');
+
+
+    Route::get('reviewer/status-reports/show/reviewed-project/{id}',[ReviewerStatusReportController::class, 'showProjectReviewed'])->name('reviewer.status_reports.show_reviewed_project');
+    Route::get('reviewer/status-reports/show/reviewed-research/{id}',[ReviewerStatusReportController::class, 'showResearchReviewed'])->name('reviewer.status_reports.show_reviewed_research');
+
+    //show feedback for rejected status-report
+    Route::get('reviewer/status-reports/show/project-rejected/feedback/{id}',[ReviewerStatusReportController::class, 'showProjectRejected'])->name('reviewer.status_reports.project_rejected');
+    Route::get('reviewer/status-reports/show/research-rejected/feedback/{id}',[ReviewerStatusReportController::class, 'showResearchRejected'])->name('reviewer.status_reports.research_rejected');
+
+    //rejected list
+    Route::get('reviewer/status-reports/rejected', [ReviewerStatusReportController::class, 'rejected_list'])->name('reviewer.status_reports.rejected_list');
+
+
+
+    //terminal-reports
+    //Under review terminal_reports list
+    Route::get('reviewer/terminal-reports/under-review',[ReviewerTerminalReportController::class, 'under_review'])->name('reviewer.terminal_reports.under_review');
+
+    Route::get('reviewer/terminal-reports/show-project/{id}',[ReviewerTerminalReportController::class, 'showProject'])->name('reviewer.terminal_reports.show_project');
+    Route::get('reviewer/terminal-reports/show-research/{id}',[ReviewerTerminalReportController::class, 'showResearch'])->name('reviewer.terminal_reports.show_research');
+
+    Route::post('reviewer/terminal-reports/need-changes', [ReviewerTerminalReportController::class, 'need_changes'])->name('reviewer.terminal_reports.needchanges');
+    Route::post('reviewer/terminal-reports/reject', [ReviewerTerminalReportController::class, 'reject_report'])->name('reviewer.terminal_reports.reject');
+    Route::put('reviewer/terminal-reports/{terminalReport}/reviewed', [ReviewerTerminalReportController::class, 'reviewed'])
+    ->name('reviewer.terminal_reports.reviewed');
+
+    //show feedback for changes
+    Route::get('reviewer/terminal-reports/show/project-need-changes/feedback/{id}',[ReviewerTerminalReportController::class, 'showProjectNeedChanges'])->name('reviewer.terminal_reports.project_need_changes');
+    Route::get('reviewer/terminal-reports/show/research-need-changes/feedback/{id}',[ReviewerTerminalReportController::class, 'showResearchNeedChanges'])->name('reviewer.terminal_reports.research_need_changes');
+
+    //need changes list
+    Route::get('reviewer/terminal-reports/need-changes',[ReviewerTerminalReportController::class, 'need_changes_list'])->name('reviewer.terminal_reports.needchanges_list');
+    Route::get('reviewer/terminal-reports/reviewed-list', [ReviewerTerminalReportController::class, 'reviewed_list'])
+    ->name('reviewer.terminal_reports.reviewed_list');
+
+
+    Route::get('reviewer/terminal-reports/show/reviewed-project/{id}',[ReviewerTerminalReportController::class, 'showProjectReviewed'])->name('reviewer.terminal_reports.show_reviewed_project');
+    Route::get('reviewer/terminal-reports/show/reviewed-research/{id}',[ReviewerTerminalReportController::class, 'showResearchReviewed'])->name('reviewer.terminal_reports.show_reviewed_research');
+
+    //show feedback for rejected terminal-report
+    Route::get('reviewer/terminal-reports/show/project-rejected/feedback/{id}',[ReviewerTerminalReportController::class, 'showProjectRejected'])->name('reviewer.terminal_reports.project_rejected');
+    Route::get('reviewer/terminal-reports/show/research-rejected/feedback/{id}',[ReviewerTerminalReportController::class, 'showResearchRejected'])->name('reviewer.terminal_reports.research_rejected');
+
+    //rejected list
+    Route::get('reviewer/terminal-reports/rejected', [ReviewerTerminalReportController::class, 'rejected_list'])->name('reviewer.terminal_reports.rejected_list');
+
+
     //reports
     //Under review report list
     Route::get('reviewer/reports/under_review',[ReviewerReportController::class, 'under_review'])->name('reviewer.reports.under_review');
@@ -299,7 +494,57 @@ Route::middleware(['auth', 'role:approver', NoCache::class])->group(function(){
        //show approved
        Route::get('approver/project/show/approved/{id}',[ApproverProjectController::class, 'show_approved'])->name('approver.projects.show_approved');
 
-      //reports
+
+    //status-reports
+    //Pending Approval status_reports list
+    Route::get('approver/status-reports/index',[ApproverStatusReportController::class, 'index'])->name('approver.status_reports.index');
+
+    Route::get('approver/status-reports/show-project/{id}',[ApproverStatusReportController::class, 'showProject'])->name('approver.status_reports.show_project');
+    Route::get('approver/status-reports/show-research/{id}',[ApproverStatusReportController::class, 'showResearch'])->name('approver.status_reports.show_research');
+
+    Route::post('approver/status-reports/reject', [ApproverStatusReportController::class, 'reject_report'])->name('approver.status_reports.reject');
+    Route::put('approver/status-reports/{statusReport}/approved', [ApproverStatusReportController::class, 'approved'])
+    ->name('approver.status_reports.approved');
+
+    Route::get('approver/status-reports/approved-list', [ApproverStatusReportController::class, 'approved_list'])
+    ->name('approver.status_reports.approved_list');
+
+    Route::get('approver/status-reports/show/approved-project/{id}',[ApproverStatusReportController::class, 'showProjectApproved'])->name('approver.status_reports.show_approved_project');
+    Route::get('approver/status-reports/show/approved-research/{id}',[ApproverStatusReportController::class, 'showResearchApproved'])->name('approver.status_reports.show_approved_research');
+
+    //show feedback for rejected status-report
+    Route::get('approver/status-reports/show/project-rejected/feedback/{id}',[ApproverStatusReportController::class, 'showProjectRejected'])->name('approver.status_reports.project_rejected');
+    Route::get('approver/status-reports/show/research-rejected/feedback/{id}',[ApproverStatusReportController::class, 'showResearchRejected'])->name('approver.status_reports.research_rejected');
+
+    //rejected list
+    Route::get('approver/status-reports/rejected', [ApproverStatusReportController::class, 'rejected_list'])->name('approver.status_reports.rejected_list');
+
+ //terminal-reports
+    //Pending Approval terminal_reports list
+    Route::get('approver/terminal-reports/index',[ApproverTerminalReportController::class, 'index'])->name('approver.terminal_reports.index');
+
+    Route::get('approver/terminal-reports/show-project/{id}',[ApproverTerminalReportController::class, 'showProject'])->name('approver.terminal_reports.show_project');
+    Route::get('approver/terminal-reports/show-research/{id}',[ApproverTerminalReportController::class, 'showResearch'])->name('approver.terminal_reports.show_research');
+
+    Route::post('approver/terminal-reports/reject', [ApproverTerminalReportController::class, 'reject_report'])->name('approver.terminal_reports.reject');
+    Route::put('approver/terminal-reports/{terminalReport}/approved', [ApproverTerminalReportController::class, 'approved'])
+    ->name('approver.terminal_reports.approved');
+
+    Route::get('approver/terminal-reports/approved-list', [ApproverTerminalReportController::class, 'approved_list'])
+    ->name('approver.terminal_reports.approved_list');
+
+    Route::get('approver/terminal-reports/show/approved-project/{id}',[ApproverTerminalReportController::class, 'showProjectApproved'])->name('approver.terminal_reports.show_approved_project');
+    Route::get('approver/terminal-reports/show/approved-research/{id}',[ApproverTerminalReportController::class, 'showResearchApproved'])->name('approver.terminal_reports.show_approved_research');
+
+    //show feedback for rejected terminal-report
+    Route::get('approver/terminal-reports/show/project-rejected/feedback/{id}',[ApproverTerminalReportController::class, 'showProjectRejected'])->name('approver.terminal_reports.project_rejected');
+    Route::get('approver/terminal-reports/show/research-rejected/feedback/{id}',[ApproverTerminalReportController::class, 'showResearchRejected'])->name('approver.terminal_reports.research_rejected');
+
+    //rejected list
+    Route::get('approver/terminal-reports/rejected', [ApproverTerminalReportController::class, 'rejected_list'])->name('approver.terminal_reports.rejected_list');
+
+
+    //reports
     Route::get('approver/reports/index',[ApproverReportController::class, 'index'])->name('approver.reports.index');
     Route::get('approver/report/show/{id}',[ApproverReportController::class, 'show'])->name('approver.reports.show');
     Route::post('approver/report/reject', [ApproverReportController::class, 'reject_report'])->name('approver.reports.reject');
@@ -312,6 +557,8 @@ Route::middleware(['auth', 'role:approver', NoCache::class])->group(function(){
     //rejected list
     Route::get('approver/report/rejected', [ApproverReportController::class, 'rejected_list'])->name('approver.reports.rejected');
     Route::get('approver/report/show/approved/{id}',[ApproverReportController::class, 'show_approved'])->name('approver.reports.show_approved');
+
+    
 
     //research
     Route::get('approver/research/index',[ApproverResearchController::class, 'index'])->name('approver.research.index');
@@ -365,6 +612,40 @@ Route::middleware(['auth', 'role:publisher', NoCache::class])->group(function(){
     //published list
     Route::get('publisher/report/published', [PublisherReportController::class, 'published_list'])->name('publisher.reports.published_list');
 
+
+    //status-reports
+    Route::get('publisher/status-reports/index',[PublisherStatusReportController::class, 'index'])->name('publisher.status_reports.index');
+
+    Route::get('publisher/status-reports/show-project/{id}',[PublisherStatusReportController::class, 'showProject'])->name('publisher.status_reports.show_project');
+    Route::get('publisher/status-reports/show-research/{id}',[PublisherStatusReportController::class, 'showResearch'])->name('publisher.status_reports.show_research');
+
+    Route::put('publisher/status-reports/{statusReport}/published', [PublisherStatusReportController::class, 'published'])
+    ->name('publisher.status_reports.published');
+
+    Route::get('publisher/status-reports/published-list', [PublisherStatusReportController::class, 'published_list'])
+    ->name('publisher.status_reports.published_list');
+
+    Route::get('publisher/status-reports/show/published-project/{id}',[PublisherStatusReportController::class, 'showProjectPublished'])->name('publisher.status_reports.show_published_project');
+    Route::get('publisher/status-reports/show/published-research/{id}',[PublisherStatusReportController::class, 'showResearchPublished'])->name('publisher.status_reports.show_published_research');
+
+
+ //terminal-reports
+    Route::get('publisher/terminal-reports/index',[PublisherTerminalReportController::class, 'index'])->name('publisher.terminal_reports.index');
+
+    Route::get('publisher/terminal-reports/show-project/{id}',[PublisherTerminalReportController::class, 'showProject'])->name('publisher.terminal_reports.show_project');
+    Route::get('publisher/terminal-reports/show-research/{id}',[PublisherTerminalReportController::class, 'showResearch'])->name('publisher.terminal_reports.show_research');
+
+    Route::put('publisher/terminal-reports/{terminalReport}/published', [PublisherTerminalReportController::class, 'published'])
+    ->name('publisher.terminal_reports.published');
+
+    Route::get('publisher/terminal-reports/published-list', [PublisherTerminalReportController::class, 'published_list'])
+    ->name('publisher.terminal_reports.published_list');
+
+    Route::get('publisher/terminal-reports/show/published-project/{id}',[PublisherTerminalReportController::class, 'showProjectPublished'])->name('publisher.terminal_reports.show_published_project');
+    Route::get('publisher/terminal-reports/show/published-research/{id}',[PublisherTerminalReportController::class, 'showResearchPublished'])->name('publisher.terminal_reports.show_published_research');
+
+
+
     //research
     Route::get('publisher/research/index',[PublisherResearchController::class, 'index'])->name('publisher.research.index');
     Route::get('publisher/research/show/{id}',[PublisherResearchController::class, 'show'])->name('publisher.research.show');
@@ -393,24 +674,32 @@ Route::middleware(NoCache::class)->group(function(){
 
 
     //report
-    Route::get('/sdg/reports2', [WebsiteController::class, 'sdg_report_main2'])->name('website.sdg_report_main2');
-    Route::get('/sdg/reports2/{sdg}', [WebsiteController::class, 'display_report_sdg2'])->name('website.display_report_sdg2');
-    Route::get('sdg/report2/{report_id}', [WebsiteController::class, 'display_single_report2'])->name('website.display_single_report2');
+    Route::get('/sdg/all/reports/', [WebsiteController::class, 'sdg_report_main2'])->name('website.sdg_report_main2');
+    Route::get('/sdg/reports/{sdg}', [WebsiteController::class, 'display_report_sdg2'])->name('website.display_report_sdg2');
+    Route::get('sdg/report/{report_id}', [WebsiteController::class, 'display_single_report2'])->name('website.display_single_report2');
 
-    //programs
-    Route::get('/sdg/projects2', [WebsiteController::class, 'sdg_project_main2'])->name('website.sdg_project_main2');
-    Route::get('/sdg/projects2/{sdg}', [WebsiteController::class, 'display_project_sdg2'])->name('website.display_project_sdg2');
-    Route::get('sdg/project2/{project_id}', [WebsiteController::class, 'display_single_project2'])->name('website.display_single_project2');
+    //projects
+    Route::get('/sdg/all/projects/', [WebsiteController::class, 'sdg_project_main2'])->name('website.sdg_project_main2');
+    Route::get('/sdg/projects/{sdg}', [WebsiteController::class, 'display_project_sdg2'])->name('website.display_project_sdg2');
+    Route::get('sdg/project/{project_id}', [WebsiteController::class, 'display_single_project2'])->name('website.display_single_project2');
+    Route::get('/sdg/projects/coordinates/{latitude}/{longitude}', [WebsiteController::class, 'projectsByCoordinates'])->name('website.projects_by_coordinates');
+    
+
 
     //research_extensions
-    Route::get('/sdg/research2', [WebsiteController::class, 'sdg_research_main2'])->name('website.sdg_research_main2');
-    Route::get('/sdg/research2/{sdg}', [WebsiteController::class, 'display_research_sdg2'])->name('website.display_research_sdg2');
-    Route::get('/sdg/research2/researchcategories/{researchcategory}', [WebsiteController::class, 'display_research_category'])->name('website.display_research_category');
-    Route::get('/sdg/research2/item/{research_id}', [WebsiteController::class, 'display_single_research2'])->name('website.display_single_research2');
+    Route::get('/sdg/all/research', [WebsiteController::class, 'sdg_research_main2'])->name('website.sdg_research_main2');
+    Route::get('/sdg/research/{sdg}', [WebsiteController::class, 'display_research_sdg2'])->name('website.display_research_sdg2');
+    Route::get('/sdg/research/researchcategories/{researchcategory}', [WebsiteController::class, 'display_research_category'])->name('website.display_research_category');
+    Route::get('/sdg/research/item/{research_id}', [WebsiteController::class, 'display_single_research2'])->name('website.display_single_research2');
 
 
     Route::get('/sdg/contact_us', [WebsiteController::class, 'contact_us'])->name('website.contact_us');
 
+    Route::get('sdg/status-reports-project-published/{id}', [WebsiteController::class, 'showStatusReportProjectPublished'])->name('website.status_reports.show_project_published');
+    Route::get('sdg/terminal-reports-project-published/{id}', [WebsiteController::class, 'showTerminalReportProjectPublished'])->name('website.terminal_reports.show_project_published');
+
+    Route::get('sdg/status-reports-research-published/{id}', [WebsiteController::class, 'showStatusReportResearchPublished'])->name('website.status_reports.show_research_published');
+    Route::get('sdg/terminal-reports-research-published/{id}', [WebsiteController::class, 'showTerminalReportResearchPublished'])->name('website.terminal_reports.show_research_published');
 
 // routes/web.php
 });

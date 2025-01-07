@@ -9,7 +9,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('approver.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             Rejected Research
                         </li>
@@ -130,7 +130,7 @@
                                                         </ul>
                                                     </td>
                                                     <td>{{ $research->reviewStatus->status ?? 'N/A' }}</td>
-                                                    <td>{{ $research->research_status }}</td>
+                                                    <td>{{  $research->status->status }}</td>
                                                     <td>{{ $research->created_at->format('F j, Y, g:i A') }}</td>
                                                     <td>
                                                         <a href="{{ route('approver.research.feedback_rejected', $research->id) }}"
@@ -147,27 +147,30 @@
                                 <ul class="pagination justify-content-center">
                                     <!-- Previous Button -->
                                     <li class="page-item {{ $researches->onFirstPage() ? 'disabled' : '' }}">
-                                        <a class="page-link" href="{{ $researches->previousPageUrl() }}"
+                                        <a class="page-link"
+                                            href="{{ $researches->appends(request()->query())->previousPageUrl() }}"
                                             tabindex="-1">Previous</a>
                                     </li>
 
                                     <!-- Page Number Links -->
                                     @php
-                                        $currentPage = $researches->currentPage();
-                                        $lastPage = $researches->lastPage();
-                                        $start = max($currentPage - 1, 1);
-                                        $end = min($start + 2, $lastPage);
+                                        $currentPage = $researches->currentPage(); // Current page number
+                                        $lastPage = $researches->lastPage(); // Last page number
+                                        $start = max($currentPage - 1, 1); // Calculate start of the visible page items
+                                        $end = min($start + 2, $lastPage); // Calculate end of the visible page items
                                     @endphp
 
                                     @for ($i = $start; $i <= $end; $i++)
                                         <li class="page-item {{ $currentPage == $i ? 'active' : '' }}">
-                                            <a class="page-link" href="{{ $researches->url($i) }}">{{ $i }}</a>
+                                            <a class="page-link"
+                                                href="{{ $researches->appends(request()->query())->url($i) }}">{{ $i }}</a>
                                         </li>
                                     @endfor
 
                                     <!-- Next Button -->
                                     <li class="page-item {{ $researches->hasMorePages() ? '' : 'disabled' }}">
-                                        <a class="page-link" href="{{ $researches->nextPageUrl() }}">Next</a>
+                                        <a class="page-link"
+                                            href="{{ $researches->appends(request()->query())->nextPageUrl() }}">Next</a>
                                     </li>
                                 </ul>
                             </nav>

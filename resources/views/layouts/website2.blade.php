@@ -8,7 +8,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>CSU Aparri SDG</title>
+    <title>@yield('title', 'CSU-Aparri SDG')</title>
 
     <!--begin::Fonts-->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css"
@@ -54,9 +54,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                         <li class="nav-item">
                             <a href="{{ route('website.home2') }}" class="nav-link">Home</a>
                         </li>
-                        <li class="nav-item">
-                            <a href="{{ route('website.sdg_report_main2') }}" class="nav-link">Reports</a>
-                        </li>
+                       
                         <li class="nav-item">
                             <a href="{{ route('website.sdg_project_main2') }}" class="nav-link">Projects</a>
                         </li>
@@ -68,7 +66,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                             <a href="{{ route('website.yearly_overview') }}" class="nav-link">Yearly Overview</a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">Contact</a>
+                            <a href="#" class="nav-link">About Us</a>
                         </li>
                     </ul>
                 </div>
@@ -109,7 +107,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                     @endif
 
                     <!-- Theme toggle dropdown -->
-                    <li class="nav-item dropdown">
+                    {{-- <li class="nav-item dropdown">
                         <button
                             class="btn btn-link nav-link py-2 px-0 px-lg-2 dropdown-toggle d-flex align-items-center"
                             id="bd-theme" type="button" aria-expanded="false" data-bs-toggle="dropdown"
@@ -133,7 +131,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                                 </button>
                             </li>
                         </ul>
-                    </li>
+                    </li> --}}
                 </ul>
             </div>
         </nav>

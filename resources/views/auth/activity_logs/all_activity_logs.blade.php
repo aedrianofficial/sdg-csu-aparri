@@ -9,7 +9,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('auth.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">All Activity Logs</li>
                     </ol>
                 </div>
@@ -129,15 +129,79 @@
                                 <table class="table table-striped">
                                     <thead>
                                         <tr>
-                                            <th>User</th>
-                                            <th>Username</th>
-                                            <th>Role</th>
-                                            <th>Event</th>
-                                            <th>Description</th>
-                                            <th>Type</th>
-                                            <th>Timestamp</th>
+                                            <th>
+                                                <a
+                                                    href="{{ route('auth.activity_logs.all_activity_logs', array_merge(request()->query(), ['sort_by' => 'causer_id', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc'])) }}">
+                                                    User
+                                                    @if (request('sort_by') === 'causer_id')
+                                                        <i
+                                                            class="fa fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                                    @endif
+                                                </a>
+                                            </th>
+                                            <th>
+                                                <a
+                                                    href="{{ route('auth.activity_logs.all_activity_logs', array_merge(request()->query(), ['sort_by' => 'username', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc'])) }}">
+                                                    Username
+                                                    @if (request('sort_by') === 'username')
+                                                        <i
+                                                            class="fa fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                                    @endif
+                                                </a>
+                                            </th>
+                                            <th>
+                                                <a
+                                                    href="{{ route('auth.activity_logs.all_activity_logs', array_merge(request()->query(), ['sort_by' => 'role', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc'])) }}">
+                                                    Role
+                                                    @if (request('sort_by') === 'role')
+                                                        <i
+                                                            class="fa fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                                    @endif
+                                                </a>
+                                            </th>
+                                            <th>
+                                                <a
+                                                    href="{{ route('auth.activity_logs.all_activity_logs', array_merge(request()->query(), ['sort_by' => 'event', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc'])) }}">
+                                                    Event
+                                                    @if (request('sort_by') === 'event')
+                                                        <i
+                                                            class="fa fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                                    @endif
+                                                </a>
+                                            </th>
+                                            <th>
+                                                <a
+                                                    href="{{ route('auth.activity_logs.all_activity_logs', array_merge(request()->query(), ['sort_by' => 'description', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc'])) }}">
+                                                    Description
+                                                    @if (request('sort_by') === 'description')
+                                                        <i
+                                                            class="fa fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                                    @endif
+                                                </a>
+                                            </th>
+                                            <th>
+                                                <a
+                                                    href="{{ route('auth.activity_logs.all_activity_logs', array_merge(request()->query(), ['sort_by' => 'subject_type', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc'])) }}">
+                                                    Type
+                                                    @if (request('sort_by') === 'subject_type')
+                                                        <i
+                                                            class="fa fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                                    @endif
+                                                </a>
+                                            </th>
+                                            <th>
+                                                <a
+                                                    href="{{ route('auth.activity_logs.all_activity_logs', array_merge(request()->query(), ['sort_by' => 'created_at', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc'])) }}">
+                                                    Timestamp
+                                                    @if (request('sort_by') === 'created_at')
+                                                        <i
+                                                            class="fa fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                                    @endif
+                                                </a>
+                                            </th>
                                         </tr>
                                     </thead>
+
                                     <tbody>
                                         @forelse ($activityLogs as $log)
                                             <tr>
@@ -166,7 +230,8 @@
                                     <ul class="pagination justify-content-center">
                                         <!-- Previous Button -->
                                         <li class="page-item {{ $activityLogs->onFirstPage() ? 'disabled' : '' }}">
-                                            <a class="page-link" href="{{ $activityLogs->previousPageUrl() }}"
+                                            <a class="page-link"
+                                                href="{{ $activityLogs->previousPageUrl() . '&' . http_build_query(request()->except('page')) }}"
                                                 tabindex="-1">Previous</a>
                                         </li>
 
@@ -181,17 +246,19 @@
                                             <li
                                                 class="page-item {{ $activityLogs->currentPage() == $i ? 'active' : '' }}">
                                                 <a class="page-link"
-                                                    href="{{ $activityLogs->url($i) }}">{{ $i }}</a>
+                                                    href="{{ $activityLogs->url($i) . '&' . http_build_query(request()->except('page')) }}">{{ $i }}</a>
                                             </li>
                                         @endfor
 
                                         <!-- Next Button -->
                                         <li class="page-item {{ $activityLogs->hasMorePages() ? '' : 'disabled' }}">
-                                            <a class="page-link" href="{{ $activityLogs->nextPageUrl() }}">Next</a>
+                                            <a class="page-link"
+                                                href="{{ $activityLogs->nextPageUrl() . '&' . http_build_query(request()->except('page')) }}">Next</a>
                                         </li>
                                     </ul>
                                 </nav>
                             </div>
+
 
                         </div>
                     </div>

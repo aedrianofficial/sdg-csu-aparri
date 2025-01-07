@@ -102,92 +102,92 @@
                         </div>
                     </div>
                 </div>
+                <!-- SDG Sub Categories -->
+                <div class="card card-primary card-outline mt-4">
+                    <div class="card-header">
+                        <h5 class="card-title m-0">SDG Targets:</h5>
+                    </div>
+                    <div class="card-body">
+                        @if ($project->sdgSubCategories->isEmpty())
+                            <p>No SDG Targets available.</p>
+                        @else
+                            <ul class="list-unstyled">
+                                @foreach ($project->sdgSubCategories as $subCategory)
+                                    <li>
+                                        <strong>{{ $subCategory->sub_category_name }}:</strong>
+                                        <span>{{ $subCategory->sub_category_description }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                        <p class="mt-2">
+                            Source: <a
+                                href="https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf"
+                                target="_blank">https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf</a>
+                        </p>
+                    </div>
+                </div>
+
                 <div id="map" class="card card-primary card-outline" style="height: 400px; border-radius: 10px;">
                 </div>
+
+
                 <div class="row mt-4">
                     <div class="col-12">
                         <h3>Related Reports</h3>
-                        @if ($reports !== null && count($reports) > 0)
+
+                        @if ($statusReports->isEmpty() && $terminalReports->isEmpty())
+                            <div class="alert">
+                                <strong class="text-danger">No related reports available.</strong>
+                            </div>
+                        @else
                             <div class="row">
-                                @foreach ($reports as $report)
-                                    <div class="col-lg-6 mb-4"> <!-- Column for each card -->
-                                        <div class="card card-success card-outline h-100 d-flex flex-column post">
-                                            <div class="card-header">
-                                                <h5 class="card-title m-0 text-truncate" title="{{ $report->title }}">
-                                                    <i class="fas fa-file-alt"></i>
-                                                    {{ Str::limit($report->title, 35) }}
-                                                </h5>
+                                @foreach ($statusReports as $statusReport)
+                                    <div class="col-lg-3 col-6">
+                                        <div
+                                            class="small-box 
+                                            @if ($statusReport->log_status == 'Proposed') bg-info 
+                                            @elseif($statusReport->log_status == 'On-Going') bg-primary 
+                                            @elseif($statusReport->log_status == 'On-Hold') bg-warning 
+                                            @elseif($statusReport->log_status == 'Rejected') bg-danger @endif">
+                                            <div class="inner">
+                                                <br>
+                                                <p>{{ $statusReport->log_status }}</p>
                                             </div>
-                                            <div class="card-body d-flex flex-column">
-                                                <a href="{{ route('website.display_single_report2', $report->id) }}">
-                                                    <img src="{{ $report->reportimg->image }}" class="card-img-top"
-                                                        alt="" style="height: 200px; object-fit: cover;">
-                                                </a>
-                                                <div class="post-meta mt-3">
-                                                    <ul class="list-unstyled">
-                                                        <li>
-                                                            <i class="fas fa-calendar-alt"></i>
-                                                            {{ date('d M Y', strtotime($report->created_at)) }}
-                                                        </li>
-                                                        <li>
-                                                            @foreach ($report->sdg as $report_sdgs)
-                                                                <i class="fas fa-tags"></i>
-                                                                {{ $report_sdgs->name }}&nbsp;
-                                                            @endforeach
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                                <a href="{{ route('website.display_single_report2', $report->id) }}"
-                                                    class="btn btn-success mt-auto continue-reading">
-                                                    <i class="fas fa-book-open"></i> Continue Reading
-                                                </a>
+                                            <div class="icon">
+                                                <i
+                                                    class="fas 
+                                                    @if ($statusReport->log_status == 'Proposed') fa-lightbulb 
+                                                    @elseif($statusReport->log_status == 'On-Going') fa-spinner 
+                                                    @elseif($statusReport->log_status == 'On-Hold') fa-pause 
+                                                    @elseif($statusReport->log_status == 'Rejected') fa-times-circle @endif"></i>
                                             </div>
+                                            <a href="{{ route('website.status_reports.show_project_published', $statusReport->id) }}"
+                                                class="small-box-footer"> More info <i
+                                                    class="fas fa-arrow-circle-right"></i></a>
                                         </div>
-                                    </div> <!-- End of card column -->
+                                    </div>
                                 @endforeach
                             </div>
 
-                            <!-- Pagination Links -->
-                            <div class="container">
-                                @if (count($reports) > 0)
-                                    <nav aria-label="Page navigation">
-                                        <ul class="pagination justify-content-center">
-                                            <!-- Previous Button -->
-                                            <li class="page-item {{ $reports->onFirstPage() ? 'disabled' : '' }}">
-                                                <a class="page-link" href="{{ $reports->previousPageUrl() }}"
-                                                    tabindex="-1">
-                                                    <i class="fas fa-chevron-left"></i> Previous
-                                                </a>
-                                            </li>
-
-                                            <!-- Page Number Links -->
-                                            @php
-                                                $currentPage = $reports->currentPage();
-                                                $lastPage = $reports->lastPage();
-                                                $start = max($currentPage - 1, 1);
-                                                $end = min($start + 2, $lastPage);
-                                            @endphp
-                                            @for ($i = $start; $i <= $end; $i++)
-                                                <li class="page-item {{ $currentPage == $i ? 'active' : '' }}">
-                                                    <a class="page-link"
-                                                        href="{{ $reports->url($i) }}">{{ $i }}</a>
-                                                </li>
-                                            @endfor
-
-                                            <!-- Next Button -->
-                                            <li class="page-item {{ $reports->hasMorePages() ? '' : 'disabled' }}">
-                                                <a class="page-link" href="{{ $reports->nextPageUrl() }}">
-                                                    Next <i class="fas fa-chevron-right"></i>
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </nav>
-                                @else
-                                    <h3 class="text-danger text-center">No reports found</h3>
-                                @endif
+                            <div class="row">
+                                @foreach ($terminalReports as $terminalReport)
+                                    <div class="col-lg-3 col-6">
+                                        <div class="small-box bg-success">
+                                            <div class="inner">
+                                                <br>
+                                                <p>Completed</p>
+                                            </div>
+                                            <div class="icon">
+                                                <i class="fas fa-check-circle"></i>
+                                            </div>
+                                            <a href="{{ route('website.terminal_reports.show_project_published', $terminalReport->id) }}"
+                                                class="small-box-footer"> More info <i
+                                                    class="fas fa-arrow-circle-right"></i></a>
+                                        </div>
+                                    </div>
+                                @endforeach
                             </div>
-                        @else
-                            <h2 class="text-center text-danger mt-5">No Reports added</h2>
                         @endif
                     </div>
                 </div>

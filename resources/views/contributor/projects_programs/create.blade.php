@@ -62,7 +62,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('contributor.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             Create Projects/Programs
                         </li>
@@ -111,17 +111,27 @@
                                         @endif
                                     </select>
                                 </div>
-
+                                <!-- Sub-categories Section -->
+                                <div class="mb-3" id="sub-categories" style="display: none;">
+                                    <label for="sdg_sub_categories" class="form-label">Select SDG Targets
+                                        (Optionally)</label>
+                                    <div id="sub-category-checkboxes"></div>
+                                    <p>
+                                        Source: <a
+                                            href="https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf"
+                                            target="_blank">https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf</a>
+                                    </p>
+                                </div>
                                 <!-- Project Status Dropdown -->
                                 <div class="mb-3">
-                                    <label for="project_status" class="form-label">Project Status</label>
-                                    <select name="project_status" id="project_status" class="form-select" required>
+                                    <label for="status_id" class="form-label">Project Status</label>
+                                    <select name="status_id" id="status_id" class="form-select" required>
                                         <option disabled selected>Choose Status</option>
-                                        <option @selected(old('project_status') == 'Proposed') value="Proposed">Proposed</option>
-                                        <option @selected(old('project_status') == 'On-Going') value="On-Going">On-Going</option>
-                                        <option @selected(old('project_status') == 'On-Hold') value="On-Hold">On-Hold</option>
-                                        <option @selected(old('project_status') == 'Completed') value="Completed">Completed</option>
-                                        <option @selected(old('project_status') == 'Rejected') value="Rejected">Rejected</option>
+                                        @foreach ($projectStatuses as $status)
+                                            <option value="{{ $status->id }}" @selected(old('status_id') == $status->id)>
+                                                {{ $status->status }}
+                                            </option>
+                                        @endforeach
                                     </select>
                                 </div>
 
@@ -159,7 +169,9 @@
                                 <!-- "Submit for Review" Button -->
                                 <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal"
                                     data-bs-target="#confirmationModal">Submit for Review</button>
-
+                                <button type="button" class="btn btn-secondary" id="cancelButton">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
                                 <!-- Confirmation Modal -->
                                 <div class="modal fade" id="confirmationModal" tabindex="-1"
                                     aria-labelledby="confirmationModalLabel" aria-hidden="true">
@@ -200,6 +212,42 @@
     <script>
         $(document).ready(function() {
             $('#sdg').select2();
+            $('#sdg').on('change', function() {
+                var selectedSdgs = $(this).val();
+                if (selectedSdgs.length > 0) {
+                    $.ajax({
+                        url: '{{ route('sdg.subcategories') }}',
+                        method: 'GET',
+                        data: {
+                            sdg_ids: selectedSdgs
+                        },
+                        success: function(data) {
+                            $('#sub-category-checkboxes').empty();
+                            if (data.length > 0) {
+                                data.forEach(function(subCategory) {
+                                    $('#sub-category-checkboxes').append(
+                                        '<div class="form-check">' +
+                                        '<input class="form-check-input" type="checkbox" name="sdg_sub_category[]" value="' +
+                                        subCategory.id + '" id="subCategory' +
+                                        subCategory.id + '">' +
+                                        '<label class="form-check-label" for="subCategory' +
+                                        subCategory.id + '">' +
+                                        subCategory.sub_category_name + ': ' +
+                                        subCategory.sub_category_description +
+                                        '</label>' +
+                                        '</div>'
+                                    );
+                                });
+                                $('#sub-categories').show();
+                            } else {
+                                $('#sub-categories').hide();
+                            }
+                        }
+                    });
+                } else {
+                    $('#sub-categories').hide();
+                }
+            });
 
             // Initialize map
             var map = L.map('map').setView([18.3515316, 121.6489289], 16);
@@ -372,6 +420,30 @@
         });
     </script>
 
+    <script>
+        let isDirty = false;
 
+        // Track changes in input fields
+        document.querySelectorAll('input, textarea').forEach(input => {
+            input.addEventListener('input', () => {
+                isDirty = true;
+            });
+        });
+
+        // Handle the cancel button click
+        document.getElementById('cancelButton').addEventListener('click', function() {
+            if (isDirty) {
+                const confirmationMessage = 'You have unsaved changes. Are you sure you want to leave?';
+                if (confirm(confirmationMessage)) {
+                    isDirty = false; // Reset the dirty flag
+                    window.location.href =
+                        '{{ route('contributor.projects.index') }}'; // Redirect to home or desired route
+                }
+            } else {
+                window.location.href =
+                    '{{ route('contributor.projects.index') }}'; // Redirect to home or desired route
+            }
+        });
+    </script>
 
 @endsection

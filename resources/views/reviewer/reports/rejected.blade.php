@@ -9,7 +9,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('reviewer.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             Rejected Reports
                         </li>
@@ -128,11 +128,12 @@
 
                             <!-- Custom Pagination Links -->
                             <div class="container">
-                                <nav aria-label="Page navigation example">
+                                <nav aria-label="Page navigation">
                                     <ul class="pagination justify-content-center">
                                         <!-- Previous Button -->
                                         <li class="page-item {{ $reportsPaginated->onFirstPage() ? 'disabled' : '' }}">
-                                            <a class="page-link" href="{{ $reportsPaginated->previousPageUrl() }}"
+                                            <a class="page-link"
+                                                href="{{ $reportsPaginated->previousPageUrl() . '&' . http_build_query(request()->except('page')) }}"
                                                 tabindex="-1">Previous</a>
                                         </li>
 
@@ -143,17 +144,17 @@
                                             $start = max($currentPage - 1, 1);
                                             $end = min($start + 2, $lastPage);
                                         @endphp
-
                                         @for ($i = $start; $i <= $end; $i++)
                                             <li class="page-item {{ $currentPage == $i ? 'active' : '' }}">
                                                 <a class="page-link"
-                                                    href="{{ $reportsPaginated->url($i) }}">{{ $i }}</a>
+                                                    href="{{ $reportsPaginated->url($i) . '&' . http_build_query(request()->except('page')) }}">{{ $i }}</a>
                                             </li>
                                         @endfor
 
                                         <!-- Next Button -->
                                         <li class="page-item {{ $reportsPaginated->hasMorePages() ? '' : 'disabled' }}">
-                                            <a class="page-link" href="{{ $reportsPaginated->nextPageUrl() }}">Next</a>
+                                            <a class="page-link"
+                                                href="{{ $reportsPaginated->nextPageUrl() . '&' . http_build_query(request()->except('page')) }}">Next</a>
                                         </li>
                                     </ul>
                                 </nav>

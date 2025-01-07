@@ -30,7 +30,9 @@ class User extends Authenticatable
         'date_of_birth',
         'bio',
         'first_name',
-        'last_name'
+        'last_name',
+        'campus_id', 
+        'college_id',
     ];
 
     /**
@@ -75,6 +77,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Report::class);
     }
+    public function statusReports()
+    {
+        return $this->hasMany(StatusReport::class, 'logged_by_id');
+    }
+    public function terminalReports()
+    {
+        return $this->hasMany(TerminalReport::class);
+    }
     
     public function projects()
     {
@@ -84,6 +94,16 @@ class User extends Authenticatable
     public function researches()
     {
         return $this->hasMany(Research::class);
+    }
+
+    public function campus()
+    {
+        return $this->belongsTo(Campus::class);
+    }
+
+    public function college()
+    {
+        return $this->belongsTo(College::class);
     }
     /**
      * Full address accessor to combine address fields into a readable format.

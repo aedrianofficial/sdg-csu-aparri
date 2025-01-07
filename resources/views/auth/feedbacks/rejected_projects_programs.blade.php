@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'View Project/Program')
+@section('title', 'View Rejected Project/Program')
 @section('styles')
     <style>
         #map {
@@ -35,7 +35,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('auth.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             Rejected Project/Program
                         </li>
@@ -127,7 +127,8 @@
                                                 <input type="text" name="feedback" id="feedback" class="form-control"
                                                     value="{{ $feedback->feedback }}" readonly>
                                             </div>
-                                            <strong>{{ $feedback->user->name }}</strong>
+                                            <strong>{{ $feedback->user->first_name }}
+                                                {{ $feedback->user->last_name }}</strong>
                                             <small class="text-muted">on
                                                 {{ $feedback->created_at->format('M d, Y H:i') }}</small>
                                             <hr>
@@ -165,7 +166,7 @@
                                 <div class="mb-3">
                                     <label for="project_status" class="form-label">Project Status:</label>
                                     <input type="text" name="project_status" id="project_status" class="form-control"
-                                        value="{{ $project->project_status == null ? 'N/A' : $project->project_status }}"
+                                        value="{{ $project->status->status == null ? 'N/A' : $project->status->status }}"
                                         readonly>
                                 </div>
 
@@ -181,14 +182,32 @@
                                         value="{{ $project->is_publish == 1 ? 'Published' : 'Draft' }}" readonly>
                                 </div>
 
+                                <!-- SDGs -->
                                 <div class="mb-3">
-                                    <label for="sdg" class="form-label">SDG:</label>
-                                    <textarea name="sdg" id="sdg" cols="30" rows="{{ $project->sdg->count() }}" class="form-control"
-                                        readonly>
-                                        @foreach ($project->sdg as $sdg)
+                                    <label for="sdg" class="form-label">SDGs:</label>
+                                    <textarea name="sdg" id="sdg" cols="30" rows="3" class="form-control" readonly>
+@foreach ($project->sdg as $sdg)
 {{ $sdg->name }}
 @endforeach
-                                    </textarea>
+</textarea>
+                                </div>
+                                <!-- SDG Sub Categories -->
+                                <div class="mb-3">
+                                    <label for="sdg_sub_categories" class="form-label">SDG Targets:</label>
+                                    <textarea name="sdg_sub_categories" id="sdg_sub_categories" cols="30" rows="5" class="form-control" readonly>
+        @if ($project->sdgSubCategories->isEmpty())
+            No SDG Targets available.
+@else
+@foreach ($project->sdgSubCategories as $subCategory)
+{{ $subCategory->sub_category_name }} {{ $subCategory->sub_category_description }}
+@endforeach
+        @endif
+    </textarea>
+                                    <p>
+                                        Source: <a
+                                            href="https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf"
+                                            target="_blank">https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf</a>
+                                    </p>
                                 </div>
                                 <div class="mb-3">
                                     <label for="">Image: </label>

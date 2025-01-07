@@ -17,7 +17,7 @@ class Role
     {
 
         if($request->user()->role !== $role){
-            return redirect('user/home');
+            return redirect('/');
         }
         return $next($request);
 

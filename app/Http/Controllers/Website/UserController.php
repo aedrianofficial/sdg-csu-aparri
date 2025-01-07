@@ -15,34 +15,40 @@ use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
-  public function index(Request $request)
-  {
-      $query = User::query();
-      
-      // Search and filter logic
-      if ($request->filled('search')) {
-          $query->where('username', 'like', '%' . $request->search . '%')
-                ->orWhere('email', 'like', '%' . $request->search . '%');
-      }
-  
-      // Filter by first name
-      if ($request->filled('first_name')) {
-          $query->where('first_name', 'like', '%' . $request->first_name . '%');
-      }
-  
-      // Filter by last name
-      if ($request->filled('last_name')) {
-          $query->where('last_name', 'like', '%' . $request->last_name . '%');
-      }
-  
-      if ($request->filled('role')) {
-          $query->where('role', $request->role);
-      }
+    public function index(Request $request)
+    {
+        $query = User::query();
     
-      $users = $query->paginate(10);
-  
-      return view('auth.users.index', compact('users'));
-  }
+        // Apply filters
+        if ($request->filled('first_name')) {
+            $query->where('first_name', 'like', '%' . $request->first_name . '%');
+        }
+        if ($request->filled('last_name')) {
+            $query->where('last_name', 'like', '%' . $request->last_name . '%');
+        }
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('username', 'like', '%' . $request->search . '%')
+                  ->orWhere('email', 'like', '%' . $request->search . '%');
+            });
+        }
+        if ($request->filled('role')) {
+            $query->where('role', $request->role);
+        }
+    
+        // Apply sorting
+        if ($request->filled('sort_by') && $request->filled('sort_order')) {
+            $query->orderBy($request->sort_by, $request->sort_order);
+        } else {
+            $query->orderBy('created_at', 'desc'); // Default sorting
+        }
+    
+        $users = $query->paginate(10);
+    
+        return view('auth.users.index', compact('users'));
+    }
+    
+    
   
     public function show($id)
   {

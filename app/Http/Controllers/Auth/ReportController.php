@@ -79,46 +79,10 @@ class ReportController extends Controller
     return view('auth.feedbacks.reports', compact('report', 'notificationData'));
 }
 
-     public function my_reports(Request $request){
-        $query = Report::where('user_id', Auth::id());
-
-        // Apply filters based on request parameters
-        if ($request->filled('title')) {
-            $query->where('title', 'LIKE', '%' . $request->title . '%');
-        }
-    
-        if ($request->filled('review_status')) {
-            $query->where('review_status_id', $request->review_status);
-        }
-    
-        // Filter by related_type (e.g., project or research)
-        if ($request->filled('related_type')) {
-            $query->where('related_type', $request->related_type);
-        }
-    
-        // Apply SDG filter if present
-        if ($request->filled('sdg')) {
-            $selectedSDGs = $request->sdg; // Get selected SDG IDs from the request
-            $query->whereHas('sdg', function ($sdgQuery) use ($selectedSDGs) {
-                $sdgQuery->whereIn('sdgs.id', $selectedSDGs); // Specify table name for the `id`
-            });
-        }
-    
-        // Fetch the filtered list of reports and paginate with eager loading
-        $reports = $query->with(['reportimg', 'sdg', 'reviewStatus'])->orderBy('id', 'desc')->paginate(5);
-    
-        // Fetch all review statuses and SDGs for the filter dropdowns
-        $reviewStatuses = ReviewStatus::all();
-        $sdgs = SDG::all();
-    
-        // Pass the reports, review statuses, and SDGs to the view
-        return view('auth.reports.my_reports', compact('reports', 'reviewStatuses', 'sdgs'));
-    }
-
-    public function index(Request $request)
+public function my_reports(Request $request)
 {
-    // Start the query for fetching reports
-    $query = Report::query();
+    // Start query for user's reports
+    $query = Report::where('user_id', Auth::id());
 
     // Apply filters based on request parameters
     if ($request->filled('title')) {
@@ -142,17 +106,94 @@ class ReportController extends Controller
         });
     }
 
+    // Handle sorting
+    if ($request->filled('sort_by')) {
+        $sortBy = $request->sort_by;
+        $sortOrder = $request->sort_order ?? 'asc'; // Default to ascending order
+        $allowedSortColumns = ['title', 'status', 'review_status_id', 'related_title', 'created_at', 'is_publish','related_type']; // Add other sortable columns here
+
+        if ($sortBy === 'status') {
+            // Join review_statuses table to sort by status
+            $query->join('review_statuses', 'reports.review_status_id', '=', 'review_statuses.id')
+                ->orderBy('review_statuses.name', $sortOrder);
+        } elseif (in_array($sortBy, $allowedSortColumns)) {
+            $query->orderBy($sortBy, $sortOrder);
+        }
+    } else {
+        // Default sorting
+        $query->orderBy('id', 'desc');
+    }
+
     // Fetch the filtered list of reports and paginate with eager loading
-    $reports = $query->with(['reportimg', 'sdg', 'reviewStatus'])->orderBy('id', 'desc')->paginate(5);
+    $reports = $query->with(['reportimg', 'sdg', 'reviewStatus'])->paginate(5);
 
     // Fetch all review statuses and SDGs for the filter dropdowns
     $reviewStatuses = ReviewStatus::all();
     $sdgs = SDG::all();
 
     // Pass the reports, review statuses, and SDGs to the view
-    return view('auth.reports.index', compact('reports', 'reviewStatuses', 'sdgs'));
+    return view('auth.reports.my_reports', compact('reports', 'reviewStatuses', 'sdgs'));
 }
 
+
+    public function index(Request $request)
+    {
+        // Start the query for fetching reports
+        $query = Report::query();
+    
+        // Apply filters based on request parameters
+        if ($request->filled('title')) {
+            $query->where('title', 'LIKE', '%' . $request->title . '%');
+        }
+    
+        if ($request->filled('review_status')) {
+            $query->where('review_status_id', $request->review_status);
+        }
+    
+        // Filter by related_type (e.g., project or research)
+        if ($request->filled('related_type')) {
+            $query->where('related_type', $request->related_type);
+        }
+    
+        // Apply SDG filter if present
+        if ($request->filled('sdg')) {
+            $selectedSDGs = $request->sdg; // Get selected SDG IDs from the request
+            $query->whereHas('sdg', function ($sdgQuery) use ($selectedSDGs) {
+                $sdgQuery->whereIn('sdgs.id', $selectedSDGs); // Specify table name for the `id`
+            });
+        }
+    
+        // Handle sorting
+        if ($request->filled('sort_by')) {
+            $sortBy = $request->sort_by;
+            $sortOrder = $request->sort_order ?? 'asc'; // Default to ascending order
+            $allowedSortColumns = ['title', 'status', 'review_status_id', 'related_title', 'created_at','is_publish','related_type']; // Add other sortable columns here
+    
+            if (in_array($sortBy, $allowedSortColumns)) {
+                $query->orderBy($sortBy, $sortOrder);
+            }
+             // Check if sorting by review status name
+            if ($sortBy === 'status') {
+                $query->join('review_statuses', 'reports.review_status_id', '=', 'review_statuses.id')
+                    ->orderBy('review_statuses.name', $sortOrder);
+            } elseif (in_array($sortBy, $allowedSortColumns)) {
+                $query->orderBy($sortBy, $sortOrder);
+            }
+        } else {
+            // Default sorting
+            $query->orderBy('id', 'desc');
+        }
+    
+        // Fetch the filtered list of reports and paginate with eager loading
+        $reports = $query->with(['reportimg', 'sdg', 'reviewStatus'])->paginate(5);
+    
+        // Fetch all review statuses and SDGs for the filter dropdowns
+        $reviewStatuses = ReviewStatus::all();
+        $sdgs = SDG::all();
+    
+        // Pass the reports, review statuses, and SDGs to the view
+        return view('auth.reports.index', compact('reports', 'reviewStatuses', 'sdgs'));
+    }
     
     /**
      * Show the form for creating a new resource.

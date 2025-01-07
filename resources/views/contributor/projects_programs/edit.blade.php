@@ -62,7 +62,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('contributor.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             Edit Project/Program
                         </li>
@@ -111,26 +111,39 @@
                                         @endforeach
                                     </select>
                                 </div>
-
+                                <!-- Sub-categories Section -->
+                                <div class="mb-3" id="sub-categories" style="display: none;">
+                                    <label for="sdg_sub_categories" class="form-label">Select SDG Targets
+                                        (Optionally)</label>
+                                    <div id="sub-category-checkboxes">
+                                        @foreach ($sdgs as $sdg)
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="sdg_sub_category[]"
+                                                    value="{{ $sdg->id }}" id="subCategory{{ $sdg->id }}"
+                                                    {{ in_array($sdg->id, $selectedSubCategories) ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="subCategory{{ $sdg->id }}">
+                                                    {{ $sdg->name }}: {{ $sdg->description }}
+                                                </label>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    <p>
+                                        Source: <a
+                                            href="https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf"
+                                            target="_blank">https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf</a>
+                                    </p>
+                                </div>
                                 <!-- Project Status Dropdown -->
                                 <div class="mb-3">
-                                    <label for="project_status" class="form-label">Project Status</label>
-                                    <select name="project_status" id="project_status" class="form-select" required>
-                                        <option value="Proposed"
-                                            {{ old('project_status', $project->project_status) == 'Proposed' ? 'selected' : '' }}>
-                                            Proposed</option>
-                                        <option value="On-Going"
-                                            {{ old('project_status', $project->project_status) == 'On-Going' ? 'selected' : '' }}>
-                                            On-Going</option>
-                                        <option value="On-Hold"
-                                            {{ old('project_status', $project->project_status) == 'On-Hold' ? 'selected' : '' }}>
-                                            On-Hold</option>
-                                        <option value="Completed"
-                                            {{ old('project_status', $project->project_status) == 'Completed' ? 'selected' : '' }}>
-                                            Completed</option>
-                                        <option value="Rejected"
-                                            {{ old('project_status', $project->project_status) == 'Rejected' ? 'selected' : '' }}>
-                                            Rejected</option>
+                                    <label for="status_id" class="form-label">Project Status</label>
+                                    <select name="status_id" id="status_id" class="form-select" required>
+                                        <option disabled selected>Choose Status</option>
+                                        @foreach ($projectStatuses as $status)
+                                            <option value="{{ $status->id }}"
+                                                {{ old('status_id', $project->status_id) == $status->id ? 'selected' : '' }}>
+                                                {{ $status->status }}
+                                            </option>
+                                        @endforeach
                                     </select>
                                 </div>
 
@@ -175,6 +188,9 @@
 
                                 <!-- Update Button -->
                                 <button type="button" class="btn btn-primary" id="update-button">Update</button>
+                                <button type="button" class="btn btn-secondary" id="cancelButton">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
                             </form>
                         </div>
                     </div>
@@ -210,9 +226,63 @@
 
 @section('scripts')
     <script>
+        var selectedSubCategories = @json($selectedSubCategories);
+    </script>
+    <script>
         $(document).ready(function() {
             $('#sdg').select2();
+            $(document).ready(function() {
+                $('#sdg').select2({
+                    width: '100%',
+                    placeholder: 'Select SDGs',
+                });
+                // Load sub-categories based on selected SDGs
+                $('#sdg').on('change', function() {
+                    var selectedSdgs = $(this).val();
+                    if (selectedSdgs.length > 0) {
+                        $.ajax({
+                            url: '{{ route('sdg.subcategories') }}',
+                            method: 'GET',
+                            data: {
+                                sdg_ids: selectedSdgs
+                            },
+                            success: function(data) {
+                                $('#sub-category-checkboxes').empty();
+                                if (data.length > 0) {
+                                    data.forEach(function(subCategory) {
+                                        $('#sub-category-checkboxes').append(
+                                            '<div class="form-check">' +
+                                            '<input class="form-check-input" type="checkbox" name="sdg_sub_category[]" value="' +
+                                            subCategory.id +
+                                            '" id="subCategory' +
+                                            subCategory.id + '"' + (
+                                                selectedSubCategories
+                                                .includes(subCategory.id) ?
+                                                ' checked' : '') + '>' +
+                                            '<label class="form-check-label" for="subCategory' +
+                                            subCategory.id + '">' +
+                                            subCategory.sub_category_name +
+                                            ': ' +
+                                            subCategory
+                                            .sub_category_description +
+                                            '</label>' +
+                                            '</div>'
+                                        );
+                                    });
+                                    $('#sub-categories').show();
+                                } else {
+                                    $('#sub-categories').hide();
+                                }
+                            }
+                        });
+                    } else {
+                        $('#sub-categories').hide();
+                    }
+                });
 
+                // Trigger change event on page load to load existing sub-categories
+                $('#sdg').trigger('change');
+            });
 
             // Initialize map
             var map = L.map('map').setView([{{ old('latitude', $project->latitude) }},
@@ -387,6 +457,31 @@
             $('#confirm-update').click(function() {
                 $('#project-form').submit();
             });
+        });
+    </script>
+    <script>
+        let isDirty = false;
+
+        // Track changes in input fields
+        document.querySelectorAll('input, textarea').forEach(input => {
+            input.addEventListener('input', () => {
+                isDirty = true;
+            });
+        });
+
+        // Handle the cancel button click
+        document.getElementById('cancelButton').addEventListener('click', function() {
+            if (isDirty) {
+                const confirmationMessage = 'You have unsaved changes. Are you sure you want to leave?';
+                if (confirm(confirmationMessage)) {
+                    isDirty = false; // Reset the dirty flag
+                    window.location.href =
+                        '{{ route('contributor.projects.index') }}'; // Redirect to home or desired route
+                }
+            } else {
+                window.location.href =
+                    '{{ route('contributor.projects.index') }}'; // Redirect to home or desired route
+            }
         });
     </script>
 @endsection

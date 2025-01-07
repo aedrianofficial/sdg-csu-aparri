@@ -9,7 +9,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('reviewer.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             Reviewed Projects/Programs
                         </li>
@@ -125,7 +125,7 @@
                                                             @endforeach
                                                         </ul>
                                                     </td>
-                                                    <td>{{ $project->project_status }}</td>
+                                                    <td>{{ $project->status->status }}</td>
                                                     <td>{{ $project->reviewStatus->status ?? 'N/A' }}</td>
                                                     <td>{{ $project->created_at->format('F j, Y, g:i A') }}</td>
                                                     <td>
@@ -144,28 +144,30 @@
                                     <ul class="pagination justify-content-center">
                                         <!-- Previous Button -->
                                         <li class="page-item {{ $projectsPaginated->onFirstPage() ? 'disabled' : '' }}">
-                                            <a class="page-link" href="{{ $projectsPaginated->previousPageUrl() }}"
-                                                tabindex="-1">Previous</a>
+                                            <a class="page-link" href="{{ $projectsPaginated->appends(request()->query())->previousPageUrl() }}" tabindex="-1">
+                                                Previous
+                                            </a>
                                         </li>
-
+                            
                                         <!-- Page Number Links -->
                                         @php
-                                            $currentPage = $projectsPaginated->currentPage();
-                                            $lastPage = $projectsPaginated->lastPage();
-                                            $start = max($currentPage - 1, 1);
-                                            $end = min($start + 2, $lastPage);
+                                            $currentPage = $projectsPaginated->currentPage(); // Current page number
+                                            $lastPage = $projectsPaginated->lastPage(); // Last page number
+                                            $start = max($currentPage - 1, 1); // Calculate start of the visible page items
+                                            $end = min($start + 2, $lastPage); // Calculate end of the visible page items
                                         @endphp
-
+                            
                                         @for ($i = $start; $i <= $end; $i++)
                                             <li class="page-item {{ $currentPage == $i ? 'active' : '' }}">
-                                                <a class="page-link"
-                                                    href="{{ $projectsPaginated->url($i) }}">{{ $i }}</a>
+                                                <a class="page-link" href="{{ $projectsPaginated->appends(request()->query())->url($i) }}">{{ $i }}</a>
                                             </li>
                                         @endfor
-
+                            
                                         <!-- Next Button -->
                                         <li class="page-item {{ $projectsPaginated->hasMorePages() ? '' : 'disabled' }}">
-                                            <a class="page-link" href="{{ $projectsPaginated->nextPageUrl() }}">Next</a>
+                                            <a class="page-link" href="{{ $projectsPaginated->appends(request()->query())->nextPageUrl() }}">
+                                                Next
+                                            </a>
                                         </li>
                                     </ul>
                                 </nav>

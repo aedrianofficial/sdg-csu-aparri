@@ -30,7 +30,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('approver.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">Notifications</li>
                     </ol>
                 </div>
@@ -101,6 +101,30 @@
                                                     'notification_id' => $notification->id,
                                                 ]),
                                             };
+                                        } elseif (
+                                            $data['type'] === 'research' &&
+                                            $data['status'] === 'submitted for approval'
+                                        ) {
+                                            $route = route('approver.research.show', [
+                                                'id' => $notification->related_id,
+                                                'notification_id' => $notification->id,
+                                            ]);
+                                        } elseif (
+                                            $data['type'] === 'status report' &&
+                                            $data['status'] === 'submitted for approval'
+                                        ) {
+                                            $route = route('approver.status_reports.show_project', [
+                                                'id' => $notification->related_id,
+                                                'notification_id' => $notification->id,
+                                            ]);
+                                        } elseif (
+                                            $data['type'] === 'terminal report' &&
+                                            $data['status'] === 'submitted for approval'
+                                        ) {
+                                            $route = route('approver.terminal_reports.show_project', [
+                                                'id' => $notification->related_id,
+                                                'notification_id' => $notification->id,
+                                            ]);
                                         }
                                     @endphp
 

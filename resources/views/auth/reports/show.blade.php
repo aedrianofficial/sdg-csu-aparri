@@ -9,7 +9,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('auth.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             View Report
                         </li>
@@ -110,15 +110,17 @@
                                     <textarea name="description" id="description" cols="30" rows="{{ $rowCount }}" class="form-control" readonly>{{ $description }}</textarea>
                                 </div>
 
-                                <!-- SDGs -->
-                                <div class="mb-3">
+                                  <!-- SDGs -->
+                                  <div class="mb-3">
                                     <label for="sdg" class="form-label">SDGs:</label>
                                     <textarea name="sdg" id="sdg" cols="30" rows="3" class="form-control" readonly>
-                                        @foreach ($report->sdg as $sdg)
+@foreach ($report->sdg as $sdg)
 {{ $sdg->name }}
 @endforeach
-                                    </textarea>
+</textarea>
                                 </div>
+                              
+             
                                 <div class="mb-3">
                                     <label for="">Image: </label>
                                     <div>

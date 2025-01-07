@@ -3,7 +3,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Approver Dashboard</title><!--begin::Primary Meta Tags-->
+    <title>@yield('title', 'Approver')</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="title" content="">
     <meta name="author" content="">
@@ -22,7 +22,7 @@
         integrity="sha256-Qsx5lrStHZyR9REqhUF8iQt73X06c8LGIUPzpOhwRrI=" crossorigin="anonymous">
     <!--end::Third Party Plugin(Bootstrap Icons)--><!--begin::Required Plugin(AdminLTE)-->
 
-    <!--end::Required Plugin(AdminLTE)--><!-- apexcharts -->
+    <link rel="icon" href="{{ asset('assets/website/images/favicon.ico') }}" type="image/x-icon">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css"
         integrity="sha256-4MX+61mt9NVvvuPjUWdUdyfZfxSB1/Rf9WtqRHgG5S0=" crossorigin="anonymous"><!-- jsvectormap -->
@@ -126,7 +126,8 @@
                 <ul class="navbar-nav ms-auto"> <!--begin::Navbar Search-->
                     <!--end::Navbar Search-->
 
-                    <li class="nav-item dropdown"> <button
+                       <!-- Theme toggle dropdown -->
+                    {{-- <li class="nav-item dropdown"> <button
                             class="btn btn-link nav-link py-2 px-0 px-lg-2 dropdown-toggle d-flex align-items-center"
                             id="bd-theme" type="button" aria-expanded="false" data-bs-toggle="dropdown"
                             data-bs-display="static">Toggle theme <span class="theme-icon-active"> <i
@@ -150,7 +151,7 @@
                                     Auto
                                     <i class="bi bi-check-lg ms-auto d-none"></i> </button> </li>
                         </ul>
-                    </li>
+                    </li> --}}
 
                     <!--begin::Notifications Dropdown Menu for Approver-->
                     <li class="nav-item dropdown">
@@ -197,7 +198,24 @@
                                             'id' => $notification->related_id,
                                             'notification_id' => $notification->id,
                                         ]);
+                                    } elseif (
+                                        $data['type'] === 'status report' &&
+                                        $data['status'] === 'submitted for approval'
+                                    ) {
+                                        $route = route('approver.status_reports.show_project', [
+                                            'id' => $notification->related_id,
+                                            'notification_id' => $notification->id,
+                                        ]);
+                                    } elseif (
+                                        $data['type'] === 'terminal report' &&
+                                        $data['status'] === 'submitted for approval'
+                                    ) {
+                                        $route = route('approver.terminal_reports.show_project', [
+                                            'id' => $notification->related_id,
+                                            'notification_id' => $notification->id,
+                                        ]);
                                     }
+
                                 @endphp
 
                                 <a href="{{ $route }}"
@@ -257,21 +275,12 @@
                                 @endif
                                 <p>
                                     {{ Auth::user()->first_name }} {{ Auth::user()->last_name }} - Approver
-                                    <small>Member since
-                                        {{ \Carbon\Carbon::parse(auth()->user()->created_at)->format('F Y') }}</small>
+                                    <small>{{ Auth::user()->college->name }}</small>
                                 </p>
                             </li>
                             <!--end::User Image-->
                             <!--begin::Menu Body-->
-                            <li class="user-body">
-                                <!--begin::Row-->
-                                <div class="row">
-                                    <div class="col-4 text-center"> <a href="#">Followers</a> </div>
-                                    <div class="col-4 text-center"> <a href="#">Sales</a> </div>
-                                    <div class="col-4 text-center"> <a href="#">Friends</a> </div>
-                                </div>
-                                <!--end::Row-->
-                            </li>
+                           
                             <!--end::Menu Body-->
                             <!--begin::Menu Footer-->
                             <li class="user-footer">
@@ -355,33 +364,67 @@
                             </ul>
                         </li>
 
-                        <li class="nav-item {{ request()->routeIs('approver.reports.*') ? 'menu-open' : '' }}">
+                        <li class="nav-item {{ request()->routeIs('approver.status_reports.*') ? 'menu-open' : '' }}">
                             <a href="#"
-                                class="nav-link {{ request()->routeIs('approver.reports.*') ? 'active' : '' }}">
+                                class="nav-link {{ request()->routeIs('approver.status_reports.*') ? 'active' : '' }}">
                                 <i class="nav-icon bi bi-box-seam-fill"></i>
                                 <p>
-                                    Reports
+                                    Status Reports
                                     <i class="nav-arrow bi bi-chevron-right"></i>
                                 </p>
                             </a>
                             <ul class="nav nav-treeview">
                                 <li class="nav-item">
-                                    <a href="{{ route('approver.reports.index') }}"
-                                        class="nav-link {{ request()->routeIs('approver.reports.index') ? 'active' : '' }}">
+                                    <a href="{{ route('approver.status_reports.index') }}"
+                                        class="nav-link {{ request()->routeIs('approver.status_reports.index') ? 'active' : '' }}">
                                         <i class="nav-icon bi bi-circle"></i>
                                         <p>Pending Approval</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ route('approver.reports.approved_list') }}"
-                                        class="nav-link {{ request()->routeIs('approver.reports.approved_list') ? 'active' : '' }}">
+                                    <a href="{{ route('approver.status_reports.approved_list') }}"
+                                        class="nav-link {{ request()->routeIs('approver.status_reports.approved_list') ? 'active' : '' }}">
                                         <i class="nav-icon bi bi-circle"></i>
                                         <p>Approved list</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ route('approver.reports.rejected') }}"
-                                        class="nav-link {{ request()->routeIs('approver.reports.rejected') ? 'active' : '' }}">
+                                    <a href="{{ route('approver.status_reports.rejected_list') }}"
+                                        class="nav-link {{ request()->routeIs('approver.status_reports.rejected_list') ? 'active' : '' }}">
+                                        <i class="nav-icon bi bi-circle"></i>
+                                        <p>Rejected</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li
+                            class="nav-item {{ request()->routeIs('approver.terminal_reports.*') ? 'menu-open' : '' }}">
+                            <a href="#"
+                                class="nav-link {{ request()->routeIs('approver.terminal_reports.*') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-box-seam-fill"></i>
+                                <p>
+                                    Terminal Reports
+                                    <i class="nav-arrow bi bi-chevron-right"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="{{ route('approver.terminal_reports.index') }}"
+                                        class="nav-link {{ request()->routeIs('approver.terminal_reports.index') ? 'active' : '' }}">
+                                        <i class="nav-icon bi bi-circle"></i>
+                                        <p>Pending Approval</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('approver.terminal_reports.approved_list') }}"
+                                        class="nav-link {{ request()->routeIs('approver.terminal_reports.approved_list') ? 'active' : '' }}">
+                                        <i class="nav-icon bi bi-circle"></i>
+                                        <p>Approved list</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('approver.terminal_reports.rejected_list') }}"
+                                        class="nav-link {{ request()->routeIs('approver.terminal_reports.rejected_list') ? 'active' : '' }}">
                                         <i class="nav-icon bi bi-circle"></i>
                                         <p>Rejected</p>
                                     </a>

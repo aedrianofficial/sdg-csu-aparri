@@ -240,7 +240,8 @@ class ResearchController extends Controller
 
     // Update the research's review status to 'Needs Changes'
     $research->update([
-        'review_status_id' => 1, // Assuming '1' corresponds to 'Needs Changes'
+        'review_status_id' => 1,
+        'is_publish' =>  0 
     ]);
     RoleAction::create([
         'user_id' => $user->id,
@@ -323,7 +324,8 @@ public function reject_research(Request $request)
     // Update the research's review status to 'Rejected'
     $research = Research::findOrFail($validated['research_id']);
     $research->update([
-        'review_status_id' => 2, // Assuming '2' corresponds to 'Rejected'
+        'review_status_id' => 2, 
+        'is_publish' =>  0 
     ]);
     // Log the role action for rejection
     RoleAction::create([
@@ -534,30 +536,30 @@ public function reviewed($id)
      * Display the specified resource.
      */
     public function show(string $id, Request $request)
-    {
-        // Fetch the research by its ID
-        $research = Research::findOrFail($id);
-    
-        // Check if there's a notification ID in the request
-        $notificationId = $request->query('notification_id');
-        $notificationData = null;
-    
-        if ($notificationId) {
-            // Fetch the notification for the authenticated user and the specified notification ID
-            $notification = Notification::where('notifiable_id', Auth::id())
-                ->where('notifiable_type', User::class)
-                ->where('id', $notificationId)
-                ->first();
-    
-            if ($notification) {
-                $notificationData = json_decode($notification->data, true);
-                $notification->markAsRead();
-            }
+{
+    // Fetch the research by its ID, including SDG subcategories
+    $research = Research::with('sdgSubCategories')->findOrFail($id);
+
+    // Check if there's a notification ID in the request
+    $notificationId = $request->query('notification_id');
+    $notificationData = null;
+
+    if ($notificationId) {
+        // Fetch the notification for the authenticated user and the specified notification ID
+        $notification = Notification::where('notifiable_id', Auth::id())
+            ->where('notifiable_type', User::class)
+            ->where('id', $notificationId)
+            ->first();
+
+        if ($notification) {
+            $notificationData = json_decode($notification->data, true);
+            $notification->markAsRead();
         }
-    
-        // Pass the research and notification data to the view
-        return view('reviewer.research_extension.show', compact('research', 'notificationData'));
     }
+
+    // Pass the research and notification data to the view
+    return view('reviewer.research_extension.show', compact('research', 'notificationData'));
+}
     
 
     /**

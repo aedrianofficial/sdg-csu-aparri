@@ -30,7 +30,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('reviewer.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">Notifications</li>
                     </ol>
                 </div>
@@ -87,6 +87,32 @@
                                                     'notification_id' => $notification->id,
                                                 ]),
                                             };
+                                        } elseif ($data['type'] === 'status_report') {
+                                            // Changed from 'report' to 'status_report'
+                                            if ($data['status'] === 'submitted for review') {
+                                                $route = route('reviewer.status_reports.show_project', [
+                                                    'id' => $notification->related_id,
+                                                    'notification_id' => $notification->id,
+                                                ]);
+                                            } elseif ($data['status'] === 'resubmitted for review') {
+                                                $route = route('reviewer.status_reports.show_project', [
+                                                    'id' => $notification->related_id,
+                                                    'notification_id' => $notification->id,
+                                                ]);
+                                            }
+                                        } elseif ($data['type'] === 'terminal_report') {
+                                            // Changed from 'report' to 'terminal_report'
+                                            if ($data['status'] === 'submitted for review') {
+                                                $route = route('reviewer.terminal_reports.show_project', [
+                                                    'id' => $notification->related_id,
+                                                    'notification_id' => $notification->id,
+                                                ]);
+                                            } elseif ($data['status'] === 'resubmitted for review') {
+                                                $route = route('reviewer.terminal_reports.show_project', [
+                                                    'id' => $notification->related_id,
+                                                    'notification_id' => $notification->id,
+                                                ]);
+                                            }
                                         } elseif ($data['type'] === 'research') {
                                             $route = match ($data['status']) {
                                                 'submitted for review', 'resubmitted for review' => route(

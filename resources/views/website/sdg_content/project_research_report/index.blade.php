@@ -37,7 +37,6 @@
 
             <div class="row" id="yearlyData">
                 @include('website.sdg_content.project_research_report.partial', [
-                    'reports' => $reports,
                     'projects' => $projects,
                     'research' => $research,
                     'sdg' => $sdg,

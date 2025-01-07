@@ -17,6 +17,8 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/check-username', [RegisteredUserController::class, 'checkUsername'])
                 ->name('check.username');
+                
+    Route::get('/check-email', [RegisteredUserController::class, 'checkEmail'])->name('check.email');
 
     Route::post('register', [RegisteredUserController::class, 'store']);
 

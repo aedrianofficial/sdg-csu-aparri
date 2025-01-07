@@ -3,9 +3,9 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Admin Dashboard</title><!--begin::Primary Meta Tags-->
+   
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="title" content="">
+    <title>@yield('title', 'Admin')</title>
     <meta name="author" content="">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css"
         integrity="sha256-Qsx5lrStHZyR9REqhUF8iQt73X06c8LGIUPzpOhwRrI=" crossorigin="anonymous">
     <!--end::Third Party Plugin(Bootstrap Icons)--><!--begin::Required Plugin(AdminLTE)-->
-
+    <link rel="icon" href="{{ asset('assets/website/images/favicon.ico') }}" type="image/x-icon">
     {{-- sweet alert --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -120,7 +120,7 @@
                 <ul class="navbar-nav ms-auto"> <!--begin::Navbar Search-->
                     <!--end::Navbar Search-->
 
-                    <li class="nav-item dropdown"> <button
+                    {{-- <li class="nav-item dropdown"> <button
                             class="btn btn-link nav-link py-2 px-0 px-lg-2 dropdown-toggle d-flex align-items-center"
                             id="bd-theme" type="button" aria-expanded="false" data-bs-toggle="dropdown"
                             data-bs-display="static">Toggle
@@ -144,7 +144,7 @@
                                     Auto
                                     <i class="bi bi-check-lg ms-auto d-none"></i> </button> </li>
                         </ul>
-                    </li>
+                    </li> --}}
                     <!--begin::Notifications Dropdown Menu for Admin-->
                     <li class="nav-item dropdown">
                         <a class="nav-link" data-bs-toggle="dropdown" href="#" aria-expanded="false">
@@ -186,19 +186,38 @@
                                                 'notification_id' => $notification->id,
                                             ]);
                                         }
-                                    } elseif ($data['type'] === 'report') {
+                                    } elseif ($data['type'] === 'status_report') {
+                                        // Changed from 'report' to 'status_report'
                                         if ($data['status'] === 'request_changes') {
-                                            $route = route('reports.need_changes', [
+                                            $route = route('auth.status_reports.projects.need_changes', [
                                                 'id' => $notification->related_id,
                                                 'notification_id' => $notification->id,
                                             ]);
                                         } elseif ($data['status'] === 'rejected') {
-                                            $route = route('reports.rejected', [
+                                            $route = route('auth.status_reports.projects.rejected', [
                                                 'id' => $notification->related_id,
                                                 'notification_id' => $notification->id,
                                             ]);
                                         } elseif (in_array($data['status'], ['approved', 'published', 'reviewed'])) {
-                                            $route = route('reports.show', [
+                                            $route = route('auth.status_reports.show_research_published', [
+                                                'id' => $notification->related_id,
+                                                'notification_id' => $notification->id,
+                                            ]);
+                                        }
+                                    } elseif ($data['type'] === 'terminal_report') {
+                                        // Changed from 'report' to 'terminal_report'
+                                        if ($data['status'] === 'request_changes') {
+                                            $route = route('auth.terminal_reports.projects.need_changes', [
+                                                'id' => $notification->related_id,
+                                                'notification_id' => $notification->id,
+                                            ]);
+                                        } elseif ($data['status'] === 'rejected') {
+                                            $route = route('auth.terminal_reports.projects.rejected', [
+                                                'id' => $notification->related_id,
+                                                'notification_id' => $notification->id,
+                                            ]);
+                                        } elseif (in_array($data['status'], ['approved', 'published', 'reviewed'])) {
+                                            $route = route('auth.terminal_reports.show_research_published', [
                                                 'id' => $notification->related_id,
                                                 'notification_id' => $notification->id,
                                             ]);
@@ -239,18 +258,16 @@
                             @empty
                                 <span class="dropdown-item text-center text-secondary">No new notifications</span>
                             @endforelse
-
                             <div class="dropdown-divider"></div>
                             <a href="{{ route('admin.notifications') }}"
                                 class="dropdown-item text-center text-primary">
                                 <strong>See All Notifications</strong>
                             </a>
                         </div>
-                    </li>
-                    <!--end::Notifications Dropdown Menu for Admin-->
 
 
-                    <!--begin::Fullscreen Toggle-->
+
+                            <!--begin::Fullscreen Toggle-->
                     <li class="nav-item"> <a class="nav-link" href="#" data-lte-toggle="fullscreen"> <i
                                 data-lte-icon="maximize" class="bi bi-arrows-fullscreen"></i> <i
                                 data-lte-icon="minimize" class="bi bi-fullscreen-exit" style="display: none;"></i>
@@ -311,7 +328,7 @@
         <aside class="app-sidebar bg-body-secondary shadow">
             <!--begin::Sidebar Brand-->
             <div class="sidebar-brand">
-                <a href="./index.html" class="brand-link">
+                <a href="{{ route('auth.dashboard') }}" class="brand-link">
                     <img src="{{ asset('assets/website/images/csu-sdg-logo.png') }}" alt="Logo"
                         class="brand-image opacity-75">
                     <span class="brand-text fw-light">SDG CSU-APARRI</span>
@@ -367,39 +384,60 @@
                             </ul>
                         </li>
 
-                        <li class="nav-item {{ request()->routeIs('reports.*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
+                        <li class="nav-item {{ request()->routeIs('auth.status_reports.*') ? 'menu-open' : '' }}">
+                            <a href="#" class="nav-link {{ request()->routeIs('auth.status_reports.*') ? 'active' : '' }}">
                                 <i class="nav-icon bi bi-file-earmark-bar-graph"></i> <!-- Changed to reports icon -->
                                 <p>
-                                    Reports
+                                   Status Reports
+                                    <i class="nav-arrow bi bi-chevron-right"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                
+                                <li class="nav-item">
+                                    <a href="{{ route('auth.status_reports.index') }}"
+                                        class="nav-link {{ request()->routeIs('auth.status_reports.index') ? 'active' : '' }}">
+                                        <i class="nav-icon bi bi-list-ul"></i> <!-- Changed to list icon -->
+                                        <p>All Status Reports</p>
+                                    </a>
+                                </li>
+                                
+                                <li class="nav-item">
+                                    <a href="{{ route('auth.status_reports.my_reports') }}"
+                                        class="nav-link {{ request()->routeIs('auth.status_reports.my_reports') ? 'active' : '' }}">
+                                        <i class="nav-icon bi bi-person-lines-fill"></i>
+                                        <p>My Status Reports</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item {{ request()->routeIs('auth.terminal_reports.*') ? 'menu-open' : '' }}">
+                            <a href="#" class="nav-link {{ request()->routeIs('auth.terminal_reports.*') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-file-earmark-bar-graph"></i> <!-- Changed to reports icon -->
+                                <p>
+                                    Terminal Reports
                                     <i class="nav-arrow bi bi-chevron-right"></i>
                                 </p>
                             </a>
                             <ul class="nav nav-treeview">
                                 <li class="nav-item">
-                                    <a href="{{ route('reports.create') }}"
-                                        class="nav-link {{ request()->routeIs('reports.create') ? 'active' : '' }}">
-                                        <i class="nav-icon bi bi-plus-circle"></i>
-                                        <p>Create Report</p>
+                                    <a href="{{ route('auth.terminal_reports.index') }}"
+                                        class="nav-link {{ request()->routeIs('auth.terminal_reports.index') ? 'active' : '' }}">
+                                        <i class="nav-icon bi bi-list-ul"></i> <!-- Changed to list icon -->
+                                        <p>All Terminal Reports</p>
                                     </a>
                                 </li>
+                          
                                 <li class="nav-item">
-                                    <a href="{{ route('reports.index') }}"
-                                        class="nav-link {{ request()->routeIs('reports.index') ? 'active' : '' }}">
-                                            <i class="nav-icon bi bi-list-ul"></i> <!-- Changed to list icon -->
-                                        <p>All Reports</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('reports.my_reports') }}"
-                                        class="nav-link {{ request()->routeIs('reports.my_reports') ? 'active' : '' }}">
+                                    <a href="{{ route('auth.terminal_reports.my_reports') }}"
+                                        class="nav-link {{ request()->routeIs('auth.terminal_reports.my_reportscontributor') ? 'active' : '' }}">
                                         <i class="nav-icon bi bi-person-lines-fill"></i>
-                                        <p>My Reports</p>
+                                        <p>My Terminal Reports</p>
                                     </a>
                                 </li>
+                              
                             </ul>
                         </li>
-
                         <li class="nav-item {{ request()->routeIs('research.*') ? 'menu-open' : '' }}">
                             <a href="#"
                                 class="nav-link {{ request()->routeIs('research.*') ? 'active' : '' }}">
@@ -420,7 +458,7 @@
                                 <li class="nav-item">
                                     <a href="{{ route('research.index') }}"
                                         class="nav-link {{ request()->routeIs('research.index') ? 'active' : '' }}">
-                                            <i class="nav-icon bi bi-list-ul"></i> <!-- Changed to list icon -->
+                                        <i class="nav-icon bi bi-list-ul"></i> <!-- Changed to list icon -->
                                         <p>All Research</p>
                                     </a>
                                 </li>

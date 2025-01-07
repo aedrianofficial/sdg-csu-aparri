@@ -9,7 +9,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('approver.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">My Activity Logs</li>
                     </ol>
                 </div>
@@ -101,7 +101,7 @@
                                                     <td>{{ $log->event }}</td>
                                                     <td>{{ $user->role ?? 'N/A' }}</td>
                                                     <td>{{ class_basename($log->subject_type) }}</td>
-                                                    <td>{{ $log->created_at->format('Y-m-d H:i:s') }}</td>
+                                                    <td>{{ $log->created_at->format('F j, Y, g:i A') }}</td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -114,18 +114,31 @@
                                 <!-- Custom Pagination Links -->
                                 <nav aria-label="Page navigation example">
                                     <ul class="pagination justify-content-center">
+                                        <!-- Previous Button -->
                                         <li class="page-item {{ $activityLogs->onFirstPage() ? 'disabled' : '' }}">
-                                            <a class="page-link" href="{{ $activityLogs->previousPageUrl() }}"
-                                                tabindex="-1">Previous</a>
+                                            <a class="page-link"
+                                               href="{{ $activityLogs->previousPageUrl() . '&' . http_build_query(request()->except('page')) }}"
+                                               tabindex="-1">Previous</a>
                                         </li>
-                                        @for ($i = 1; $i <= $activityLogs->lastPage(); $i++)
+                            
+                                        <!-- Page Numbers -->
+                                        @php
+                                            $start = max($activityLogs->currentPage() - 2, 1); // Start from 2 pages before the current
+                                            $end = min($start + 4, $activityLogs->lastPage()); // Limit range to 5 pages total
+                                            $start = max($end - 4, 1); // Ensure start is at least 1
+                                        @endphp
+                            
+                                        @for ($i = $start; $i <= $end; $i++)
                                             <li class="page-item {{ $activityLogs->currentPage() == $i ? 'active' : '' }}">
                                                 <a class="page-link"
-                                                    href="{{ $activityLogs->url($i) }}">{{ $i }}</a>
+                                                   href="{{ $activityLogs->url($i) . '&' . http_build_query(request()->except('page')) }}">{{ $i }}</a>
                                             </li>
                                         @endfor
+                            
+                                        <!-- Next Button -->
                                         <li class="page-item {{ $activityLogs->hasMorePages() ? '' : 'disabled' }}">
-                                            <a class="page-link" href="{{ $activityLogs->nextPageUrl() }}">Next</a>
+                                            <a class="page-link"
+                                               href="{{ $activityLogs->nextPageUrl() . '&' . http_build_query(request()->except('page')) }}">Next</a>
                                         </li>
                                     </ul>
                                 </nav>

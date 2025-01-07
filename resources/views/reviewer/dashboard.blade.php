@@ -60,7 +60,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('reviewer.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             Dashboard
                         </li>
@@ -73,49 +73,7 @@
         <div class="container-fluid"> <!--begin::Row-->
             <div class="row"> <!--begin::Col-->
                 <div class="col-12">
-                    <!-- Project, Report, and Research Status Overview -->
-                    <div class="content">
-                        <div class="container">
-                            <div class="row text-center">
-                                <div class="col-md-12 mb-4">
-                                    <div class="card card-primary card-outline">
-                                        <div class="card-header">
-                                            <h4 class="text-center mb-4" style="font-weight: 600;">Project, Report, and
-                                                Research Status Overview</h4>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="row">
-                                                <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;"><span
-                                                            id="totalProjectsHeader"></span></h5>
-                                                    <div class="chart-container"
-                                                        style="position: relative; height: 350px; width: 100%;">
-                                                        <canvas id="projectChart"></canvas>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;"><span
-                                                            id="totalReportsHeader"></span></h5>
-                                                    <div class="chart-container"
-                                                        style="position: relative; height: 350px; width: 100%;">
-                                                        <canvas id="reportChart"></canvas>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;"><span
-                                                            id="totalResearchHeader"></span></h5>
-                                                    <div class="chart-container"
-                                                        style="position: relative; height: 350px; width: 100%;">
-                                                        <canvas id="researchChart"></canvas>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                   
 
                     <!-- My Projects, My Reports, and My Research Status -->
                     <div class="content">
@@ -124,33 +82,40 @@
                                 <div class="col-md-12 mb-4">
                                     <div class="card card-primary card-outline">
                                         <div class="card-header">
-                                            <h4 class="text-center mb-4" style="font-weight: 600;">My Projects, My Reports,
-                                                and My Research Status</h4>
+                                            <h4 class="text-center mb-4" style="font-weight: 600;">My Review Activity Status</h4>
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
-                                                <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;"><span
-                                                        id="myTotalProjectsHeader"></span></h5>
-                                                    <div class="chart-container"
-                                                        style="position: relative; height: 350px; width: 100%;">
-                                                        <canvas id="myProjectChart"></canvas>
+                                                <div class="col-md-3 mb-4">
+                                                    <h5 class="mb-3" style="font-weight: 500;">
+                                                        Projects Review Status (<span id="projectsTotalCount"></span>)
+                                                    </h5>
+                                                    <div class="chart-container" style="position: relative; height: 350px; width: 100%;">
+                                                        <canvas id="myProjectReviewChart"></canvas>
                                                     </div>
                                                 </div>
-                                                <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;"><span
-                                                        id="myTotalReportsHeader"></span></h5>
-                                                    <div class="chart-container"
-                                                        style="position: relative; height: 350px; width: 100%;">
-                                                        <canvas id="myReportChart"></canvas>
+                                                <div class="col-md-3 mb-4">
+                                                    <h5 class="mb-3" style="font-weight: 500;">
+                                                        Status Reports Review Status (<span id="statusReportsTotalCount"></span>)
+                                                    </h5>
+                                                    <div class="chart-container" style="position: relative; height: 350px; width: 100%;">
+                                                        <canvas id="myStatusReportReviewChart"></canvas>
                                                     </div>
                                                 </div>
-                                                <div class="col-md-4 mb-4">
-                                                    <h5 class="mb-3" style="font-weight: 500;"><span
-                                                        id="myTotalResearchHeader"></span></h5>
-                                                    <div class="chart-container"
-                                                        style="position: relative; height: 350px; width: 100%;">
-                                                        <canvas id="myResearchChart"></canvas>
+                                                <div class="col-md-3 mb-4">
+                                                    <h5 class="mb-3" style="font-weight: 500;">
+                                                        Terminal Reports Review Status (<span id="terminalReportsTotalCount"></span>)
+                                                    </h5>
+                                                    <div class="chart-container" style="position: relative; height: 350px; width: 100%;">
+                                                        <canvas id="myTerminalReportReviewChart"></canvas>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 mb-4">
+                                                    <h5 class="mb-3" style="font-weight: 500;">
+                                                        Research Review Status (<span id="researchTotalCount"></span>)
+                                                    </h5>
+                                                    <div class="chart-container" style="position: relative; height: 350px; width: 100%;">
+                                                        <canvas id="myResearchReviewChart"></canvas>
                                                     </div>
                                                 </div>
                                             </div>
@@ -160,6 +125,8 @@
                             </div>
                         </div>
                     </div>
+                    
+
 
                     <!-- SDG Contributions Overview -->
                     <div class="content">
@@ -214,187 +181,47 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
 
-    <!--chart for review statuses of projects, reports, research-->
-    <script>
-        $(document).ready(function() {
 
-
-            // Fetch and update chart data via AJAX
-            function fetchReviewStatusData() {
-                $.ajax({
-                    url: "{{ route('analytics.reviewStatusAnalytics') }}", // Add correct route
-                    method: 'GET',
-                    success: function(response) { // Update headers with total counts
-                        $('#totalProjectsHeader').text(`Projects Status (${response.totalProjects})`);
-                        $('#totalReportsHeader').text(`Reports Status (${response.totalReports})`);
-                        $('#totalResearchHeader').text(`Research Status (${response.totalResearch})`);
-
-                        // Update the charts
-                        updateChart(projectChart, response.projectStatusCounts, response.statuses,
-                            'Projects');
-                        updateChart(reportChart, response.reportStatusCounts, response.statuses,
-                            'Reports');
-                        updateChart(researchChart, response.researchStatusCounts, response.statuses,
-                            'Research');
-                    }
-                });
-            }
-
-            // Function to update a chart
-            function updateChart(chart, data, statuses, label) {
-                const chartLabels = Object.values(statuses); // Labels from statuses
-                const chartData = chartLabels.map((_, index) => data[index + 1] || 0);
-
-                chart.data.labels = chartLabels; // Set new labels
-                chart.data.datasets[0].data = chartData; // Set new data
-                chart.update(); // Update the chart
-            }
-
-            // Chart options for a professional look
-            const chartOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'bottom', // Move legend below the chart
-                        labels: {
-                            maxWidth: 100, // Set maximum width for legend labels
-                            boxWidth: 10, // Width of the color box
-                        },
-                    },
-                    title: {
-                        display: false, // Set to false to not display default title
-                    },
-                    tooltip: {
-                        enabled: true,
-                        callbacks: {
-                            label: function(context) {
-                                return `${context.label}: ${context.raw}`;
-                            }
-                        }
-                    }
-                }
-            };
-
-            // Initialize pie charts with professional styling
-            var projectChart = new Chart(document.getElementById('projectChart').getContext('2d'), {
-                type: 'pie',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Projects',
-                        data: [],
-                        backgroundColor: ['#4BC0C0', '#FF6384', '#36A2EB', '#FFCE56', '#9966FF'],
-                        hoverOffset: 10
-                    }]
-                },
-                options: {
-                    ...chartOptions,
-                    plugins: {
-                        ...chartOptions.plugins,
-                        legend: {
-                            ...chartOptions.plugins.legend,
-                            align: 'start',
-                        }
-                    }
-                }
-            });
-
-            var reportChart = new Chart(document.getElementById('reportChart').getContext('2d'), {
-                type: 'pie',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Reports',
-                        data: [],
-                        backgroundColor: ['#9966FF', '#FF9F40', '#FF6384', '#36A2EB', '#4BC0C0'],
-                        hoverOffset: 10
-                    }]
-                },
-                options: {
-                    ...chartOptions,
-                    plugins: {
-                        ...chartOptions.plugins,
-                        legend: {
-                            ...chartOptions.plugins.legend,
-                            align: 'start',
-                        }
-                    }
-                }
-            });
-
-            var researchChart = new Chart(document.getElementById('researchChart').getContext('2d'), {
-                type: 'pie',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Research',
-                        data: [],
-                        backgroundColor: ['#FF9F40', '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB'],
-                        hoverOffset: 10
-                    }]
-                },
-                options: {
-                    ...chartOptions,
-                    plugins: {
-                        ...chartOptions.plugins,
-                        legend: {
-                            ...chartOptions.plugins.legend,
-                            align: 'start', // Align legend to the left
-                        }
-                    }
-                }
-            });
-
-            // Fetch and update data on page load
-            fetchReviewStatusData();
-
-            // Automatically refresh the data every 30 seconds
-            setInterval(fetchReviewStatusData, 30000); // 30,000 ms = 30 seconds
-
-
-        });
-    </script>
     <!-- Chart for review statuses of my projects, reports, and research -->
     <script>
         $(document).ready(function() {
             // Fetch and update chart data via AJAX
-            function fetchMyStatusData() {
+            function fetchMyReviewActivityData() {
                 $.ajax({
-                    url: "{{ route('analytics.myStatusAnalytics') }}", // Ensure the route is correct
+                    url: "{{ route('analytics.myReviewActivity') }}", // Ensure the route is correct
                     method: 'GET',
                     success: function(response) {
-
-                        $('#myTotalProjectsHeader').text(
-                            `My Projects Status (${response.myTotalProjects})`);
-                        $('#myTotalReportsHeader').text(`My Reports Status (${response.myTotalReports})`);
-                        $('#myTotalResearchHeader').text(
-                            `My Research Status (${response.myTotalResearch})`);
-
-                        updateChart(myProjectChart, response.myProjectStatusCounts, response
-                            .myStatuses);
-                        updateChart(myReportChart, response.myReportStatusCounts, response.myStatuses);
-                        updateChart(myResearchChart, response.myResearchStatusCounts, response
-                            .myStatuses);
+                        // Update total counts for projects, status reports, terminal reports, and research
+                        $('#projectsTotalCount').text(response.projects.reviewed + response.projects.rejected + response.projects.requested_change);
+                        $('#statusReportsTotalCount').text(response.status_reports.reviewed + response.status_reports.rejected + response.status_reports.requested_change);
+                        $('#terminalReportsTotalCount').text(response.terminal_reports.reviewed + response.terminal_reports.rejected + response.terminal_reports.requested_change);
+                        $('#researchTotalCount').text(response.research.reviewed + response.research.rejected + response.research.requested_change);
+    
+                        updateReviewChart(myProjectReviewChart, response.projects);
+                        updateReviewChart(myStatusReportReviewChart, response.status_reports);
+                        updateReviewChart(myTerminalReportReviewChart, response.terminal_reports);
+                        updateReviewChart(myResearchReviewChart, response.research);
                     },
                     error: function(xhr, status, error) {
-                        console.error("Error fetching status data:", error);
+                        console.error("Error fetching review activity data:", error);
                     }
                 });
             }
-
-            // Function to update a chart
-            function updateChart(chart, data, myStatuses) {
-                const chartLabels = Object.values(myStatuses); // Labels from myStatuses
-                const chartData = chartLabels.map((_, index) => data[chartLabels[index]] ||
-                    0); // Use labels for mapping
-
+    
+            // Function to update a chart with the fetched data
+            function updateReviewChart(chart, data) {
+                const chartLabels = ['Reviewed', 'Rejected', 'Requested Change'];
+                const chartData = [
+                    data.reviewed || 0,
+                    data.rejected || 0,
+                    data.requested_change || 0
+                ];
+    
                 chart.data.labels = chartLabels; // Set new labels
                 chart.data.datasets[0].data = chartData; // Set new data
                 chart.update(); // Update the chart
             }
-
+    
             // Chart options for a professional look
             const chartOptions = {
                 responsive: true,
@@ -404,7 +231,6 @@
                         display: true,
                         position: 'bottom',
                         labels: {
-
                             maxWidth: 100,
                             boxWidth: 10,
                         },
@@ -422,86 +248,73 @@
                     }
                 }
             };
-
-            // Initialize pie charts with professional styling
-            var myProjectChart = new Chart(document.getElementById('myProjectChart').getContext('2d'), {
+    
+            // Initialize pie charts for projects, status reports, terminal reports, and research review statuses
+            var myProjectReviewChart = new Chart(document.getElementById('myProjectReviewChart').getContext('2d'), {
                 type: 'pie',
                 data: {
                     labels: [],
                     datasets: [{
-                        label: 'My Projects',
+                        label: 'Projects Review Status',
                         data: [],
-                        backgroundColor: ['#4BC0C0', '#FF6384', '#36A2EB', '#FFCE56', '#9966FF'],
+                        backgroundColor: ['#4BC0C0', '#FF6384', '#36A2EB'],
                         hoverOffset: 10
                     }]
                 },
-                options: {
-                    ...chartOptions,
-                    plugins: {
-                        ...chartOptions.plugins,
-                        legend: {
-                            ...chartOptions.plugins.legend,
-                            align: 'start', // Align legend to the left
-                        }
-                    }
-                }
+                options: chartOptions
             });
-
-            var myReportChart = new Chart(document.getElementById('myReportChart').getContext('2d'), {
+    
+            var myStatusReportReviewChart = new Chart(document.getElementById('myStatusReportReviewChart').getContext('2d'), {
                 type: 'pie',
                 data: {
                     labels: [],
                     datasets: [{
-                        label: 'My Reports',
+                        label: 'Status Reports Review Status',
                         data: [],
-                        backgroundColor: ['#9966FF', '#FF9F40', '#FF6384', '#36A2EB', '#4BC0C0'],
+                        backgroundColor: ['#FF9F40', '#FF6384', '#36A2EB'],
                         hoverOffset: 10
                     }]
                 },
-                options: {
-                    ...chartOptions,
-                    plugins: {
-                        ...chartOptions.plugins,
-                        legend: {
-                            ...chartOptions.plugins.legend,
-                            align: 'start', // Align legend to the left
-                        }
-                    }
-                }
+                options: chartOptions
             });
-
-            var myResearchChart = new Chart(document.getElementById('myResearchChart').getContext('2d'), {
+    
+            var myTerminalReportReviewChart = new Chart(document.getElementById('myTerminalReportReviewChart').getContext('2d'), {
                 type: 'pie',
                 data: {
                     labels: [],
                     datasets: [{
-                        label: 'My Research',
+                        label: 'Terminal Reports Review Status',
                         data: [],
-                        backgroundColor: ['#FF9F40', '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB'],
+                        backgroundColor: ['#FF9F40', '#4BC0C0', '#36A2EB'],
                         hoverOffset: 10
                     }]
                 },
-                options: {
-                    ...chartOptions,
-                    plugins: {
-                        ...chartOptions.plugins,
-                        legend: {
-                            ...chartOptions.plugins.legend,
-                            align: 'start', // Align legend to the left
-                        }
-                    }
-                }
+                options: chartOptions
             });
-
+    
+            var myResearchReviewChart = new Chart(document.getElementById('myResearchReviewChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: [],
+     datasets: [{
+                        label: 'Research Review Status',
+                        data: [],
+                        backgroundColor: ['#FF9F40', '#4BC0C0', '#36A2EB'],
+                        hoverOffset: 10
+                    }]
+                },
+                options: chartOptions
+            });
+    
             // Fetch and update data on page load
-            fetchMyStatusData();
-
+            fetchMyReviewActivityData();
+    
             // Automatically refresh the data every 30 seconds
-            setInterval(fetchMyStatusData, 30000);
+            setInterval(fetchMyReviewActivityData, 30000);
         });
     </script>
 
-    <!-- Chart for overall status of SDG projects, reports, research-->
+
     <!-- Chart for overall status of SDG projects, reports, research-->
     <script>
         $(document).ready(function() {
@@ -513,28 +326,32 @@
                     url: "{{ route('analytics.sdgComparison') }}", // Update this route to fetch SDG comparison data
                     method: 'GET',
                     success: function(response) {
-                        // Combine data from projects, reports, and research
+                        // Combine data from projects, status reports, terminal reports, and research
                         const combinedLabels = response
-                            .sdgLabels; // Assuming this contains unique SDG labels
+                        .sdgLabels; // Assuming this contains unique SDG labels
                         const combinedData = [];
                         const projectData = response.projectData; // Array of project counts
-                        const reportData = response.reportData; // Array of report counts
+                        const statusReportData = response
+                        .statusReportData; // Array of status report counts
+                        const terminalReportData = response
+                        .terminalReportData; // Array of terminal report counts
                         const researchData = response.researchData; // Array of research counts
 
-                        // Aggregate data from projects, reports, and research
+                        // Aggregate data from projects, status reports, terminal reports, and research
                         for (let i = 0; i < combinedLabels.length; i++) {
-                            combinedData.push((projectData[i] || 0) + (reportData[i] || 0) + (
-                                researchData[i] || 0));
+                            combinedData.push((projectData[i] || 0) + (statusReportData[i] || 0) + (
+                                terminalReportData[i] || 0) + (researchData[i] || 0));
                         }
 
-                        updateCombinedChart(combinedData, combinedLabels, projectData, reportData,
-                            researchData);
+                        updateCombinedChart(combinedData, combinedLabels, projectData, statusReportData,
+                            terminalReportData, researchData);
                     }
                 });
             }
 
             // Function to update the combined chart
-            function updateCombinedChart(data, labels, projectData, reportData, researchData) {
+            function updateCombinedChart(data, labels, projectData, statusReportData, terminalReportData,
+                researchData) {
                 if (combinedChart) {
                     combinedChart.data.labels = labels; // Set new labels
                     combinedChart.data.datasets[0].data = data; // Set new data
@@ -542,10 +359,11 @@
                         const index = context.dataIndex;
                         const totalCount = context.raw; // Total count from combined data
                         const projects = projectData[index] || 0; // Count of projects
-                        const reports = reportData[index] || 0; // Count of reports
+                        const statusReports = statusReportData[index] || 0; // Count of status reports
+                        const terminalReports = terminalReportData[index] || 0; // Count of terminal reports
                         const research = researchData[index] || 0; // Count of research
 
-                        return `Total: ${totalCount} (Projects: ${projects}, Reports: ${reports}, Research: ${research})`;
+                        return `Total: ${totalCount} (Projects: ${projects}, Status Reports: ${statusReports}, Terminal Reports: ${terminalReports}, Research: ${research})`;
                     };
                     combinedChart.update(); // Update the chart
                 }
@@ -629,7 +447,6 @@
                 });
             }
 
-
             // Initialize charts on page load
             initCombinedChart();
 
@@ -689,35 +506,72 @@
 
             var mapProjects = @json($projects);
 
+            // Group projects by coordinates
+            var groupedProjects = {};
+
             mapProjects.forEach(function(project) {
                 if (project.latitude && project.longitude) {
-                    var marker = L.marker([project.latitude, project.longitude], {
-                            icon: locatorIcon
-                        })
-                        .addTo(map)
-                        .bindPopup(`
-                        <div style="font-size: 14px;">
-                            <strong>
-                                <a href="/sdg/project2/${project.id}">
-                                    <i class="fas fa-project-diagram"></i> ${project.title}
-                                </a><span>(Click to view more info)</span>
-                            </strong><br><br>
-                            <i class="fas fa-map-marker-alt"></i> <strong>Address:</strong> ${project.location_address}<br>
-                            <i class="fas fa-globe"></i> <strong>Coordinates:</strong> ${project.latitude}, ${project.longitude}
-                        </div>
-                    `);
-
-                    if ('ontouchstart' in window || navigator.maxTouchPoints) {
-                        marker.on('click', function(e) {
-                            this.openPopup();
-                        });
-                    } else {
-                        marker.on('mouseover', function(e) {
-                            this.openPopup();
-                        });
+                    var coords = `${project.latitude},${project.longitude}`;
+                    if (!groupedProjects[coords]) {
+                        groupedProjects[coords] = [];
                     }
+                    groupedProjects[coords].push(project);
                 }
             });
+
+            // Loop through the grouped projects
+            for (const coords in groupedProjects) {
+                const projectsAtCoords = groupedProjects[coords];
+                const [latitude, longitude] = coords.split(',');
+
+                var marker = L.marker([latitude, longitude], {
+                        icon: locatorIcon
+                    })
+                    .addTo(map)
+                    .bindPopup(function() {
+                        let popupContent =
+                            `<div style="font-size: 14px;"><strong>Projects at this location:</strong><br><br>`;
+
+                        // Display up to 5 projects
+                        const visibleProjects = projectsAtCoords.slice(0, 5);
+                        visibleProjects.forEach(project => {
+                            popupContent += `
+                        <a href="/sdg/project/${project.id}">
+                            <i class="fas fa-project-diagram"></i> ${project.title} 
+                        </a><br>
+                    `;
+                        });
+
+                        // Add "Click to see more" if there are more than 5 projects
+                        if (projectsAtCoords.length > 5) {
+                            popupContent += `<br>
+                        <a href="/sdg/projects/coordinates/${latitude}/${longitude}" data-coordinates="${coords}">
+                            <strong>Click to see more projects</strong>
+                        </a><br>
+                    `;
+                        }
+
+                        // Add the address and coordinates
+                        popupContent += `
+                    <br><i class="fas fa-map-marker-alt"></i> <strong>Address:</strong> ${projectsAtCoords[0].location_address}<br>
+                    <i class="fas fa-globe"></i> <strong>Coordinates:</strong> ${latitude}, ${longitude}
+                </div>`;
+
+                        return popupContent;
+                    });
+
+                if ('ontouchstart' in window || navigator.maxTouchPoints) {
+                    marker.on('click', function(e) {
+                        this.openPopup();
+                    });
+                } else {
+                    marker.on('mouseover', function(e) {
+                        this.openPopup();
+                    });
+                }
+            }
+
+
         });
     </script>
 @endsection

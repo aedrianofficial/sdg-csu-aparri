@@ -377,7 +377,7 @@ class ResearchController extends Controller
     public function show(string $id, Request $request)
     {
         // Fetch the research by its ID
-        $research = Research::findOrFail($id);
+        $research = Research::with('sdgSubCategories')->findOrFail($id);
     
         // Check if there's a notification ID in the request
         $notificationId = $request->query('notification_id');

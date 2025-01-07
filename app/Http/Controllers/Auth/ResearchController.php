@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\Research\ResearchRequest;
 use App\Models\ActivityLog;
 use App\Models\Feedback;
 use App\Models\Notification;
+use App\Models\ProjectResearchStatus;
 use App\Models\Research;
 use App\Models\Researchcategory;
 use App\Models\Researchfile;
@@ -53,7 +54,7 @@ class ResearchController extends Controller
     public function rejected($id, Request $request)
     {
         // Fetch the research by its ID, including feedbacks and user information
-        $research = Research::with('feedbacks.user')->findOrFail($id);
+        $research = Research::with(['feedbacks.user', 'sdgSubCategories'])->findOrFail($id);
     
         // Check if there's a notification ID in the request
         $notificationId = $request->query('notification_id');
@@ -78,8 +79,8 @@ class ResearchController extends Controller
 
     public function need_changes($id, Request $request)
     {
-        // Fetch the research by its ID, including feedbacks and user information
-        $research = Research::with('feedbacks.user')->findOrFail($id);
+        // Fetch the research by its ID, including feedbacks, user information, and SDG subcategories
+        $research = Research::with(['feedbacks.user', 'sdgSubCategories'])->findOrFail($id);
     
         // Check if there's a notification ID in the request
         $notificationId = $request->query('notification_id');
@@ -102,110 +103,134 @@ class ResearchController extends Controller
         return view('auth.feedbacks.research_extension', compact('research', 'notificationData'));
     }
 
-     public function my_research(Request $request)
-{
-    $user = Auth::user();
+    public function my_research(Request $request)
+    {
+        $user = Auth::user();
+    
+        // Initialize the query for Research model
+        $query = Research::query()
+            ->with(['researchfiles', 'sdg']) // Load relationships
+            ->where('user_id', $user->id); // Filter by current user
+    
+        // Apply filters based on request parameters
+    
+        // Filter by title if present
+        if ($request->filled('title')) {
+            $query->where('title', 'LIKE', '%' . $request->title . '%');
+        }
+    
+        // Filter by research category if present
+        if ($request->filled('researchcategory_id')) {
+            $query->where('researchcategory_id', $request->researchcategory_id);
+        }
+    
+         // Filter by research status if present
+         if ($request->filled('status_id')) {
+            $query->where('status_id', $request->status_id);
+        }
+    
+        // Filter by review status if present
+        if ($request->filled('review_status')) {
+            $query->where('review_status_id', $request->review_status);
+        }
+    
+        // Apply SDG filter if present
+        if ($request->filled('sdg')) {
+            $selectedSDGs = $request->sdg; // Get selected SDG IDs from the request
+            $query->whereHas('sdg', function ($sdgQuery) use ($selectedSDGs) {
+                $sdgQuery->whereIn('sdgs.id', $selectedSDGs); // Specify table name for the `id`
+            });
+        }
+    
+        // Handle sorting dynamically
+        $sortBy = $request->get('sort_by', 'id'); // Default sort column
+        $sortOrder = $request->get('sort_order', 'desc'); // Default sort order
+    
+        // Define allowed sortable columns
+        $sortableColumns = ['title', 'researchcategory_id', 'review_status_id', 'status_id', 'created_at', 'id'];
+    
+        if (in_array($sortBy, $sortableColumns)) {
+            $query->orderBy($sortBy, $sortOrder);
+        }
+    
+        // Fetch the filtered list of researches and paginate the results
+        $researches = $query->paginate(5);
+    
+        // Fetch all SDGs and review statuses for the filter dropdowns
+        $reviewStatuses = ReviewStatus::all();
+        $researchCategories = Researchcategory::all();
+        $researchStatuses = ProjectResearchStatus::all(); 
+        $sdgs = SDG::all();
+    
+        // Return the view with the filtered researches and filter options
+        return view('auth.research.my_research', [
+            'researches' => $researches,
+            'researchCategories' => $researchCategories,
+            'reviewStatuses' => $reviewStatuses,
+            'sdgs' => $sdgs,
+            'researchStatuses'=>$researchStatuses
+        ]);
+    }
+    
 
-    // Initialize the query for Research model
-    $query = Research::query()
-        ->with(['researchfiles', 'sdg']) // Load relationships
-        ->where('user_id', $user->id); // Filter by current user
-      
+    public function index(Request $request)
+    {
+        // Initialize the query with eager loading for related models
+        $query = Research::with(['researchfiles', 'sdg']);
 
-    // Apply filters based on request parameters
+        // Apply filters based on request parameters
 
-    // Filter by title if present
-    if ($request->filled('title')) {
-        $query->where('title', 'LIKE', '%' . $request->title . '%');
+        // Filter by title if present
+        if ($request->filled('title')) {
+            $query->where('title', 'LIKE', '%' . $request->title . '%');
+        }
+
+        // Filter by research category if present
+        if ($request->filled('researchcategory_id')) {
+            $query->where('researchcategory_id', $request->researchcategory_id);
+        }
+
+        // Filter by research status if present
+        if ($request->filled('status_id')) {
+            $query->where('status_id', $request->status_id);
+        }
+
+        // Filter by review status if present
+        if ($request->filled('review_status')) {
+            $query->where('review_status_id', $request->review_status);
+        }
+
+        // Apply SDG filter if present
+        if ($request->filled('sdg')) {
+            $selectedSDGs = $request->sdg; // Get selected SDG IDs from the request
+            $query->whereHas('sdg', function ($sdgQuery) use ($selectedSDGs) {
+                $sdgQuery->whereIn('sdgs.id', $selectedSDGs); // Specify table name for the `id`
+            });
+        }
+
+        // Sorting
+        $sortBy = $request->get('sort_by', 'id'); // Default sort column
+        $sortOrder = $request->get('sort_order', 'desc'); // Default sort order
+
+        // Define allowed sortable columns
+        $sortableColumns = ['title', 'researchcategory_id', 'review_status_id', 'status_id', 'created_at'];
+        if (in_array($sortBy, $sortableColumns)) {
+            $query->orderBy($sortBy, $sortOrder);
+        }
+
+        // Fetch the filtered list of researches and paginate the results
+        $researches = $query->orderBy('id', 'desc')->paginate(5);
+
+        // Fetch all SDGs and review statuses for the filter dropdowns
+        $reviewStatuses = ReviewStatus::all();
+        $researchStatuses = ProjectResearchStatus::all(); 
+        $researchCategories = Researchcategory::all();
+        $sdgs = SDG::all();
+
+        // Return view with the filtered results and necessary filter data
+        return view('auth.research.index', compact('researches', 'researchStatuses','reviewStatuses', 'researchCategories', 'sdgs'));
     }
 
-    // Filter by research category if present
-    if ($request->filled('researchcategory_id')) {
-        $query->where('researchcategory_id', $request->researchcategory_id);
-    }
-
-    // Filter by research status if present
-    if ($request->filled('research_status')) {
-        $query->where('research_status', $request->research_status);
-    }
-
-    // Filter by review status if present
-    if ($request->filled('review_status')) {
-        $query->where('review_status_id', $request->review_status);
-    }
-
-    // Apply SDG filter if present
-    if ($request->filled('sdg')) {
-        $selectedSDGs = $request->sdg; // Get selected SDG IDs from the request
-        $query->whereHas('sdg', function ($sdgQuery) use ($selectedSDGs) {
-            $sdgQuery->whereIn('sdgs.id', $selectedSDGs); // Specify table name for the `id`
-        });
-    }
-
-    // Fetch the filtered list of researches and paginate the results
-    $researches = $query->orderBy('id', 'desc')->paginate(5);
-
-    // Fetch all SDGs and review statuses for the filter dropdowns
-    $reviewStatuses = ReviewStatus::all();
-    $researchCategories = Researchcategory::all();
-    $sdgs = SDG::all();
-
-    // Return the view with the filtered researches and filter options
-    return view('auth.research.my_research', [
-        'researches' => $researches,
-        'researchCategories'=>$researchCategories,
-        'reviewStatuses' => $reviewStatuses,
-        'sdgs' => $sdgs
-    ]);
-}
-
-
-public function index(Request $request)
-{
-    // Initialize the query with eager loading for related models
-    $query = Research::with(['researchfiles', 'sdg']);
-
-    // Apply filters based on request parameters
-
-    // Filter by title if present
-    if ($request->filled('title')) {
-        $query->where('title', 'LIKE', '%' . $request->title . '%');
-    }
-
-    // Filter by research category if present
-    if ($request->filled('researchcategory_id')) {
-        $query->where('researchcategory_id', $request->researchcategory_id);
-    }
-
-    // Filter by research status if present
-    if ($request->filled('research_status')) {
-        $query->where('research_status', $request->research_status);
-    }
-
-    // Filter by review status if present
-    if ($request->filled('review_status')) {
-        $query->where('review_status_id', $request->review_status);
-    }
-
-    // Apply SDG filter if present
-    if ($request->filled('sdg')) {
-        $selectedSDGs = $request->sdg; // Get selected SDG IDs from the request
-        $query->whereHas('sdg', function ($sdgQuery) use ($selectedSDGs) {
-            $sdgQuery->whereIn('sdgs.id', $selectedSDGs); // Specify table name for the `id`
-        });
-    }
-
-    // Fetch the filtered list of researches and paginate the results
-    $researches = $query->orderBy('id', 'desc')->paginate(5);
-
-    // Fetch all SDGs and review statuses for the filter dropdowns
-    $reviewStatuses = ReviewStatus::all();
-    $researchCategories = Researchcategory::all();
-    $sdgs = SDG::all();
-
-    // Return view with the filtered results and necessary filter data
-    return view('auth.research.index', compact('researches', 'reviewStatuses', 'researchCategories', 'sdgs'));
-}
 
 
     /**
@@ -215,129 +240,133 @@ public function index(Request $request)
     {
         $researchcategories = Researchcategory::all();
         $sdgs = Sdg::all();
-        return view('auth.research.create', compact('researchcategories', 'sdgs'));
+        $statuses = ProjectResearchStatus::where('is_active', 1)->get(); // Fetch active statuses
+    
+        return view('auth.research.create', compact('researchcategories', 'sdgs', 'statuses'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(ResearchRequest $request)
-    {
-        $user = Auth::user();
-        $submitType = $request->submit_type;
-    
-        try {
-            DB::beginTransaction();
-    
-            // Create the Research record
-            $research = Research::create([
-                'title' => $request->title,
-                'description' => $request->description,
-                'research_status' => $request->research_status,
-                'is_publish' => $submitType === 'publish' ? 1 : 0,
-                'user_id' => $user->id,
-                'researchcategory_id' => $request->researchcategory_id,
-                'review_status_id' => $submitType === 'publish' ? 3 : 4
+{
+    $user = Auth::user();
+    $submitType = $request->submit_type;
+
+    try {
+        DB::beginTransaction();
+
+        // Create the Research record
+        $research = Research::create([
+            'title' => $request->title,
+            'description' => $request->description,
+            'status_id' => $request->status_id, // Update to use status_id
+            'is_publish' => $submitType === 'publish' ? 1 : 0,
+            'user_id' => $user->id,
+            'researchcategory_id' => $request->researchcategory_id,
+            'review_status_id' => $submitType === 'publish' ? 3 : 4,
+            'file_link' => $request->file_link
+        ]);
+
+        // Attach SDGs to the research
+        $research->sdg()->attach($request->sdg);
+        $sdgs = $research->sdg()->pluck('name')->implode(', ');
+        // Attach selected sub-categories to the research
+        if ($request->has('sdg_sub_category')) {
+            $research->sdgSubCategories()->attach($request->sdg_sub_category);
+        }
+        // Handle single file upload
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $fileData = file_get_contents($file); // Read file as binary data
+            $originalFilename = $file->getClientOriginalName(); // Original filename with extension
+            $extension = $file->getClientOriginalExtension(); // File extension (e.g., pdf or docx)
+        
+            Researchfile::create([
+                'research_id' => $research->id,
+                'file' => $fileData,               // Store binary data
+                'original_filename' => $originalFilename, // Store original filename
+                'extension' => $extension,         // Store file extension
             ]);
-    
-            // Attach SDGs to the research
-            $research->sdg()->attach($request->sdg);
-            $sdgs = $research->sdg()->pluck('name')->implode(', ');
-    
-            // Handle single file upload
-            if ($request->hasFile('file')) {
-                $file = $request->file('file');
-                $fileData = file_get_contents($file); // Read file as binary data
-                $originalFilename = $file->getClientOriginalName(); // Original filename with extension
-                $extension = $file->getClientOriginalExtension(); // File extension (e.g., pdf or docx)
-            
-                Researchfile::create([
-                    'research_id' => $research->id,
-                    'file' => $fileData,               // Store binary data
-                    'original_filename' => $originalFilename, // Store original filename
-                    'extension' => $extension,         // Store file extension
+        }
+
+        // Log role action
+        RoleAction::create([
+            'content_id' => $research->id,
+            'content_type' => Research::class,
+            'user_id' => $user->id,
+            'role' => 'admin',
+            'action' => $submitType === 'publish' ? 'published' : 'submitted for review',
+            'created_at' => now()
+        ]);
+
+        // Log the activity for publishing or submission
+        if ($submitType === 'publish') {
+            ActivityLog::create([
+                'log_name' => 'Research Published',
+                'description' => 'Published the research titled "' . addslashes($research->title) . '"',
+                'subject_type' => Research::class,
+                'subject_id' => $research->id,
+                'event' => 'published',
+                'causer_type' => User::class,
+                'causer_id' => $user->id,
+                'properties' => json_encode([
+                    'research_title' => $research->title,
+                    'research_status' => 'published',
+                    'role' => 'publisher',
+                ]),
+                'created_at' => now(),
+            ]);
+        } else if ($submitType === 'review') {
+            ActivityLog::create([
+                'log_name' => 'Research Submission',
+                'description' => "Research titled '" . addslashes($research->title) . "' submitted for review by " . $user->first_name . ' ' . $user->last_name,
+                'subject_type' => Research::class,
+                'subject_id' => $research->id,
+                'event' => 'submitted for review',
+                'causer_type' => User::class,
+                'causer_id' => $user->id,
+                'properties' => json_encode([
+                    'research_title' => $research->title,
+                    'description' => $research->description,
+                    'research_status' => 'draft',
+                    'sdgs' => $sdgs,
+                    'researchcategory_id' => $research->researchcategory_id,
+                ]),
+                'created_at' => now(),
+            ]);
+
+            // Notification creation for reviewers when research is submitted for review
+            $reviewers = User::where('role', 'reviewer')->get();
+            foreach ($reviewers as $reviewer) {
+                Notification::create([
+                    'user_id' => $reviewer->id,
+                    'notifiable_type' => User::class,
+                    'notifiable_id' => $reviewer->id,
+                    'type' => 'research',
+                    'related_type' => Research::class,
+                    'related_id' => $research->id,
+                    'data' => json_encode([
+                        'message' => "A new research titled '" . addslashes($research->title) . "' has been submitted for review.",
+                        'contributor' => $user->first_name . ' ' . $user->last_name,
+                        'role' => ['admin', 'contributor'],
+                        'type' => 'research',
+                        'status' => 'submitted for review',
+                    ]),
+                    'created_at' => now(),
                 ]);
             }
-            
-            
-    
-            // Log role action
-            RoleAction::create([
-                'content_id' => $research->id,
-                'content_type' => Research::class,
-                'user_id' => $user->id,
-                'role' => 'admin',
-                'action' => $submitType === 'publish' ? 'published' : 'submitted for review',
-                'created_at' => now()
-            ]);
-    
-            // Log the activity for publishing or submission
-            if ($submitType === 'publish') {
-                ActivityLog::create([
-                    'log_name' => 'Research Published',
-                    'description' => 'Published the research titled "' . addslashes($research->title) . '"',
-                    'subject_type' => Research::class,
-                    'subject_id' => $research->id,
-                    'event' => 'published',
-                    'causer_type' => User::class,
-                    'causer_id' => $user->id,
-                    'properties' => json_encode([
-                        'research_title' => $research->title,
-                        'research_status' => 'published',
-                        'role' => 'publisher',
-                    ]),
-                    'created_at' => now(),
-                ]);
-            } else if ($submitType === 'review') {
-                ActivityLog::create([
-                    'log_name' => 'Research Submission',
-                    'description' => "Research titled '" . addslashes($research->title) . "' submitted for review by " . $user->first_name . ' ' . $user->last_name,
-                    'subject_type' => Research::class,
-                    'subject_id' => $research->id,
-                    'event' => 'submitted for review',
-                    'causer_type' => User::class,
-                    'causer_id' => $user->id,
-                    'properties' => json_encode([
-                        'research_title' => $research->title,
-                        'description' => $research->description,
-                        'research_status' => 'draft',
-                        'sdgs' => $sdgs,
-                        'researchcategory_id' => $research->researchcategory_id,
-                    ]),
-                    'created_at' => now(),
-                ]);
-    
-                // Notification creation for reviewers when research is submitted for review
-                $reviewers = User::where('role', 'reviewer')->get();
-                foreach ($reviewers as $reviewer) {
-                    Notification::create([
-                        'user_id' => $reviewer->id,
-                        'notifiable_type' => User::class,
-                        'notifiable_id' => $reviewer->id,
-                        'type' => 'research',
-                        'related_type' => Research::class,
-                        'related_id' => $research->id,
-                        'data' => json_encode([
-                            'message' => "A new research titled '" . addslashes($research->title) . "' has been submitted for review.",
-                            'contributor' => $user->first_name . ' ' . $user->last_name,
-                            'role' => ['admin', 'contributor'],
-                            'type' => 'research',
-                            'status' => 'submitted for review',
-                        ]),
-                        'created_at' => now(),
-                    ]);
-                }
-     }
-    
-            DB::commit();
-        } catch (\Exception $ex) {
-            DB::rollBack();
-            dd($ex->getMessage());
         }
-    
-        session()->flash('alert-success', 'Research Submitted Successfully!');
-        return to_route('research.index');
+
+        DB::commit();
+    } catch (\Exception $ex) {
+        DB::rollBack();
+        dd($ex->getMessage());
     }
+
+    session()->flash('alert-success', 'Research Submitted Successfully!');
+    return to_route('research.index');
+}
     
 
     
@@ -346,42 +375,53 @@ public function index(Request $request)
      * Display the specified resource.
      */
     public function show(string $id, Request $request)
-{
-    // Find the research by its ID, including related categories, SDGs, user, and review status
-    $research = Research::with(['researchcategory', 'sdg', 'user', 'reviewStatus'])->findOrFail($id);
-
-    // Check if there's a notification ID in the request
-    $notificationId = $request->query('notification_id');
-    $notificationData = null;
-
-    if ($notificationId) {
-        // Directly query the Notification model
-        $notification = Notification::where('notifiable_id', Auth::id())
-            ->where('notifiable_type', User::class) // Ensure this matches your notifiable type
-            ->where('id', $notificationId)
-            ->first();
-
-        if ($notification) {
-            $notificationData = json_decode($notification->data, true);
-            $notification->markAsRead(); // Mark the notification as read
+    {
+        // Find the research by its ID, including related categories, SDGs, user, review status, and SDG subcategories
+        $research = Research::with(['researchcategory', 'sdg', 'user', 'reviewStatus', 'sdgSubCategories'])->findOrFail($id);
+    
+        // Check if there's a notification ID in the request
+        $notificationId = $request->query('notification_id');
+        $notificationData = null;
+    
+        if ($notificationId) {
+            // Directly query the Notification model
+            $notification = Notification::where('notifiable_id', Auth::id())
+                ->where('notifiable_type', User::class) // Ensure this matches your notifiable type
+                ->where('id', $notificationId)
+                ->first();
+    
+            if ($notification) {
+                $notificationData = json_decode($notification->data, true);
+                $notification->markAsRead(); // Mark the notification as read
+            }
         }
+    
+        // Return the view for showing the research details, including notification data
+        return view('auth.research.show', compact('research', 'notificationData'));
     }
-
-    // Return the view for showing the research details, including notification data
-    return view('auth.research.show', compact('research', 'notificationData'));
-}
 
     /**
      * Show the form for editing the specified resource.
      */
     public function edit(Research $research)
     {
-        $sdgs = Sdg::all();
+        $sdgs = Sdg:: all();
         $reviewStatuses = ReviewStatus::all();
         $researchcategories = Researchcategory::all(); // Fetch all research categories
-        return view('auth.research.edit', ['research' => $research, 'sdgs' => $sdgs, 'researchcategories' => $researchcategories, 'reviewStatuses'=>$reviewStatuses]);
-    }
+        $projectResearchStatuses = ProjectResearchStatus::all(); // Fetch all project research statuses
     
+        // Load the selected SDG sub-categories
+        $selectedSubCategories = $research->sdgSubCategories()->pluck('sdg_sub_categories.id')->toArray();
+    
+        return view('auth.research.edit', [
+            'research' => $research,
+            'sdgs' => $sdgs,
+            'researchcategories' => $researchcategories,
+            'reviewStatuses' => $reviewStatuses,
+            'projectResearchStatuses' => $projectResearchStatuses, // Pass statuses to the view
+            'selectedSubCategories' => $selectedSubCategories // Pass selected sub-categories
+        ]);
+    }
     
 
     /**
@@ -393,10 +433,11 @@ public function index(Request $request)
         $request->validate([
             'title' => ['required', 'min:2', 'max:255'],
             'sdg' => ['required'],
-            'research_status' => ['required', 'in:Proposed,On-Going,On-Hold,Completed,Rejected'],
+            'status_id' => ['required', 'exists:project_research_statuses,id'], // Update validation rule
             'file' => ['file', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx'],
             'description' => ['required', 'min:10'],
             'review_status_id' => ['nullable', 'exists:review_statuses,id'],
+            'file_link' => ['nullable', 'url'], // Validate file_link (URL validation)
             'is_publish' => ['nullable'],
             'review_feedback' => ['nullable', 'string'],
             'feedback' => ['nullable', 'string', 'max:1000'],  // New feedback validation
@@ -426,15 +467,21 @@ public function index(Request $request)
             $research->update([
                 'title' => $request->title,
                 'description' => $request->description,
-                'research_status' => $request->research_status,
+                'status_id' => $request->status_id, // Update status_id 
                 'review_status_id' => $request->review_status_id ?? 4,
                 'is_publish' => $is_publish,
+                'file_link' => $request->file_link // Store file link
             ]);
     
             // Update SDGs
             $research->sdg()->sync($request->sdg);
             $sdgs = $research->sdg()->pluck('name')->implode(', ');
-    
+            // Attach selected sub-categories to the research
+            if ($request->has('sdg_sub_category')) {
+                $research->sdgSubCategories()->sync($request->sdg_sub_category);
+            } else {
+                $research->sdgSubCategories()->detach(); // Detach if no sub-categories are selected
+            }
            // Handle single file upload
             if ($request->hasFile('file')) {
                 $file = $request->file('file'); // Get the uploaded file

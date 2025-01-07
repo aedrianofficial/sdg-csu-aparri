@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
-            margin-top: 20px;
+        
             color: #1a202c;
             text-align: left;
             background-color: #e2e8f0;
@@ -87,7 +87,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('contributor.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             Profile
                         </li>
@@ -145,6 +145,26 @@
                             </div>
                             <div class="col-sm-9 text-secondary">
                                 {{ $user->username }}
+                            </div>
+                        </div>
+                        <hr>
+                        <!-- College -->
+                        <div class="row">
+                            <div class="col-sm-3 icon-text">
+                                <i class="fas fa-university"></i> College
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                {{ $user->college->name ?? 'Not Provided' }}
+                            </div>
+                        </div>
+                        <hr>
+                        <!-- Campus -->
+                        <div class="row">
+                            <div class="col-sm-3 icon-text">
+                                <i class="fas fa-building"></i>CSU Campus
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                {{ $user->campus->name ?? 'Not Provided' }}
                             </div>
                         </div>
                         <hr>
