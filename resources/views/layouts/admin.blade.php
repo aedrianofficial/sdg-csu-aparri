@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css"
         integrity="sha256-Qsx5lrStHZyR9REqhUF8iQt73X06c8LGIUPzpOhwRrI=" crossorigin="anonymous">
     <!--end::Third Party Plugin(Bootstrap Icons)--><!--begin::Required Plugin(AdminLTE)-->
-    <link rel="icon" href="{{ asset('assets/website/images/favicon.ico') }}" type="image/x-icon">
+    <link rel="icon" type="image/png" href="{{ asset('assets/website/images/csulogo.png') }}">
     {{-- sweet alert --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -330,7 +330,7 @@
             <!--begin::Sidebar Brand-->
             <div class="sidebar-brand">
                 <a href="{{ route('website.home2') }}" class="brand-link">
-                    <img src="{{ asset('assets/website/images/csu-sdg-logo.png') }}" alt="Logo"
+                    <img src="{{ asset('assets/website/images/csulogo.png') }}" alt="Logo"
                         class="brand-image opacity-75">
                     <span class="brand-text fw-light">SDG CSU-APARRI</span>
                 </a>

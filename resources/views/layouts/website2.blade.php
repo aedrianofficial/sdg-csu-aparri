@@ -29,6 +29,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <link rel="stylesheet" href="{{ asset('assets/auth/css/Control.Geocoder.css') }}" />
     @yield('styles')
+    <link rel="icon" type="image/png" href="{{ asset('assets/website/images/csulogo.png') }}" />
 </head>
 
 <body class="hold-transition layout-top-nav">
@@ -37,7 +38,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
         <nav class="main-header navbar navbar-expand-md navbar-light navbar-white">
             <div class="container">
                 <a href="{{ route('website.home2') }}" class="navbar-brand">
-                    <img src="{{ asset('assets/website/images/csu-sdg-logo.png') }}" alt="Logo" class="brand-image"
+                    <img src="{{ asset('assets/website/images/csulogo.png') }}" alt="Logo" class="brand-image"
                         style="opacity: .8">
                     <span class="brand-text font-weight-light d-none d-md-inline">SDG CSU-APARRI</span>
                     <!-- Hidden on mobile -->
@@ -76,26 +77,40 @@ scratch. This page gets rid of all links and provides the needed markup only.
                     @if (Auth::check())
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button"
-                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            @if (!(Auth::user()->userImage && file_exists(public_path('images/users/' . basename(Auth::user()->userImage->image_path)))))
-                                <img src="{{ asset('assets/website/images/user-png.png') }}" alt="Default User Image" 
-                                    class="rounded-circle" width="30" height="30">
-                            @else
-                                <img src="{{ Auth::user()->userImage->image_path }}" alt="User Image" 
-                                    class="rounded-circle" width="30" height="30">
-                            @endif
-                            <span class="ms-2">
-                                {{ Auth::user()->first_name }} {{ Auth::user()->last_name }}
-                            </span>
+                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                @if (!(Auth::user()->userImage && file_exists(public_path('images/users/' . basename(Auth::user()->userImage->image_path)))))
+                                    <img src="{{ asset('assets/website/images/user-png.png') }}" alt="Default User Image" 
+                                         class="rounded-circle" width="30" height="30">
+                                @else
+                                    <img src="{{ Auth::user()->userImage->image_path }}" alt="User Image" 
+                                         class="rounded-circle" width="30" height="30">
+                                @endif
+                                <span class="ms-2">
+                                    {{ Auth::user()->first_name }} {{ Auth::user()->last_name }}
+                                </span>
                             </a>
                         
                             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
                                 <a class="dropdown-item"
-                                    href="{{ route('user.profile.show', ['id' => Auth::user()->id]) }}">Profile</a>
+                                   href="{{ route('user.profile.show', ['id' => Auth::user()->id]) }}">Profile</a>
+                                
+                                {{-- Role-based dashboard redirections --}}
+                                @if(Auth::user()->role == 'admin')
+                                    <a class="dropdown-item" href="{{ route('auth.dashboard') }}">Dashboard</a>
+                                @elseif(Auth::user()->role == 'contributor')
+                                    <a class="dropdown-item" href="{{ route('contributor.dashboard') }}">Dashboard</a>
+                                @elseif(Auth::user()->role == 'reviewer')
+                                    <a class="dropdown-item" href="{{ route('reviewer.dashboard') }}">Dashboard</a>
+                                @elseif(Auth::user()->role == 'approver')
+                                    <a class="dropdown-item" href="{{ route('approver.dashboard') }}">Dashboard</a>
+                                @elseif(Auth::user()->role == 'publisher')
+                                    <a class="dropdown-item" href="{{ route('publisher.dashboard') }}">Dashboard</a>
+                                @endif
+                                
                                 <a class="dropdown-item" href="{{ route('logout') }}"
-                                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
+                                   onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
                                 <form id="logout-form" action="{{ route('logout') }}" method="POST"
-                                    style="display: none;">
+                                      style="display: none;">
                                     @csrf
                                 </form>
                             </div>
@@ -104,8 +119,11 @@ scratch. This page gets rid of all links and provides the needed markup only.
                         <li class="nav-item">
                             <a href="{{ route('login') }}" class="nav-link">Login</a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('register') }}" class="nav-link">Register</a>
+                        </li>
                     @endif
-
+                
                     <!-- Theme toggle dropdown -->
                     {{-- <li class="nav-item dropdown">
                         <button

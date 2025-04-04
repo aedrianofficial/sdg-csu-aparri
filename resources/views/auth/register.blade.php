@@ -7,8 +7,10 @@
                 <div class="col-sm-8 mx-auto">
                     <div class="card">
                         <div class="card-header text-center">
-                            <img src="{{ asset('assets/website/images/csu-sdg-logo.png') }}" alt="Logo"
-                                class="img-fluid mb-3" style="max-width: 200px;">
+                            <a href="{{ route('website.home2') }}">
+                                <img src="{{ asset('assets/website/images/csulogo.png') }}" alt="Logo"
+                                    class="img-fluid mb-3" style="max-width: 200px;">
+                            </a>
                             <h3>Register</h3>
                             <p class="text-muted">Join us today! Fill in the details below to create your account.</p>
                         </div>
@@ -296,7 +298,8 @@
 
             document.getElementById("show-confirm-password").addEventListener("change", function() {
                 const confirmPasswordField = document.getElementById("password_confirmation");
-                confirmPasswordField.type = this.checked ? "text" : "password"; // Toggle confirm password visibility
+                confirmPasswordField.type = this.checked ? "text" :
+                "password"; // Toggle confirm password visibility
             });
         });
     </script>

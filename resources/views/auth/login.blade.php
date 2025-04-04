@@ -7,8 +7,10 @@
                 <div class="col-sm-4">
                     <div class="card">
                         <div class="card-header text-center">
-                            <img src="{{ asset('assets/website/images/csu-sdg-logo.png') }}" alt="Logo"
-                                class="img-fluid mb-3" style="max-width: 200px;">
+                            <a href="{{ route('website.home2') }}">
+                                <img src="{{ asset('assets/website/images/csulogo.png') }}" alt="Logo"
+                                    class="img-fluid mb-3" style="max-width: 200px;">
+                            </a>
                             <h3>Login</h3>
                             <p class="text-muted">Welcome back! Please enter your credentials to access your account.</p>
                         </div>

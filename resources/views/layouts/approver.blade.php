@@ -22,7 +22,7 @@
         integrity="sha256-Qsx5lrStHZyR9REqhUF8iQt73X06c8LGIUPzpOhwRrI=" crossorigin="anonymous">
     <!--end::Third Party Plugin(Bootstrap Icons)--><!--begin::Required Plugin(AdminLTE)-->
 
-    <link rel="icon" href="{{ asset('assets/website/images/favicon.ico') }}" type="image/x-icon">
+    <link rel="icon" type="image/png" href="{{ asset('assets/website/images/csulogo.png') }}">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css"
         integrity="sha256-4MX+61mt9NVvvuPjUWdUdyfZfxSB1/Rf9WtqRHgG5S0=" crossorigin="anonymous"><!-- jsvectormap -->
@@ -309,7 +309,7 @@
             <!--begin::Sidebar Brand-->
             <div class="sidebar-brand">
                 <a href="{{ route('website.home2') }}" class="brand-link">
-                    <img src="{{ asset('assets/website/images/csu-sdg-logo.png') }}" alt="Logo"
+                    <img src="{{ asset('assets/website/images/csulogo.png.png') }}" alt="Logo"
                         class="brand-image opacity-75">
                     <span class="brand-text fw-light">SDG CSU-APARRI</span>
                 </a>
