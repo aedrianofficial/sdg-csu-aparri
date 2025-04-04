@@ -519,10 +519,9 @@ public function my_reports(Request $request)
             $actionMap = [
                 1 => 'requested change',
                 2 => 'rejected',
-                3 => 'published',
+                3 => 'approved',
                 4 => 'submitted for review',
                 5 => 'reviewed',
-                6 => 'approved'
             ];
     
             // Determine the action based on review_status_id
@@ -616,7 +615,7 @@ public function my_reports(Request $request)
                         'related_type' => Report::class,
                         'related_id' => $report->id,
                         'data' => json_encode([
-                            'message' => "Your report '$reportTitle' has been published.",
+                            'message' => "Your report '$reportTitle' has been approved and is now published.",
                             'publisher' => $user->first_name . ' ' . $user->last_name,
                             'role' => ['admin', 'publisher'],
                             'type' => 'report',
@@ -733,67 +732,6 @@ public function my_reports(Request $request)
                         ]);
                     break;
                     
-    
-                case 6: // Approved
-                        // Notify the original contributor
-                        Notification::create([
-                            'user_id' => $originalContributor,
-                            'notifiable_type' => User::class,
-                            'notifiable_id' => $originalContributor,
-                            'type' => 'report',
-                            'related_type' => Report::class,
-                            'related_id' => $report->id,
-                            'data' => json_encode([
-                                'message' => "Your report '$reportTitle' has been approved.",
-                                'reviewer' => $user->first_name . ' ' . $user->last_name,
-                                'role' => ['admin', 'reviewer'],
-                                'type' => 'report',
-                                'status' => 'approved'
-                            ]),
-                            'created_at' => now(),
-                        ]);
-                    
-                        // Notify all publishers
-                        $statusPublisher = 'submitted for publishing';
-                    
-                        // Retrieve all publishers
-                        $publishers = User::where('role', 'publisher')->get();
-                    
-                        // Create notifications for each publisher
-                        foreach ($publishers as $publisher) {
-                            Notification::create([
-                                'user_id' => $publisher->id,
-                                'notifiable_type' => User::class,
-                                'notifiable_id' => $publisher->id,
-                                'type' => 'report',
-                                'related_type' => Report::class,
-                                'related_id' => $report->id,
-                                'data' => json_encode([
-                                    'message' => "The report titled '" . addslashes($reportTitle) . "' has been submitted for publishing.",
-                                    'reviewer' => $user->first_name . ' ' . $user->last_name,
-                                    'role' => 'reviewer',
-                                    'type' => 'report',
-                                    'status' => $statusPublisher,
-                                ]),
-                                'created_at' => now(),
-                            ]);
-                        }
-                        ActivityLog::create([
-                            'log_name' => 'Report Approved',
-                            'description' => 'Approved the report titled "' . addslashes($report->title) . '"',
-                            'subject_type' => Report::class,
-                            'subject_id' => $report->id,
-                            'event' => 'approved',
-                            'causer_type' => User::class,
-                            'causer_id' => auth()->user()->id,
-                            'properties' => json_encode([
-                                'report_title' => $report->title,
-                                'review_status' => 'approved',
-                                'role' => 'approver',
-                            ]),
-                            'created_at' => now(),
-                        ]);
-                    break;
                     
                 default:
                     // Handle other cases if needed

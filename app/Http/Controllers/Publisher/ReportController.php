@@ -141,7 +141,7 @@ class ReportController extends Controller
             'related_type' => Report::class,
             'related_id' => $report->id,
             'data' => json_encode([
-                'message' => "Your  $type '" . addslashes($reportTitle) . "' has been published.", // Escape the project title
+                'message' => "Your  $type '" . addslashes($reportTitle) . "' has been approved and is now published.", // Escape the project title
                 'publisher' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
                 'role' => 'publisher',  // Specify the role
                 'type' => $type, // Include the type

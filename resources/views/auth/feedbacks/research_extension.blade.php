@@ -155,12 +155,12 @@
                                     <label for="sdg_sub_categories" class="form-label">SDG Targets:</label>
                                     <textarea name="sdg_sub_categories" id="sdg_sub_categories" cols="30" rows="5" class="form-control" readonly>
         @if ($research->sdgSubCategories->isEmpty())
-            No SDG Targets available.
+No SDG Targets available.
 @else
 @foreach ($research->sdgSubCategories as $subCategory)
 {{ $subCategory->sub_category_name }} {{ $subCategory->sub_category_description }}
 @endforeach
-        @endif
+@endif
     </textarea>
                                     <p>
                                         Source: <a
@@ -170,16 +170,6 @@
                                 </div>
 
 
-                                <div class="mb-3">
-                                    <label for="description" class="form-label">Description:</label>
-                                    @php
-                                        $description = $research->description;
-                                        $rowCount =
-                                            substr_count($description, "\n") + floor(strlen($description) / 100); // Adjust the row count based on length
-                                        $rowCount = $rowCount < 3 ? 3 : $rowCount; // Ensure a minimum of 3 rows for short descriptions
-                                    @endphp
-                                    <textarea name="description" id="description" cols="30" rows="{{ $rowCount }}" class="form-control" readonly>{{ $description }}</textarea>
-                                </div>
 
                                 <div class="mb-3">
                                     <label for="research_status" class="form-label">Research Status:</label>
@@ -336,15 +326,13 @@
                             </div>
 
                             <!-- Description -->
-                            <div class="form-group">
-                                <label for="description">Description:</label>
-                                @php
-                                    $description = $research->description;
-                                    $rowCount = substr_count($description, "\n") + floor(strlen($description) / 100);
-                                    $rowCount = $rowCount < 3 ? 3 : $rowCount;
-                                @endphp
-                                <textarea name="description" id="description" cols="30" rows="{{ $rowCount }}" class="form-control"
-                                    readonly>{{ $description }}</textarea>
+                       
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description:</label>
+                                <div class="form-control" style="min-height: 100px; overflow-y: auto;"
+                                    contenteditable="false">
+                                    {!! $research->description !!}
+                                </div>
                             </div>
 
                             <!-- Research Status -->

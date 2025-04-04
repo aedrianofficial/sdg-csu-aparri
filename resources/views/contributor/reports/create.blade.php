@@ -69,9 +69,14 @@
                                     <input type="file" name="image" class="form-control" required>
                                 </div>
 
+                                <!-- Description -->
                                 <div class="mb-3">
-                                    <label for="description" class="form-label">Description</label>
-                                    <textarea name="description" class="form-control" id="description" cols="30" rows="10" required>{{ old('description') }}</textarea>
+                                    <label for="description-container" class="form-label">Description</label>
+                                    <!-- Create a div where Quill will be initialized -->
+                                    <div id="description-editor" style="height: 300px;"></div>
+                                    <!-- Hidden input to store the content for form submission -->
+                                    <input type="hidden" name="description" id="description"
+                                        value="{{ old('description') }}">
                                 </div>
 
                                 <!-- "Submit for Review" Button -->
@@ -116,6 +121,81 @@
 
 
 @section('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Quill editor
+            var quill = new Quill('#description-editor', {
+                theme: 'snow',
+                placeholder: 'Write your description here...',
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline', 'strike'],
+                        ['blockquote', 'code-block'],
+                        [{
+                            'header': 1
+                        }, {
+                            'header': 2
+                        }],
+                        [{
+                            'list': 'ordered'
+                        }, {
+                            'list': 'bullet'
+                        }],
+                        [{
+                            'script': 'sub'
+                        }, {
+                            'script': 'super'
+                        }],
+                        [{
+                            'indent': '-1'
+                        }, {
+                            'indent': '+1'
+                        }],
+                        [{
+                            'direction': 'rtl'
+                        }],
+                        [{
+                            'size': ['small', false, 'large', 'huge']
+                        }],
+                        [{
+                            'header': [1, 2, 3, 4, 5, 6, false]
+                        }],
+                        [{
+                            'color': []
+                        }, {
+                            'background': []
+                        }],
+                        [{
+                            'font': []
+                        }],
+                        [{
+                            'align': []
+                        }],
+                        ['clean'],
+                        ['link', 'image', 'video']
+                    ]
+                }
+            });
+
+            // Set initial content if it exists
+            const oldValue = document.getElementById('description').value;
+            if (oldValue) {
+                quill.root.innerHTML = oldValue;
+            }
+
+            // Update hidden input when text changes
+            quill.on('text-change', function() {
+                var htmlContent = quill.root.innerHTML;
+                document.getElementById('description').value = htmlContent;
+            });
+
+            // Ensure the form captures the Quill content when submitted
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function() {
+                document.getElementById('description').value = quill.root.innerHTML;
+            });
+        });
+    </script>
 
     <script>
         $(document).ready(function() {
@@ -156,7 +236,7 @@
             });
         });
     </script>
-     <script>
+    <script>
         let isDirty = false;
 
         // Track changes in input fields
@@ -172,12 +252,13 @@
                 const confirmationMessage = 'You have unsaved changes. Are you sure you want to leave?';
                 if (confirm(confirmationMessage)) {
                     isDirty = false; // Reset the dirty flag
-                    window.location.href = '{{ route('contributor.reports.index') }}'; // Redirect to home or desired route
+                    window.location.href =
+                    '{{ route('contributor.reports.index') }}'; // Redirect to home or desired route
                 }
             } else {
-                window.location.href = '{{ route('contributor.reports.index') }}'; // Redirect to home or desired route
+                window.location.href =
+                '{{ route('contributor.reports.index') }}'; // Redirect to home or desired route
             }
         });
-
     </script>
 @endsection

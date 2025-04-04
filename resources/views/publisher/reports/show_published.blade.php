@@ -44,16 +44,13 @@
                                     <input type="text" name="related_type" id="related_type" class="form-control"
                                         value="{{ $report->related_type }}" readonly>
                                 </div>
-
+                                <!-- Description -->
                                 <div class="mb-3">
                                     <label for="description" class="form-label">Description:</label>
-                                    @php
-                                        $description = $report->description;
-                                        $rowCount =
-                                            substr_count($description, "\n") + floor(strlen($description) / 100);
-                                        $rowCount = $rowCount < 3 ? 3 : $rowCount;
-                                    @endphp
-                                    <textarea name="description" id="description" cols="30" rows="{{ $rowCount }}" class="form-control" readonly>{{ $description }}</textarea>
+                                    <div class="form-control" style="min-height: 100px; overflow-y: auto;"
+                                        contenteditable="false">
+                                        {!! $report->description !!}
+                                    </div>
                                 </div>
 
                                 <div class="mb-3">

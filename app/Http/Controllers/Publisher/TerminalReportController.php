@@ -250,7 +250,7 @@ class TerminalReportController extends Controller
             'related_type' => TerminalReport::class,
             'related_id' => $terminalReport->id,
             'data' => json_encode([
-                'message' => "Your $type '" . addslashes($reportTitle) . "' has been published.",
+                'message' => "Your $type '" . addslashes($reportTitle) . "' has been approved and is now published.",
                 'publisher' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
                 'role' => 'publisher',
                 'type' => $type,

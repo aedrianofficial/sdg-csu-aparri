@@ -127,11 +127,14 @@
                                         value="{{ $project->title }}" readonly>
                                 </div>
 
+                                <!-- Description -->
                                 <div class="mb-3">
                                     <label for="description" class="form-label">Description:</label>
-                                    <textarea name="description" id="description" cols="30" rows="{{ $rowCount }}" class="form-control" readonly>{{ $project->description }}</textarea>
+                                    <div class="form-control" style="min-height: 100px; overflow-y: auto;"
+                                        contenteditable="false">
+                                        {!! $project->description !!}
+                                    </div>
                                 </div>
-
                                 <div class="mb-3">
                                     <label for="project_status" class="form-label">Project Status:</label>
                                     <input type="text" name="project_status" id="project_status" class="form-control"
@@ -159,8 +162,8 @@
 @endforeach
 </textarea>
                                 </div>
-                                 <!-- SDG Sub Categories -->
-                                 <div class="mb-3">
+                                <!-- SDG Sub Categories -->
+                                <div class="mb-3">
                                     <label for="sdg_sub_categories" class="form-label">SDG Targets:</label>
                                     <textarea name="sdg_sub_categories" id="sdg_sub_categories" cols="30" rows="5" class="form-control" readonly>
         @if ($project->sdgSubCategories->isEmpty())

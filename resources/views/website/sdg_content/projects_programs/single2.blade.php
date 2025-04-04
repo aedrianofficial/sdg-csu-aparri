@@ -59,7 +59,7 @@
                             <!-- Description -->
                             <div class="project-detail-item mb-2">
                                 <i class="fas fa-align-left"></i> <strong>Description:</strong>
-                                <span>{{ $project->description }}</span>
+                                <span>{!! $project->description !!}</span>
                             </div>
                         </div>
 

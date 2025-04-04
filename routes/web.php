@@ -662,10 +662,11 @@ Route::middleware(['auth', 'role:publisher', NoCache::class])->group(function(){
 Route::middleware(NoCache::class)->group(function(){
     //website dashboard
     Route::get('/',[WebsiteController::class, 'home2',NoCache::class])->name('website.home2');
+    Route::get('/sdg/{id}', [WebsiteController::class, 'showSdg'])->name('website.sdg.show');
 
     //Yearly Overview of SDG
     Route::get('/yearly-overview', [WebsiteController::class, 'yearlyOverview'])->name('website.yearly_overview');
-    Route::get('sdg/{sdg}', [WebsiteController::class, 'display_sdg_content'])->name('website.display_sdg_content');
+    Route::get('sdg/yearly-content/{sdg}', [WebsiteController::class, 'display_sdg_content'])->name('website.display_sdg_content');
 
     //user profile
     Route::get('user/profile/show/{id}', [\App\Http\Controllers\User\ProfileController::class, 'show'])->name('user.profile.show');

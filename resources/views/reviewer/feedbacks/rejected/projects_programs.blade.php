@@ -66,7 +66,8 @@
                                                 @endphp
                                                 <textarea name="feedback" id="feedback" class="form-control" rows="{{ $rowCount }}" readonly>{{ $feedbackText }}</textarea>
                                             </div>
-                                            <strong>{{ $feedback->user->first_name }} {{ $feedback->user->last_name }}</strong>
+                                            <strong>{{ $feedback->user->first_name }}
+                                                {{ $feedback->user->last_name }}</strong>
                                             <small class="text-muted">on
                                                 {{ $feedback->created_at->format('M d, Y H:i') }}</small>
                                             <hr>
@@ -95,9 +96,13 @@
                                         value="{{ $project->title }}" readonly>
                                 </div>
 
+                                <!-- Description -->
                                 <div class="mb-3">
                                     <label for="description" class="form-label">Description:</label>
-                                    <textarea name="description" id="description" class="form-control" rows="{{ $rowCount }}" readonly>{{ $project->description }}</textarea>
+                                    <div class="form-control" style="min-height: 100px; overflow-y: auto;"
+                                        contenteditable="false">
+                                        {!! $project->description !!}
+                                    </div>
                                 </div>
 
                                 <div class="mb-3">
@@ -127,10 +132,10 @@
 @endforeach
 </textarea>
                                 </div>
-                               <!-- SDG Sub Categories -->
-                               <div class="mb-3">
-                                <label for="sdg_sub_categories" class="form-label">SDG Targets:</label>
-                                <textarea name="sdg_sub_categories" id="sdg_sub_categories" cols="30" rows="5" class="form-control" readonly>
+                                <!-- SDG Sub Categories -->
+                                <div class="mb-3">
+                                    <label for="sdg_sub_categories" class="form-label">SDG Targets:</label>
+                                    <textarea name="sdg_sub_categories" id="sdg_sub_categories" cols="30" rows="5" class="form-control" readonly>
     @if ($project->sdgSubCategories->isEmpty())
 No SDG Targets available.
 @else
@@ -139,12 +144,12 @@ No SDG Targets available.
 @endforeach
 @endif
 </textarea>
-                                <p>
-                                    Source: <a
-                                        href="https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf"
-                                        target="_blank">https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf</a>
-                                </p>
-                            </div>
+                                    <p>
+                                        Source: <a
+                                            href="https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf"
+                                            target="_blank">https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf</a>
+                                    </p>
+                                </div>
                                 <div class="mb-3">
                                     <label for="">Image: </label>
                                     <div>

@@ -42,8 +42,8 @@ class ResearchController extends Controller
     // Start querying the Report model
         $query = Research::query()
         ->whereIn('id', $roleActions) // Only include reports related to the role actions
-        ->whereIn('review_status_id', [3,6]); // 'Needs Changes' status
-       
+        ->where('review_status_id', 3) // 'Needs Changes' status
+        ->where('is_publish', 1);
         // Filter by title if present
         if ($request->filled('title')) {
             $query->where('title', 'LIKE', '%' . $request->title . '%');
@@ -271,7 +271,8 @@ class ResearchController extends Controller
     
         // Update the review status to 'Forwarded to Approver'
         $research->update([
-            'review_status_id' => 6,
+            'review_status_id' => 3,
+            'is_publish' => 1
         ]);
     
         // Log the action into the role_actions table using polymorphic relationship fields
@@ -298,7 +299,7 @@ class ResearchController extends Controller
             'related_type' => Research::class,
             'related_id' => $research->id,
             'data' => json_encode([
-                'message' => "Your $type '" . addslashes($researchTitle) . "' has been approved.", // Escape the research title
+                'message' => "Your $type '" . addslashes($researchTitle) . "' has been approved and is now published.", // Escape the research title
                 'approver' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
                 'role' => 'approver',  // Specify the role
                 'type' => $type, // Include the type
@@ -307,31 +308,7 @@ class ResearchController extends Controller
             'created_at' => now(),
         ]);
     
-        // Notify all publishers
-        $statusPublisher = 'submitted for publishing';
-    
-        // Retrieve all publishers
-        $publishers = User::where('role', 'publisher')->get();
-    
-        // Create notifications for each publisher
-        foreach ($publishers as $publisher) {
-            Notification::create([
-                'user_id' => $publisher->id,
-                'notifiable_type' => User::class,
-                'notifiable_id' => $publisher->id,
-                'type' => $type,
-                'related_type' => Research::class,
-                'related_id' => $research->id,
-                'data' => json_encode([
-                    'message' => "The research titled '" . addslashes($researchTitle) . "' has been submitted for publishing.",
-                    'approver' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
-                    'role' => 'approver',
-                    'type' => $type,
-                    'status' => $statusPublisher,
-                ]),
-                'created_at' => now(),
-            ]);
-        }
+      
         // Log the activity for approving the research
         ActivityLog::create([
             'log_name' => 'Research Approved',

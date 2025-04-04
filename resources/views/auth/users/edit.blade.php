@@ -59,8 +59,7 @@
                                 <div class="mb-3">
                                     <label for="role" class="form-label">Role (Click to select)</label>
                                     <select class="form-select" id="role" name="role" required>
-                                        <option value="user" {{ old('role', $user->role) == 'user' ? 'selected' : '' }}>
-                                            User</option>
+                                       
                                         <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>
                                             Admin</option>
                                         <option value="contributor"
@@ -70,9 +69,7 @@
                                             {{ old('role', $user->role) == 'reviewer' ? 'selected' : '' }}>Reviewer</option>
                                         <option value="approver"
                                             {{ old('role', $user->role) == 'approver' ? 'selected' : '' }}>Approver</option>
-                                        <option value="publisher"
-                                            {{ old('role', $user->role) == 'publisher' ? 'selected' : '' }}>Publisher
-                                        </option>
+                                       
                                     </select>
                                 </div>
 

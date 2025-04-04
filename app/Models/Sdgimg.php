@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class Sdgimg extends Model
 {
     use HasFactory;
-    public $sdgUploads ='/images/sdg/';
+    public $sdgUploads ='/images/sdg/landing/';
 
     protected $fillable=['image'];
 

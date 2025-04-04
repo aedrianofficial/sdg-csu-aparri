@@ -107,8 +107,8 @@
                                         readonly>
                                 </div>
 
-                                   <!-- SDGs -->
-                                   <div class="mb-3">
+                                <!-- SDGs -->
+                                <div class="mb-3">
                                     <label for="sdg" class="form-label">SDGs:</label>
                                     <textarea name="sdg" id="sdg" cols="30" rows="3" class="form-control" readonly>
 @foreach ($research->sdg as $sdg)
@@ -116,10 +116,10 @@
 @endforeach
 </textarea>
                                 </div>
-                               <!-- SDG Sub Categories -->
-                               <div class="mb-3">
-                                <label for="sdg_sub_categories" class="form-label">SDG Targets:</label>
-                                <textarea name="sdg_sub_categories" id="sdg_sub_categories" cols="30" rows="5" class="form-control" readonly>
+                                <!-- SDG Sub Categories -->
+                                <div class="mb-3">
+                                    <label for="sdg_sub_categories" class="form-label">SDG Targets:</label>
+                                    <textarea name="sdg_sub_categories" id="sdg_sub_categories" cols="30" rows="5" class="form-control" readonly>
     @if ($research->sdgSubCategories->isEmpty())
 No SDG Targets available.
 @else
@@ -128,31 +128,29 @@ No SDG Targets available.
 @endforeach
 @endif
 </textarea>
-                                <p>
-                                    Source: <a
-                                        href="https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf"
-                                        target="_blank">https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf</a>
-                                </p>
-                            </div>
-             
+                                    <p>
+                                        Source: <a
+                                            href="https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf"
+                                            target="_blank">https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf</a>
+                                    </p>
+                                </div>
 
+
+                                <!-- Description -->
                                 <!-- Description -->
                                 <div class="mb-3">
                                     <label for="description" class="form-label">Description:</label>
-                                    @php
-                                        $description = $research->description;
-                                        $rowCount =
-                                            substr_count($description, "\n") + floor(strlen($description) / 100);
-                                        $rowCount = $rowCount < 3 ? 3 : $rowCount;
-                                    @endphp
-                                    <textarea name="description" id="description" cols="30" rows="{{ $rowCount }}" class="form-control" readonly>{{ $description }}</textarea>
+                                    <div class="form-control" style="min-height: 100px; overflow-y: auto;"
+                                        contenteditable="false">
+                                        {!! $research->description !!}
+                                    </div>
                                 </div>
 
                                 <!-- Research Status -->
                                 <div class="mb-3">
                                     <label for="research_status" class="form-label">Research Status:</label>
                                     <input type="text" name="research_status" id="research_status" class="form-control"
-                                        value="{{  $research->status->status ?? 'N/A' }}" readonly>
+                                        value="{{ $research->status->status ?? 'N/A' }}" readonly>
                                 </div>
 
                                 <!-- Publish Status -->

@@ -42,7 +42,8 @@
                                                 @endphp
                                                 <textarea name="feedback" id="feedback" class="form-control" rows="{{ $rowCount }}" readonly>{{ $feedbackText }}</textarea>
                                             </div>
-                                            <strong>{{ $feedback->user->first_name }} {{ $feedback->user->last_name }}</strong>
+                                            <strong>{{ $feedback->user->first_name }}
+                                                {{ $feedback->user->last_name }}</strong>
                                             <small class="text-muted">on
                                                 {{ $feedback->created_at->format('M d, Y H:i') }}</small>
                                             <hr>
@@ -78,15 +79,13 @@
                                         value="{{ $report->related_type }}" readonly>
                                 </div>
 
+                                <!-- Description -->
                                 <div class="mb-3">
                                     <label for="description" class="form-label">Description:</label>
-                                    @php
-                                        $description = $report->description;
-                                        $rowCount =
-                                            substr_count($description, "\n") + floor(strlen($description) / 100); // Adjust the row count based on length
-                                        $rowCount = $rowCount < 3 ? 3 : $rowCount; // Ensure a minimum of 3 rows for short descriptions
-                                    @endphp
-                                    <textarea name="description" id="description" class="form-control" rows="{{ $rowCount }}" readonly>{{ $description }}</textarea>
+                                    <div class="form-control" style="min-height: 100px; overflow-y: auto;"
+                                        contenteditable="false">
+                                        {!! $report->description !!}
+                                    </div>
                                 </div>
 
                                 <div class="mb-3">

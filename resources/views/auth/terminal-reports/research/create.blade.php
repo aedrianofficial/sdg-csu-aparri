@@ -309,7 +309,101 @@
 @endsection
 
 @section('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get the budget input fields
+            const totalApprovedBudgetField = document.getElementById('total_approved_budget');
+            const actualReleasedBudgetField = document.getElementById('actual_released_budget');
+            const actualExpenditureField = document.getElementById('actual_expenditure');
 
+            // Add input event listeners for real-time validation
+            totalApprovedBudgetField.addEventListener('input', validateBudgets);
+            actualReleasedBudgetField.addEventListener('input', validateBudgets);
+            actualExpenditureField.addEventListener('input', validateBudgets);
+
+            // Function to validate all budget relationships in real-time
+            function validateBudgets() {
+                // Clear all existing popovers first
+                clearAllPopovers();
+
+                // Get current values
+                const totalApproved = parseFloat(totalApprovedBudgetField.value) || 0;
+                const actualReleased = parseFloat(actualReleasedBudgetField.value) || 0;
+                const actualExpenditure = parseFloat(actualExpenditureField.value) || 0;
+
+                // Validate total approved budget
+                if (totalApprovedBudgetField.value !== '' && (isNaN(totalApproved) || totalApproved <= 0)) {
+                    showPopover(totalApprovedBudgetField, 'Please enter a valid positive number');
+                }
+
+                // Validate actual released budget
+                if (actualReleasedBudgetField.value !== '') {
+                    if (isNaN(actualReleased) || actualReleased < 0) {
+                        showPopover(actualReleasedBudgetField, 'Please enter a valid number (0 or higher)');
+                    } else if (totalApproved > 0 && actualReleased > totalApproved) {
+                        showPopover(actualReleasedBudgetField, 'Cannot exceed Total Approved Budget');
+                    }
+                }
+
+                // Validate actual expenditure
+                if (actualExpenditureField.value !== '') {
+                    if (isNaN(actualExpenditure) || actualExpenditure < 0) {
+                        showPopover(actualExpenditureField, 'Please enter a valid number (0 or higher)');
+                    } else if (actualReleased > 0 && actualExpenditure > actualReleased) {
+                        showPopover(actualExpenditureField, 'Cannot exceed Actual Released Budget');
+                    }
+                }
+            }
+
+            // Function to show popover error message
+            function showPopover(element, message) {
+                // Add invalid class for Bootstrap validation styling
+                element.classList.add('is-invalid');
+
+                // Create popover container if it doesn't exist
+                let popover = element.nextElementSibling;
+                if (!popover || !popover.classList.contains('popover-error')) {
+                    popover = document.createElement('div');
+                    popover.className = 'popover-error position-absolute';
+                    popover.style.cssText =
+                        'background-color: #f8d7da; color: #842029; padding: 5px 10px; border-radius: 4px; font-size: 14px; z-index: 1000; margin-top: 2px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);';
+                    element.parentNode.style.position = 'relative';
+                    element.parentNode.appendChild(popover);
+                }
+
+                // Set popover content and show it
+                popover.textContent = message;
+                popover.style.display = 'block';
+            }
+
+            // Function to clear all popovers
+            function clearAllPopovers() {
+                const fields = [totalApprovedBudgetField, actualReleasedBudgetField, actualExpenditureField];
+
+                fields.forEach(field => {
+                    field.classList.remove('is-invalid');
+                    const popover = field.parentNode.querySelector('.popover-error');
+                    if (popover) {
+                        popover.style.display = 'none';
+                    }
+                });
+            }
+
+            // Also validate on form submission
+            const form = totalApprovedBudgetField.closest('form');
+            if (form) {
+                form.addEventListener('submit', function(event) {
+                    validateBudgets();
+
+                    // Check if any field has errors
+                    const hasErrors = document.querySelectorAll('.is-invalid').length > 0;
+                    if (hasErrors) {
+                        event.preventDefault();
+                    }
+                });
+            }
+        });
+    </script>
     <script>
         $(document).ready(function() {
             $('#related_id').select2();
@@ -325,7 +419,7 @@
 
             document.getElementById('confirmPublish').addEventListener('click', function() {
                 document.getElementById('submit_type').value =
-                'publish'; // Set the submit type to 'publish'
+                    'publish'; // Set the submit type to 'publish'
                 document.getElementById('terminal-report-form').submit(); // Submit the form
             });
         });

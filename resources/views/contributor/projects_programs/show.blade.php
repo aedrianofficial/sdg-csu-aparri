@@ -128,15 +128,11 @@
                                 <!-- Description -->
                                 <div class="mb-3">
                                     <label for="description" class="form-label">Description:</label>
-                                    @php
-                                        $description = $project->description;
-                                        $rowCount =
-                                            substr_count($description, "\n") + floor(strlen($description) / 100); // Adjust the row count based on length
-                                        $rowCount = $rowCount < 3 ? 3 : $rowCount; // Ensure a minimum of 3 rows for short descriptions
-                                    @endphp
-                                    <textarea name="description" id="description" cols="30" rows="{{ $rowCount }}" class="form-control" readonly>{{ $description }}</textarea>
+                                    <div class="form-control" style="min-height: 100px; overflow-y: auto;"
+                                        contenteditable="false">
+                                        {!! $project->description !!}
+                                    </div>
                                 </div>
-
                                 <!-- Project Status -->
                                 <div class="mb-3">
                                     <label for="project_status" class="form-label">Project Status:</label>
@@ -159,8 +155,8 @@
                                         value="{{ $project->is_publish == 1 ? 'Published' : 'Draft' }}" readonly>
                                 </div>
 
-                                 <!-- SDGs -->
-                                 <div class="mb-3">
+                                <!-- SDGs -->
+                                <div class="mb-3">
                                     <label for="sdg" class="form-label">SDGs:</label>
                                     <textarea name="sdg" id="sdg" cols="30" rows="3" class="form-control" readonly>
 @foreach ($project->sdg as $sdg)
@@ -217,7 +213,8 @@ No SDG Targets available.
                                 <div class="mb-3">
                                     <label for="created_by" class="form-label">Created by:</label>
                                     <input type="text" name="created_by" id="created_by" class="form-control"
-                                        value="{{ $project->user->first_name }} {{ $project->user->last_name }}" readonly>
+                                        value="{{ $project->user->first_name }} {{ $project->user->last_name }}"
+                                        readonly>
                                 </div>
 
                                 <!-- Created At -->

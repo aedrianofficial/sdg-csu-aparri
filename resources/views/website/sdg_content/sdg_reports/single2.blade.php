@@ -53,7 +53,7 @@
                             <!-- Description -->
                             <div class="report-detail-item mb-2">
                                 <i class="fas fa-align-left"></i> <strong>Description:</strong>
-                                <span>{{ $report->description }}</span>
+                                <span>{!! $report->description !!}</span>
                             </div>
 
 

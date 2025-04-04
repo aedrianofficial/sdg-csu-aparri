@@ -189,7 +189,7 @@
                                                             <a href="{{ route('research.need_changes', $research->id) }}"
                                                                 class="btn btn-sm btn-success">View</a>
                                                         @elseif ($research->reviewStatus && $research->reviewStatus->status === 'Rejected')
-                                                            <a href="{{ roDute('research.rejected', $research->id) }}"
+                                                            <a href="{{ route('research.rejected', $research->id) }}"
                                                                 class="btn btn-sm btn-success">View</a>
                                                         @else
                                                             <a href="{{ route('research.show', $research->id) }}"

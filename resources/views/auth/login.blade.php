@@ -55,8 +55,8 @@
 
                                 <!-- Forgot Password and Login Button -->
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span><a href="{{ route('password.request') }}"
-                                            class="text-primary">{{ __('Forgot Password?') }}</a></span>
+                                    {{-- <span><a href="{{ route('password.request') }}"
+                                            class="text-primary">{{ __('Forgot Password?') }}</a></span> --}}
                                     <button type="submit" class="btn btn-primary" id="login-btn">
                                         {{ __('Login') }}
                                     </button>

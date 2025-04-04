@@ -157,7 +157,7 @@ class ResearchController extends Controller
             'related_type' => Research::class,
             'related_id' => $research->id,
             'data' => json_encode([
-                'message' => "Your  $type '" . addslashes($researchTitle) . "' has been published.", // Escape the project title
+                'message' => "Your  $type '" . addslashes($researchTitle) . "' has been approved and is now published.", // Escape the project title
                 'publisher' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
                 'role' => 'publisher',  // Specify the role
                 'type' => $type, // Include the type

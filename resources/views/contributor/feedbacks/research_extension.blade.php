@@ -109,7 +109,8 @@
                                                 @endphp
                                                 <textarea name="feedback" id="feedback-{{ $feedback->id }}" class="form-control" rows="{{ $rowCount }}" readonly>{{ $feedbackText }}</textarea>
                                             </div>
-                                            <strong>{{ $feedback->user->first_name }} {{ $feedback->user->last_name }}</strong>
+                                            <strong>{{ $feedback->user->first_name }}
+                                                {{ $feedback->user->last_name }}</strong>
                                             <small class="text-muted">on
                                                 {{ $feedback->created_at->format('M d, Y H:i') }}</small>
                                             <hr>
@@ -140,8 +141,8 @@
                                         readonly>
                                 </div>
 
-                                  <!-- SDGs -->
-                                  <div class="mb-3">
+                                <!-- SDGs -->
+                                <div class="mb-3">
                                     <label for="sdg" class="form-label">SDGs:</label>
                                     <textarea name="sdg" id="sdg" cols="30" rows="3" class="form-control" readonly>
 @foreach ($research->sdg as $sdg)
@@ -149,8 +150,8 @@
 @endforeach
 </textarea>
                                 </div>
-                                 <!-- SDG Sub Categories -->
-                                 <div class="mb-3">
+                                <!-- SDG Sub Categories -->
+                                <div class="mb-3">
                                     <label for="sdg_sub_categories" class="form-label">SDG Targets:</label>
                                     <textarea name="sdg_sub_categories" id="sdg_sub_categories" cols="30" rows="5" class="form-control" readonly>
         @if ($research->sdgSubCategories->isEmpty())
@@ -167,23 +168,20 @@ No SDG Targets available.
                                             target="_blank">https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf</a>
                                     </p>
                                 </div>
-             
 
+
+                                <!-- Description -->
                                 <div class="mb-3">
                                     <label for="description" class="form-label">Description:</label>
-                                    @php
-                                        $description = $research->description;
-                                        $rowCount =
-                                            substr_count($description, "\n") + floor(strlen($description) / 100); // Adjust the row count based on length
-                                        $rowCount = $rowCount < 3 ? 3 : $rowCount; // Ensure a minimum of 3 rows for short descriptions
-                                    @endphp
-                                    <textarea name="description" id="description" cols="30" rows="{{ $rowCount }}" class="form-control" readonly>{{ $description }}</textarea>
+                                    <div class="form-control" style="min-height: 100px; overflow-y: auto;"
+                                        contenteditable="false">
+                                        {!! $research->description !!}
+                                    </div>
                                 </div>
-
                                 <div class="mb-3">
                                     <label for="research_status" class="form-label">Research Status:</label>
                                     <input type="text" name="research_status" id="research_status" class="form-control"
-                                        value="{{  $research->status->status ?? 'N/A' }}" readonly>
+                                        value="{{ $research->status->status ?? 'N/A' }}" readonly>
                                 </div>
 
                                 <div class="mb-3">
@@ -219,7 +217,8 @@ No SDG Targets available.
                                 @if ($research->file_link)
                                     <div class="mb-3">
                                         <label for="file_link" class="form-label">Full Version File:</label>
-                                        <a href="{{ $research->file_link }}" target="_blank">{{ $research->file_link }}</a>
+                                        <a href="{{ $research->file_link }}"
+                                            target="_blank">{{ $research->file_link }}</a>
                                     </div>
                                 @else
                                     <p>No full version file link available.</p>
@@ -256,142 +255,3 @@ No SDG Targets available.
     </div>
     <!--end::App Content-->
 @endsection
-@section('content')
-    <div class="main-panel">
-        <div class="content-wrapper">
-            <div class="page-header">
-                <h3 class="page-title"> Need Changes Research </h3>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('contributor.research.index') }}">My Research</a>
-                        </li>
-                        <li class="breadcrumb-item active" aria-current="page">View Research</li>
-                    </ol>
-                </nav>
-            </div>
-
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <!-- Feedback Section -->
-                        @if ($research->feedbacks->count() > 0)
-                            <h4>Feedback</h4>
-                            <div class="form-sample">
-                                @foreach ($research->feedbacks as $feedback)
-                                    <div class="feedback-item">
-                                        <div class="form-group">
-                                            <label for="feedback">Feedback:</label>
-                                            @php
-                                                $feedbackText = $feedback->feedback;
-                                                $rowCount =
-                                                    substr_count($feedbackText, "\n") +
-                                                    ceil(strlen($feedbackText) / 100); // Adjust based on length
-                                                $rowCount = $rowCount < 3 ? 3 : $rowCount; // Ensure at least 3 rows
-                                            @endphp
-                                            <textarea name="feedback" id="feedback" class="form-control" rows="{{ $rowCount }}" readonly>{{ $feedbackText }}</textarea>
-                                        </div>
-                                        <strong>{{ $feedback->user->first_name }} {{ $feedback->user->last_name }}</strong>
-                                        <small class="text-muted">on
-                                            {{ $feedback->created_at->format('M d, Y H:i') }}</small>
-                                        <hr>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @else
-                            <div>
-                                <h4>Feedback</h4>
-                                <p>No feedback available for this Research/Extension.</p>
-                                <hr>
-                            </div>
-                        @endif
-                        <!-- End Feedback Section -->
-
-                        <form action="" class="forms-sample">
-                            <!-- Title -->
-                            <h4>Research Content</h4>
-                            <div class="form-group">
-                                <label for="title">Title:</label>
-                                <input type="text" name="title" id="title" class="form-control"
-                                    value="{{ $research->title }}" readonly>
-                            </div>
-
-                            <!-- Research Category -->
-                            <div class="form-group">
-                                <label for="research_category">Research Category:</label>
-                                <input type="text" name="research_category" id="research_category"
-                                    class="form-control" value="{{ $research->researchcategory->name ?? 'N/A' }}"
-                                    readonly>
-                            </div>
-
-                            <!-- SDGs -->
-                            <div class="form-group">
-                                <label for="sdg">SDGs:</label>
-                                <textarea name="sdg" id="sdg" cols="30" rows="3" class="form-control" readonly>
-                                  @foreach ($research->sdg as $sdg)
-{{ $sdg->name }}
-@endforeach
-                                </textarea>
-                            </div>
-
-                            <!-- Description -->
-                            <div class="form-group">
-                                <label for="description">Description:</label>
-                                @php
-                                    $description = $research->description;
-                                    $rowCount = substr_count($description, "\n") + floor(strlen($description) / 100);
-                                    $rowCount = $rowCount < 3 ? 3 : $rowCount;
-                                @endphp
-                                <textarea name="description" id="description" cols="30" rows="{{ $rowCount }}" class="form-control"
-                                    readonly>{{ $description }}</textarea>
-                            </div>
-
-                            <!-- Research Status -->
-                            <div class="form-group">
-                                <label for="research_status">Research Status:</label>
-                                <input type="text" name="research_status" id="research_status" class="form-control"
-                                    value="{{  $research->status->status ?? 'N/A' }}" readonly>
-                            </div>
-
-                            <!-- Publish Status -->
-                            <div class="form-group">
-                                <label for="is_publish">Publish Status:</label>
-                                <input type="text" name="is_publish" id="is_publish" class="form-control"
-                                    value="{{ $research->is_publish == 1 ? 'Published' : 'Draft' }}" readonly>
-                            </div>
-
-                            <!-- Review Status -->
-                            <div class="form-group">
-                                <label for="review_status">Review Status:</label>
-                                <input type="text" name="review_status" id="review_status" class="form-control"
-                                    value="{{ $research->reviewStatus->status ?? 'N/A' }}" readonly>
-                            </div>
-
-                            <!-- Created By -->
-                            <div class="form-group">
-                                <label for="created_by">Created by:</label>
-                                <input type="text" name="created_by" id="created_by" class="form-control"
-                                    value="{{ $research->user->first_name }} {{ $research->user->last_name }}" readonly>
-                            </div>
-
-                            <!-- Created At -->
-                            <div class="form-group">
-                                <label for="created_at">Created at:</label>
-                                <input type="text" name="created_at" id="created_at" class="form-control"
-                                    value="{{ $research->created_at->format('M d, Y H:i') }}" readonly>
-                            </div>
-
-                            <!-- Updated At -->
-                            <div class="form-group">
-                                <label for="updated_at">Updated at:</label>
-                                <input type="text" name="updated_at" id="updated_at" class="form-control"
-                                    value="{{ $research->updated_at->format('M d, Y H:i') }}" readonly>
-                            </div>
-                            <a href="{{ route('contributor.research.edit', $research->id) }}"
-                                class="btn btn-sm btn-info">Edit
-                                Research Content</a>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endsection

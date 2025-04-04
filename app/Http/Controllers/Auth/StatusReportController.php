@@ -245,7 +245,7 @@ class StatusReportController extends Controller
     
             
             // Determine the review status and publish status based on the button clicked
-            $reviewStatusId = ($submitType === 'publish') ? 3 : 4; // 3 = Published, 4 = Pending Review
+            $reviewStatusId = ($submitType === 'publish') ? 3 : 4; // 3 = Approved, 4 = Pending Review
             $isPublish = ($submitType === 'publish') ? 1 : 0; // 1 = Published, 0 = Draft
     
             // Create status report record
@@ -281,17 +281,17 @@ class StatusReportController extends Controller
             if ($submitType === 'publish') {
                 // Log the activity for publishing the status report
                 ActivityLog::create([
-                    'log_name' => 'Status Report Published',
-                    'description' => 'Published the status report titled "' . addslashes($statusReport->related_title) . '"',
+                    'log_name' => 'Status Report Approved',
+                    'description' => 'Approved the status report titled "' . addslashes($statusReport->related_title) . '"',
                     'subject_type' => StatusReport::class,
                     'subject_id' => $statusReport->id,
-                    'event' => 'published',
+                    'event' => 'approved',
                     'causer_type' => User::class,
                     'causer_id' => $user->id,
                     'properties' => json_encode([
                         'related_title' => $request->related_title,
-                        'review_status' => 'published',
-                        'role' => 'publisher',
+                        'review_status' => 'approved',
+                        'role' => 'approver',
                     ]),
                     'created_at' => now(),
                 ]);
@@ -579,10 +579,9 @@ class StatusReportController extends Controller
         $actionMap = [
             1 => 'requested change',
             2 => 'rejected',
-            3 => 'published',
+            3 => 'approved',
             4 => 'submitted for review',
             5 => 'reviewed',
-            6 => 'approved'
         ];
         $action = $actionMap[$request->review_status_id] ?? 'updated';
 
@@ -665,7 +664,7 @@ class StatusReportController extends Controller
                 ]);
                 break;
 
-            case 3: // Published
+            case 3: // approved
                 Notification::create([
                     'user_id' => $originalContributor,
                     'notifiable_type' => User::class,
@@ -674,26 +673,26 @@ class StatusReportController extends Controller
                     'related_type' => StatusReport::class,
                     'related_id' => $statusReport->id,
                     'data' => json_encode([
-                        'message' => "Your status report '$statusReportTitle' has been published.",
-                        'publisher' => $user->first_name . ' ' . $user->last_name,
-                        'role' => ['admin', 'publisher'],
+                        'message' => "Your status report '$statusReportTitle' has been approved and is now published.",
+                        'approver' => $user->first_name . ' ' . $user->last_name,
+                        'role' => ['admin', 'approver'],
                         'type' => 'status_report',
-                        'status' => 'published'
+                        'status' => 'approved'
                     ]),
                     'created_at' => now(),
                 ]);
                 ActivityLog::create([
-                    'log_name' => 'Status Report Published',
-                    'description' => 'Published the status report titled "' . addslashes($statusReport->related_title) . '"',
+                    'log_name' => 'Status Report Approved',
+                    'description' => 'Approved the status report titled "' . addslashes($statusReport->related_title) . '"',
                     'subject_type' => StatusReport::class,
                     'subject_id' => $statusReport->id,
-                    'event' => 'published',
+                    'event' => 'approved',
                     'causer_type' => User::class,
                     'causer_id' => $user->id,
                     'properties' => json_encode([
                         'status_report_title' => $statusReport->related_title,
-                        'review_status' => 'published',
-                        'role' => 'publisher',
+                        'review_status' => 'approved',
+                        'role' => 'approver',
                     ]),
                     'created_at' => now(),
                 ]);
@@ -768,40 +767,6 @@ class StatusReportController extends Controller
                     'created_at' => now(),
                 ]);
                 break;
-
-            case 6: // Approved
-                Notification::create([
-                    'user_id' => $originalContributor,
-                    'notifiable_type' => User::class,
-                    'notifiable_id' => $originalContributor,
-                    'type' => 'status_report',
-                    'related_type' => StatusReport::class,
-                    'related_id' => $statusReport->id,
-                    'data' => json_encode([
-                        'message' => "Your status report '$statusReportTitle' has been approved.",
-                        'approver' => $user->first_name . ' ' . $user->last_name,
-                        'role' => ['admin', 'approver'],
-                        'type' => 'status_report',
-                        'status' => 'approved'
-                    ]),
-                    'created_at' => now(),
-                ]);
-                ActivityLog::create([
-                    'log_name' => 'Status Report Approved',
-                    'description' => 'Approved the status report titled "' . addslashes($statusReport->related_title) . '"',
-                    'subject_type' => StatusReport::class,
-                    'subject_id' => $statusReport->id,
-                    'event' => 'approved',
-                    'causer_type' => User::class,
-                    'causer_id' => auth()->user()->id,
-                    'properties' => json_encode([
-                        'status_report_title' => $statusReport->related_title,
-                        'review_status' => 'approved',
-                        'role' => 'approver',
-                    ]),
-                    'created_at' => now(),
-                ]);
-                break;
         }
         
         DB::commit();
@@ -865,7 +830,7 @@ class StatusReportController extends Controller
             DB::beginTransaction();
 
             // Determine the review status and publish status based on the button clicked
-            $reviewStatusId = ($submitType === 'publish') ? 3 : 4; // 3 = Published, 4 = Pending Review
+            $reviewStatusId = ($submitType === 'publish') ? 3 : 4; // 3 = Approved, 4 = Pending Review
             $isPublish = ($submitType === 'publish') ? 1 : 0; // 1 = Published, 0 = Draft
 
             // Create status report record
@@ -901,17 +866,17 @@ class StatusReportController extends Controller
             if ($submitType === 'publish') {
                 // Log the activity for publishing the status report
                 ActivityLog::create([
-                    'log_name' => 'Status Report Published',
-                    'description' => 'Published the status report titled "' . addslashes($statusReport->related_title) . '"',
+                    'log_name' => 'Status Report Approved',
+                    'description' => 'Approved the status report titled "' . addslashes($statusReport->related_title) . '"',
                     'subject_type' => StatusReport::class,
                     'subject_id' => $statusReport->id,
-                    'event' => 'published',
+                    'event' => 'approved',
                     'causer_type' => User::class,
                     'causer_id' => $user->id,
                     'properties' => json_encode([
                         'related_title' => $request->related_title,
-                        'review_status' => 'published',
-                        'role' => 'publisher',
+                        'review_status' => 'approved',
+                        'role' => 'approver',
                     ]),
                     'created_at' => now(),
                 ]);

@@ -402,23 +402,23 @@
                             label: 'Combined SDG Status',
                             data: [], // SDG data will be set dynamically
                             backgroundColor: [
-                                '#E44C4D', // No Poverty
-                                '#E1A42B', // Zero Hunger
-                                '#4BBF6B', // Good Health and Well-Being
-                                '#F04F25', // Quality Education
-                                '#D94E9A', // Gender Equality
-                                '#0073A3', // Clean Water and Sanitation
-                                '#F7D75D', // Affordable and Clean Energy
-                                '#C83A2B', // Decent Work and Economic Growth
-                                '#6F7E92', // Industry, Innovation, and Infrastructure
-                                '#C2008A', // Reduced Inequality
-                                '#E14F40', // Sustainable Cities and Communities
-                                '#57B6F4', // Responsible Consumption and Production
-                                '#F38F4C', // Climate Action
-                                '#006B7F', // Life Below Water
-                                '#8A0B5B', // Life on Land
-                                '#009C4A', // Peace, Justice, and Strong Institutions
-                                '#A45F77' // Partnerships for the Goals
+                                '#E5243B', // No Poverty
+                                '#DCA93A', // Zero Hunger
+                                '#4C9E39', // Good Health and Well-Being
+                                '#C4182D', // Quality Education
+                                '#FF3B20', // Gender Equality
+                                '#26BCE3', // Clean Water and Sanitation
+                                '#FCC30B', // Affordable and Clean Energy
+                                '#A21942', // Decent Work and Economic Growth
+                                '#FC6825', // Industry, Innovation, and Infrastructure
+                                '#DD1367', // Reduced Inequality
+                                '#FD9C25', // Sustainable Cities and Communities
+                                '#BF8A2F', // Responsible Consumption and Production
+                                '#3E7E45', // Climate Action
+                                '#0A96D8', // Life Below Water
+                                '#56C12A', // Life on Land
+                                '#01689C', // Peace, Justice, and Strong Institutions
+                                '#19486A' // Partnerships for the Goals
                             ],
                             hoverOffset: 10
                         }]

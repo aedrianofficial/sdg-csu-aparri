@@ -296,24 +296,24 @@ class ResearchController extends Controller
             'content_type' => Research::class,
             'user_id' => $user->id,
             'role' => 'admin',
-            'action' => $submitType === 'publish' ? 'published' : 'submitted for review',
+            'action' => $submitType === 'publish' ? 'approved' : 'submitted for review',
             'created_at' => now()
         ]);
 
         // Log the activity for publishing or submission
         if ($submitType === 'publish') {
             ActivityLog::create([
-                'log_name' => 'Research Published',
-                'description' => 'Published the research titled "' . addslashes($research->title) . '"',
+                'log_name' => 'Research Approved',
+                'description' => 'Approved the research titled "' . addslashes($research->title) . '"',
                 'subject_type' => Research::class,
                 'subject_id' => $research->id,
-                'event' => 'published',
+                'event' => 'approved',
                 'causer_type' => User::class,
                 'causer_id' => $user->id,
                 'properties' => json_encode([
                     'research_title' => $research->title,
-                    'research_status' => 'published',
-                    'role' => 'publisher',
+                    'research_status' => 'approved',
+                    'role' => 'approver',
                 ]),
                 'created_at' => now(),
             ]);
@@ -509,10 +509,10 @@ class ResearchController extends Controller
             $actionMap = [
                 1 => 'requested change',
                 2 => 'rejected',
-                3 => 'published',
+                3 => 'approved',
                 4 => 'submitted for review',
                 5 => 'reviewed',
-                6 => 'approved'
+        
             ];
             $action = $actionMap[$research->review_status_id] ?? 'updated';
     
@@ -604,26 +604,26 @@ class ResearchController extends Controller
                         'related_type' => Research::class,
                         'related_id' => $research->id,
                         'data' => json_encode([
-                            'message' => "Your research '$researchTitle' has been published.",
-                            'publisher' => $user->first_name . ' ' . $user->last_name,
-                            'role' => ['admin', 'publisher'],
+                            'message' => "Your research '$researchTitle' has been approved and is now published.",
+                            'approver' => $user->first_name . ' ' . $user->last_name,
+                            'role' => ['admin', 'approver'],
                             'type' => 'research',
-                            'status' => 'published'
+                            'status' => 'approved'
                         ]),
                         'created_at' => now(),
                     ]);
                     ActivityLog::create([
-                        'log_name' => 'Research Published',
-                        'description' => 'Published the research titled "' . addslashes($research->title) . '"',
+                        'log_name' => 'Research Approved',
+                        'description' => 'Approved the research titled "' . addslashes($research->title) . '"',
                         'subject_type' => Research::class,
                         'subject_id' => $research->id,
-                        'event' => 'published',
+                        'event' => 'approved',
                         'causer_type' => User::class,
                         'causer_id' => $user->id,
                         'properties' => json_encode([
                             'research_title' => $research->title,
-                            'review_status' => 'published',
-                            'role' => 'publisher',
+                            'review_status' => 'approved',
+                            'role' => 'approver',
                         ]),
                         'created_at' => now(),
                     ]);
@@ -717,68 +717,6 @@ class ResearchController extends Controller
                                 'research_title' => $research->title,
                                 'review_status' => 'reviewed',
                                 'role' => 'reviewer',
-                            ]),
-                            'created_at' => now(),
-                        ]);
-                    break;
-                    
-    
-                case 6: // Approved
-                        // Notify the original contributor
-                        Notification::create([
-                            'user_id' => $originalContributor,
-                            'notifiable_type' => User::class,
-                            'notifiable_id' => $originalContributor,
-                            'type' => 'research',
-                            'related_type' => Research::class,
-                            'related_id' => $research->id,
-                            'data' => json_encode([
-                                'message' => "Your research '$researchTitle' has been approved.",
-                                'approver' => $user->first_name . ' ' . $user->last_name,
-                                'role' => ['admin', 'approver'],
-                                'type' => 'research',
-                                'status' => 'approved'
-                            ]),
-                            'created_at' => now(),
-                        ]);
-                    
-                        // Notify all publishers
-                        $statusPublisher = 'submitted for publishing';
-                    
-                        // Retrieve all publishers
-                        $publishers = User::where('role', 'publisher')->get();
-                    
-                        // Create notifications for each publisher
-                        foreach ($publishers as $publisher) {
-                            Notification::create([
-                                'user_id' => $publisher->id,
-                                'notifiable_type' => User::class,
-                                'notifiable_id' => $publisher->id,
-                                'type' => 'research',
-                                'related_type' => Research::class,
-                                'related_id' => $research->id,
-                                'data' => json_encode([
-                                    'message' => "The research titled '" . addslashes($researchTitle) . "' has been submitted for publishing.",
-                                    'approver' => $user->first_name . ' ' . $user->last_name,
-                                    'role' => 'approver',
-                                    'type' => 'research',
-                                    'status' => $statusPublisher,
-                                ]),
-                                'created_at' => now(),
-                            ]);
-                        }
-                        ActivityLog::create([
-                            'log_name' => 'Research Approved',
-                            'description' => 'Approved the research titled "' . addslashes($research->title) . '"',
-                            'subject_type' => Research::class,
-                            'subject_id' => $research->id,
-                            'event' => 'approved',
-                            'causer_type' => User::class,
-                            'causer_id' => auth()->user()->id,
-                            'properties' => json_encode([
-                                'research_title' => $research->title,
-                                'review_status' => 'approved',
-                                'role' => 'approver',
                             ]),
                             'created_at' => now(),
                         ]);

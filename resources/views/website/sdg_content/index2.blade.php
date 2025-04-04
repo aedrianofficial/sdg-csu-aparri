@@ -37,6 +37,18 @@
         .post:hover {
             transform: scale(1.03);
         }
+         /* Make the cards perfect square */
+         .sdg-image {
+            height: 100%; 
+            object-fit: cover;
+        }
+    
+        @media (max-width: 767px) {
+            .sdg-image {
+                height: auto;
+                aspect-ratio: 1 / 1; /* Ensures a perfect square */
+            }
+        }
     </style>
 @endsection
 @section('content')
@@ -124,131 +136,60 @@
         </div>
     </div>
 
-    <!-- Projects Section -->
-    <div class="content-header">
-        <div class="container">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0"> Latest Projects</h1>
-                </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-
-                        <li class="breadcrumb-item"><a href="{{ route('website.sdg_project_main2') }}">Show All Projects</a>
-                        </li>
-                        <li class="breadcrumb-item active">Home</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
     <div class="content">
         <div class="container">
-            @if ($projects !== null && count($projects) > 0)
+            @if ($sdgs !== null && count($sdgs) > 0)
                 <div class="row">
-                    @foreach ($projects as $project)
-                        <div class="col-lg-4 mb-4"> <!-- Column for each card -->
-                            <div class="card card-primary card-outline h-100 d-flex flex-column post">
-                                <div class="card-header">
-                                    <h5 class="card-title m-0 text-truncate" title="{{ $project->title }}">
-                                        {{ Str::limit($project->title, 40) }}
-                                    </h5>
-                                </div>
-                                <div class="card-body d-flex flex-column">
-                                    <a href="{{ route('website.display_single_project2', $project->id) }}">
-                                        <img src="{{ $project->projectimg->image }}" class="card-img-top" alt=""
-                                            style="height: 200px; object-fit: cover;">
+                    @foreach ($sdgs as $index => $sdg)
+                        @php
+                            $sdgColors = [
+                                '#E5243B', '#DCA93A', '#4C9E39', '#C4182D', '#FF3B20',
+                                '#26BCE3', '#FCC30B', '#A21942', '#FC6825', '#DD1367',
+                                '#FD9C25', '#BF8A2F', '#3E7E45', '#0A96D8', '#56C12A',
+                                '#01689C', '#19486A'
+                            ];
+                            $bgColor = $sdgColors[$index % count($sdgColors)];
+                        @endphp
+    
+                        <div class="col-lg-3 col-md-4 col-6 mb-4 d-flex">
+                            <div class="card card-primary card-outline w-100 d-flex flex-column post "
+                                 style="background-color: {{ $bgColor }}; border: none;">
+                                <div class="card-body p-0">
+                                    <a href="{{ route('website.sdg.show', ['id' => $sdg->id]) }}"> 
+                                        <img src="{{ asset($sdg->sdgimage ? $sdg->sdgimage->image : 'images/sdg/default.png') }}" 
+                                             class="card-img-top w-100 sdg-image rounded" 
+                                             alt="{{ $sdg->name }}">
                                     </a>
-                                    <div class="post-meta mt-3">
-                                        <ul class="list-unstyled">
-                                            <li>
-                                                <i class="ion-calendar"></i>
-                                                {{ date('d M Y', strtotime($project->created_at)) }}
-                                            </li>
-                                            <li>
-                                                @foreach ($project->sdg as $project_sdgs)
-                                                    <i class="ion-pricetags">{{ $project_sdgs->name }}&nbsp;</i>
-                                                @endforeach
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <a href="{{ route('website.display_single_project2', $project->id) }}"
-                                        class="btn btn-primary mt-auto continue-reading">Continue Reading</a>
+                                    
                                 </div>
                             </div>
-                        </div> <!-- End of card column -->
-                    @endforeach
-                </div>
-        </div>
-    @else
-        <h2 class="text-center text-danger mt-5">No Projects & Programs added</h2>
-        @endif
-    </div>
-
-
-
-    <!-- Research Section -->
-    <div class="content-header">
-        <div class="container">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">Latest Research</h1>
-                </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ route('website.sdg_research_main2') }}">Show All
-                                Research</a></li>
-                        <li class="breadcrumb-item active">Home</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="content">
-        <div class="container">
-            @if ($research !== null && count($research) > 0)
-                <div class="row">
-                    @foreach ($research as $singleResearch)
-                        <div class="col-lg-4 mb-4"> <!-- Column for each card -->
-                            <div class="card card-secondary card-outline h-100 d-flex flex-column post">
-                                <div class="card-header">
-                                    <h5 class="card-title m-0 text-truncate" title="{{ $singleResearch->title }}">
-                                        {{ Str::limit($singleResearch->title, 40) }}
-                                    </h5>
-                                </div>
-                                <div class="card-body d-flex flex-column">
-
-                                    <div class="post-meta mt-3">
-                                        <ul class="list-unstyled">
-                                            <li>
-                                                <i class="ion-calendar"></i>
-                                                {{ date('d M Y', strtotime($singleResearch->created_at)) }}
-                                            </li>
-                                            <li>
-                                                @foreach ($singleResearch->sdg as $singleResearch_sdgs)
-                                                    <i class="ion-pricetags">{{ $singleResearch_sdgs->name }}&nbsp;</i>
-                                                @endforeach
-                                            </li>
-                                            <li>
-                                                <i class="ion-pricetags"></i>
-                                                {{ $singleResearch->researchcategory->name ?? 'No Category' }}
-                                                <!-- Display the category name -->
-                                            </li>
-                                        </ul>
+                        </div>
+    
+                        @if ($index == 16) 
+                            <!-- Special case: Add SDG Partnership logo beside SDG 17 -->
+                            <div class="col-lg-9 col-md-12 col-6 mb-4 d-flex">
+                                <div class="card card-primary card-outline w-100 d-flex flex-column post"
+                                     style="background-color: #ffffff; border: none;">
+                                    <div class="card-body p-0 d-flex align-items-center justify-content-center">
+                                        <img src="{{ asset('images/sdg/landing/E_SDG_logo_without_UN_emblem_horizontal_CMYK_Transparent.png') }}" 
+                                             class="w-100 d-none d-md-block rounded" 
+                                             alt="SDG Partnership Logo" 
+                                             style="max-height: 250px; object-fit: contain;">
+                                        <img src="{{ asset('images/sdg/landing/E_SDG_logo_UN_emblem_square_trans_WEB-400x343.png') }}" 
+                                             class="w-100 d-block d-md-none" 
+                                             alt="SDG Partnership Logo (Mobile)">
                                     </div>
-
-                                    <a href="{{ route('website.display_single_research2', $singleResearch->id) }}"
-                                        class="btn btn-secondary mt-auto continue-reading">Continue Reading</a>
                                 </div>
                             </div>
-                        </div> <!-- End of card column -->
+                        @endif
+    
                     @endforeach
                 </div>
+            @else
+                <h2 class="text-center text-danger mt-5">No SDG Data Available</h2>
+            @endif
         </div>
-    @else
-        <h2 class="text-center text-danger mt-5">No Research added</h2>
-        @endif
-    </div>
+    </div>    
 @endsection
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -377,13 +318,13 @@
                     success: function(response) {
                         // Combine data from projects, status reports, terminal reports, and research
                         const combinedLabels = response
-                        .sdgLabels; // Assuming this contains unique SDG labels
+                            .sdgLabels; // Assuming this contains unique SDG labels
                         const combinedData = [];
                         const projectData = response.projectData; // Array of project counts
                         const statusReportData = response
-                        .statusReportData; // Array of status report counts
+                            .statusReportData; // Array of status report counts
                         const terminalReportData = response
-                        .terminalReportData; // Array of terminal report counts
+                            .terminalReportData; // Array of terminal report counts
                         const researchData = response.researchData; // Array of research counts
 
                         // Aggregate data from projects, status reports, terminal reports, and research
@@ -451,23 +392,23 @@
                             label: 'Combined SDG Status',
                             data: [], // SDG data will be set dynamically
                             backgroundColor: [
-                                '#E44C4D', // No Poverty
-                                '#E1A42B', // Zero Hunger
-                                '#4BBF6B', // Good Health and Well-Being
-                                '#F04F25', // Quality Education
+                                '#E5243B', // No Poverty
+                                '#DCA93A', // Zero Hunger
+                                '#4C9E39', // Good Health and Well-Being
+                                '#C4182D', // Quality Education
                                 '#D94E9A', // Gender Equality
-                                '#0073A3', // Clean Water and Sanitation
-                                '#F7D75D', // Affordable and Clean Energy
-                                '#C83A2B', // Decent Work and Economic Growth
-                                '#6F7E92', // Industry, Innovation, and Infrastructure
-                                '#C2008A', // Reduced Inequality
-                                '#E14F40', // Sustainable Cities and Communities
-                                '#57B6F4', // Responsible Consumption and Production
-                                '#F38F4C', // Climate Action
-                                '#006B7F', // Life Below Water
-                                '#8A0B5B', // Life on Land
-                                '#009C4A', // Peace, Justice, and Strong Institutions
-                                '#A45F77' // Partnerships for the Goals
+                                '#C4182D', // Clean Water and Sanitation
+                                '#FCC30B', // Affordable and Clean Energy
+                                '#A21942', // Decent Work and Economic Growth
+                                '#FC6825', // Industry, Innovation, and Infrastructure
+                                '#DD1367', // Reduced Inequality
+                                '#FD9C25', // Sustainable Cities and Communities
+                                '#BF8A2F', // Responsible Consumption and Production
+                                '#3E7E45', // Climate Action
+                                '#0A96D8', // Life Below Water
+                                '#56C12A', // Life on Land
+                                '#01689C', // Peace, Justice, and Strong Institutions
+                                '#19486A' // Partnerships for the Goals
                             ],
                             hoverOffset: 10
                         }]

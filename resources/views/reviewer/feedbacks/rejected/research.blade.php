@@ -41,7 +41,8 @@
                                                 @endphp
                                                 <textarea name="feedback" id="feedback" class="form-control" rows="{{ $rowCount }}" readonly>{{ $feedbackText }}</textarea>
                                             </div>
-                                            <strong>{{ $feedback->user->first_name }} {{ $feedback->user->last_name }}</strong>
+                                            <strong>{{ $feedback->user->first_name }}
+                                                {{ $feedback->user->last_name }}</strong>
                                             <small class="text-muted">on
                                                 {{ $feedback->created_at->format('M d, Y H:i') }}</small>
                                             <hr>
@@ -63,15 +64,13 @@
                                 <input type="text" name="title" id="title" class="form-control"
                                     value="{{ $research->title }}" readonly>
                             </div>
-
+                            <!-- Description -->
                             <div class="mb-3">
                                 <label for="description" class="form-label">Description:</label>
-                                @php
-                                    $description = $research->description;
-                                    $rowCount = substr_count($description, "\n") + floor(strlen($description) / 100); // Adjust the row count based on length
-                                    $rowCount = $rowCount < 3 ? 3 : $rowCount; // Ensure a minimum of 3 rows for short descriptions
-                                @endphp
-                                <textarea name="description" id="description" class="form-control" rows="{{ $rowCount }}" readonly>{{ $description }}</textarea>
+                                <div class="form-control" style="min-height: 100px; overflow-y: auto;"
+                                    contenteditable="false">
+                                    {!! $research->description !!}
+                                </div>
                             </div>
 
                             <div class="mb-3">
@@ -79,8 +78,8 @@
                                 <input type="text" name="research_category" id="research_category" class="form-control"
                                     value="{{ $research->researchcategory->name ?? 'N/A' }}" readonly>
                             </div>
-                             <!-- SDGs -->
-                             <div class="mb-3">
+                            <!-- SDGs -->
+                            <div class="mb-3">
                                 <label for="sdg" class="form-label">SDGs:</label>
                                 <textarea name="sdg" id="sdg" cols="30" rows="3" class="form-control" readonly>
 @foreach ($research->sdg as $sdg)
@@ -111,7 +110,7 @@ No SDG Targets available.
                             <div class="mb-3">
                                 <label for="research_status" class="form-label">Research Status:</label>
                                 <input type="text" name="research_status" id="research_status" class="form-control"
-                                    value="{{  $research->status->status ?? 'N/A' }}" readonly>
+                                    value="{{ $research->status->status ?? 'N/A' }}" readonly>
                             </div>
 
                             <div class="mb-3">
@@ -135,8 +134,8 @@ No SDG Targets available.
                                     @foreach ($research->researchfiles as $file)
                                         <div class="input-group">
                                             <!-- Display clickable filename as a link -->
-                                            <a href="{{ route('research.file.download', $file->id) }}" class="form-control"
-                                                target="_blank" rel="noopener noreferrer">
+                                            <a href="{{ route('research.file.download', $file->id) }}"
+                                                class="form-control" target="_blank" rel="noopener noreferrer">
                                                 <span>Download</span>
                                                 {{ $file->original_filename ?? $research->title }}
                                             </a>

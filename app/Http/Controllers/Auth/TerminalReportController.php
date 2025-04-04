@@ -251,7 +251,7 @@ class TerminalReportController extends Controller
         DB::beginTransaction();
 
         // Determine the review status and publish status based on the button clicked
-        $reviewStatusId = ($submitType === 'publish') ? 3 : 4; // 3 = Published, 4 = Pending Review
+        $reviewStatusId = ($submitType === 'publish') ? 3 : 4; // 3 = Approved, 4 = Pending Review
         $isPublish = ($submitType === 'publish') ? 1 : 0; // 1 = Published, 0 = Draft
 
         // Create terminal report record
@@ -298,17 +298,17 @@ class TerminalReportController extends Controller
         if ($submitType === 'publish') {
             // Log the activity for publishing the terminal report
             ActivityLog::create([
-                'log_name' => 'Terminal Report Published',
-                'description' => 'Published the terminal report titled "' . addslashes($terminalReport->title ) . '"',
+                'log_name' => 'Terminal Report Approved',
+                'description' => 'Approved the terminal report titled "' . addslashes($terminalReport->title ) . '"',
                 'subject_type' => TerminalReport::class,
                 'subject_id' => $terminalReport->id,
-                'event' => 'published',
+                'event' => 'approved',
                 'causer_type' => User::class,
                 'causer_id' => $user->id,
                 'properties' => json_encode([
                     'related_title' => $request->related_title,
-                    'review_status' => 'published',
-                    'role' => 'publisher',
+                    'review_status' => 'approved',
+                    'role' => 'approver',
                 ]),
                 'created_at' => now(),
             ]);
@@ -616,10 +616,9 @@ class TerminalReportController extends Controller
         $actionMap = [
             1 => 'requested change',
             2 => 'rejected',
-            3 => 'published',
+            3 => 'approved',
             4 => 'submitted for review',
             5 => 'reviewed',
-            6 => 'approved'
         ];
         $action = $actionMap[$request->review_status_id] ?? 'updated';
 
@@ -702,7 +701,7 @@ class TerminalReportController extends Controller
                 ]);
                 break;
 
-            case 3: // Published
+            case 3: // approved
                 Notification::create([
                     'user_id' => $originalContributor,
                     'notifiable_type' => User::class,
@@ -711,26 +710,26 @@ class TerminalReportController extends Controller
                     'related_type' => TerminalReport::class,
                     'related_id' => $terminalReport->id,
                     'data' => json_encode([
-                        'message' => "Your terminal report '$terminalReportTitle' has been published.",
-                        'publisher' => $user->first_name . ' ' . $user->last_name,
-                        'role' => ['admin', 'publisher'],
+                        'message' => "Your terminal report '$terminalReportTitle' has been approved and is now published.",
+                        'approver' => $user->first_name . ' ' . $user->last_name,
+                        'role' => ['admin', 'approver'],
                         'type' => 'terminal_report',
-                        'status' => 'published'
+                        'status' => 'approved'
                     ]),
                     'created_at' => now(),
                 ]);
                 ActivityLog::create([
-                    'log_name' => 'Terminal Report Published',
-                    'description' => 'Published the terminal report titled "' . addslashes($terminalReport->related_title) . '"',
+                    'log_name' => 'Terminal Report Approved',
+                    'description' => 'Approved the terminal report titled "' . addslashes($terminalReport->related_title) . '"',
                     'subject_type' => TerminalReport::class,
                     'subject_id' => $terminalReport->id,
-                    'event' => 'published',
+                    'event' => 'approved',
                     'causer_type' => User::class,
                     'causer_id' => $user->id,
                     'properties' => json_encode([
                         'terminal_report_title' => $terminalReport->related_title,
-                        'review_status' => 'published',
-                        'role' => 'publisher',
+                        'review_status' => 'approved',
+                        'role' => 'approver',
                     ]),
                     'created_at' => now(),
                 ]);
@@ -806,39 +805,7 @@ class TerminalReportController extends Controller
                 ]);
                 break;
 
-            case 6: // Approved
-                Notification::create([
-                    'user_id' => $originalContributor,
-                    'notifiable_type' => User::class,
-                    ' notifiable_id' => $originalContributor,
-                    'type' => 'terminal_report',
-                    'related_type' => TerminalReport::class,
-                    'related_id' => $terminalReport->id,
-                    'data' => json_encode([
-                        'message' => "Your terminal report '$terminalReportTitle' has been approved.",
-                        'approver' => $user->first_name . ' ' . $user->last_name,
-                        'role' => ['admin', 'approver'],
-                        'type' => 'terminal_report',
-                        'status' => 'approved'
-                    ]),
-                    'created_at' => now(),
-                ]);
-                ActivityLog::create([
-                    'log_name' => 'Terminal Report Approved',
-                    'description' => 'Approved the terminal report titled "' . addslashes($terminalReport->related_title) . '"',
-                    'subject_type' => TerminalReport::class,
-                    'subject_id' => $terminalReport->id,
-                    'event' => 'approved',
-                    'causer_type' => User::class,
-                    'causer_id' => auth()->user()->id,
-                    'properties' => json_encode([
-                        'terminal_report_title' => $terminalReport->related_title,
-                        'review_status' => 'approved',
-                        'role' => 'approver',
-                    ]),
-                    'created_at' => now(),
-                ]);
-                break;
+            
         }
 
         DB::commit();
@@ -889,7 +856,7 @@ class TerminalReportController extends Controller
         DB::beginTransaction();
 
         // Determine the review status and publish status based on the button clicked
-        $reviewStatusId = ($submitType === 'publish') ? 3 : 4; // 3 = Published, 4 = Pending Review
+        $reviewStatusId = ($submitType === 'publish') ? 3 : 4; // 3 = Approver, 4 = Pending Review
         $isPublish = ($submitType === 'publish') ? 1 : 0; // 1 = Published, 0 = Draft
 
         // Create terminal report record
@@ -935,17 +902,17 @@ class TerminalReportController extends Controller
         // Log activity in the role_actions table
         if ($submitType === 'publish') {
             ActivityLog::create([
-                'log_name' => 'Terminal Report Published',
-                'description' => 'Published the terminal report titled "' . addslashes($terminalReport->related_title) . '"',
+                'log_name' => 'Terminal Report Approved',
+                'description' => 'Approved the terminal report titled "' . addslashes($terminalReport->related_title) . '"',
                 'subject_type' => TerminalReport::class,
                 'subject_id' => $terminalReport->id,
-                'event' => 'published',
+                'event' => 'approved',
                 'causer_type' => User::class,
                 'causer_id' => $user->id,
                 'properties' => json_encode([
                     'related_title' => $request->related_title,
-                    'review_status' => 'published',
-                    'role' => 'publisher',
+                    'review_status' => 'approved',
+                    'role' => 'approver',
                 ]),
                 'created_at' => now(),
             ]);

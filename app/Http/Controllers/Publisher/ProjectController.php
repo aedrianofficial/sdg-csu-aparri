@@ -141,7 +141,7 @@ return view('publisher.projects_programs.published', compact('projectsPaginated'
             'related_type' => Project::class,
             'related_id' => $project->id,
             'data' => json_encode([
-                'message' => "Your $type '" . addslashes($projectTitle) . "' has been published.",
+                'message' => "Your $type '" . addslashes($projectTitle) . "' has been approved and is now published.",
                 'publisher' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
                 'role' => 'publisher',  // Specify the role
                 'type' => $type,

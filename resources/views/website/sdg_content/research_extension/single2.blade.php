@@ -55,7 +55,7 @@
                             <!-- Description -->
                             <div class="research-detail-item mb-2">
                                 <i class="fas fa-align-left"></i> <strong>Description:</strong>
-                                <span>{{ $research->description }}</span>
+                                <span>{!! $research->description !!}</span>
                             </div>
 
                             <!--File-->
@@ -80,9 +80,7 @@
                             <div class="research-detail-item mb-2">
                                 <strong><i class="fas fa-file"></i> Full version File:</strong>
                                 @if ($research->file_link)
-                                    
-                                        <a href="{{ $research->file_link }}" target="_blank">{{ $research->file_link }}</a>
-                             
+                                    <a href="{{ $research->file_link }}" target="_blank">{{ $research->file_link }}</a>
                                 @else
                                     <p>No full version file link available.</p>
                                 @endif
@@ -134,8 +132,8 @@
                         </div>
                     </div>
                 </div>
-                 <!-- SDG Sub Categories -->
-                 <div class="card card-primary card-outline mt-4">
+                <!-- SDG Sub Categories -->
+                <div class="card card-primary card-outline mt-4">
                     <div class="card-header">
                         <h5 class="card-title m-0">SDG Targets:</h5>
                     </div>
@@ -163,43 +161,43 @@
                 <div class="row mt-4">
                     <div class="col-12">
                         <h3>Related Reports</h3>
-                
-                        @if($statusReports->isEmpty() && $terminalReports->isEmpty())
-                          
-                        <div class="alert">
-                            <strong class="text-danger">No related reports available.</strong>
-                        </div>
-                            
+
+                        @if ($statusReports->isEmpty() && $terminalReports->isEmpty())
+                            <div class="alert">
+                                <strong class="text-danger">No related reports available.</strong>
+                            </div>
                         @else
                             <div class="row">
-                                @foreach($statusReports as $statusReport)
+                                @foreach ($statusReports as $statusReport)
                                     <div class="col-lg-3 col-6">
-                                        <div class="small-box 
-                                            @if($statusReport->log_status == 'Proposed') bg-info 
+                                        <div
+                                            class="small-box 
+                                            @if ($statusReport->log_status == 'Proposed') bg-info 
                                             @elseif($statusReport->log_status == 'On-Going') bg-primary 
                                             @elseif($statusReport->log_status == 'On-Hold') bg-warning 
-                                            @elseif($statusReport->log_status == 'Rejected') bg-danger 
-                                            @endif">
+                                            @elseif($statusReport->log_status == 'Rejected') bg-danger @endif">
                                             <div class="inner">
                                                 <br>
                                                 <p>{{ $statusReport->log_status }}</p>
                                             </div>
                                             <div class="icon">
-                                                <i class="fas 
-                                                    @if($statusReport->log_status == 'Proposed') fa-lightbulb 
+                                                <i
+                                                    class="fas 
+                                                    @if ($statusReport->log_status == 'Proposed') fa-lightbulb 
                                                     @elseif($statusReport->log_status == 'On-Going') fa-spinner 
                                                     @elseif($statusReport->log_status == 'On-Hold') fa-pause 
-                                                    @elseif($statusReport->log_status == 'Rejected') fa-times-circle 
-                                                    @endif"></i>
+                                                    @elseif($statusReport->log_status == 'Rejected') fa-times-circle @endif"></i>
                                             </div>
-                                            <a href="{{ route('website.status_reports.show_research_published', $statusReport->id) }}" class="small-box-footer"> More info <i class="fas fa-arrow-circle-right"></i></a>
+                                            <a href="{{ route('website.status_reports.show_research_published', $statusReport->id) }}"
+                                                class="small-box-footer"> More info <i
+                                                    class="fas fa-arrow-circle-right"></i></a>
                                         </div>
                                     </div>
                                 @endforeach
                             </div>
-                
+
                             <div class="row">
-                                @foreach($terminalReports as $terminalReport)
+                                @foreach ($terminalReports as $terminalReport)
                                     <div class="col-lg-3 col-6">
                                         <div class="small-box bg-success">
                                             <div class="inner">
@@ -209,7 +207,9 @@
                                             <div class="icon">
                                                 <i class="fas fa-check-circle"></i>
                                             </div>
-                                            <a href="{{ route('website.terminal_reports.show_research_published', $terminalReport->id) }}" class="small-box-footer"> More info <i class="fas fa-arrow-circle-right"></i></a>
+                                            <a href="{{ route('website.terminal_reports.show_research_published', $terminalReport->id) }}"
+                                                class="small-box-footer"> More info <i
+                                                    class="fas fa-arrow-circle-right"></i></a>
                                         </div>
                                     </div>
                                 @endforeach
@@ -255,7 +255,7 @@
                         </ul>
                     </div>
                 </div>
-            
+
                 <!-- Research Categories Section -->
                 <div class="card card-widget card-info card-outline mt-3">
                     <div class="card-header">

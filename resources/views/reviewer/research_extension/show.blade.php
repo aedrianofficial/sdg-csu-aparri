@@ -97,16 +97,13 @@
                                     <input type="text" name="title" id="title" class="form-control"
                                         value="{{ $research->title }}" readonly>
                                 </div>
-
+                                <!-- Description -->
                                 <div class="mb-3">
-                                    <label for="description" class="form-label">Description:</label>
-                                    @php
-                                        $description = $research->description;
-                                        $rowCount =
-                                            substr_count($description, "\n") + floor(strlen($description) / 100);
-                                        $rowCount = $rowCount < 3 ? 3 : $rowCount;
-                                    @endphp
-                                    <textarea name="description" id="description" cols="30" rows="{{ $rowCount }}" class="form-control" readonly>{{ $description }}</textarea>
+                                    <label for="description" class="form-label"></label>
+                                    <div class="form-control" style="min-height: 100px; overflow-y: auto;"
+                                        contenteditable="false">
+                                        {!! $research->description !!}
+                                    </div>
                                 </div>
 
                                 <div class="mb-3">
@@ -115,8 +112,8 @@
                                         class="form-control" value="{{ $research->researchcategory->name ?? 'N/A' }}"
                                         readonly>
                                 </div>
-                                 <!-- SDGs -->
-                                 <div class="mb-3">
+                                <!-- SDGs -->
+                                <div class="mb-3">
                                     <label for="sdg" class="form-label">SDGs:</label>
                                     <textarea name="sdg" id="sdg" cols="30" rows="3" class="form-control" readonly>
 @foreach ($research->sdg as $sdg)
@@ -177,7 +174,8 @@ No SDG Targets available.
                                 @if ($research->file_link)
                                     <div class="mb-3">
                                         <label for="file_link" class="form-label">Full Version File:</label>
-                                        <a href="{{ $research->file_link }}" target="_blank">{{ $research->file_link }}</a>
+                                        <a href="{{ $research->file_link }}"
+                                            target="_blank">{{ $research->file_link }}</a>
                                     </div>
                                 @else
                                     <p>Full Version File: No file link available.</p>

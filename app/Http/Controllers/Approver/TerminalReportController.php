@@ -306,7 +306,10 @@ class TerminalReportController extends Controller
         $terminalReport = TerminalReport::findOrFail($id);
     
         // Update the review status to 'Forwarded to Approver'
-        $terminalReport->update(['review_status_id' => 6]); // Assuming '5' represents 'Forwarded to Approver'
+        $terminalReport->update([
+            'review_status_id' => 3,
+            'is_publish' => 1
+        ]); // Assuming '5' represents 'Forwarded to Approver'
     
         // Log the action in the role_actions table
         RoleAction::create([
@@ -332,7 +335,7 @@ class TerminalReportController extends Controller
             'related_type' => TerminalReport::class,
             'related_id' => $terminalReport->id,
             'data' => json_encode([
-                'message' => "Your $type '" . addslashes($reportTitle) . "' has been approved.",
+                'message' => "Your $type '" . addslashes($reportTitle) . "' has been approved and is now published.",
                 'approver' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
                 'role' => 'approver',
                 'type' => $type,
@@ -341,32 +344,7 @@ class TerminalReportController extends Controller
             'created_at' => now(),
         ]);
     
-        // Notify all publisher
-        $statusPublisher = 'submitted for publishing';
-    
-          // Retrieve all publishers
-        $publishers = User::where('role', 'publisher')->get();
-    
-        // Create notifications for each approver
-        foreach ($publishers as $publisher) {
-            Notification::create([
-                'user_id' => $publisher->id,
-                'notifiable_type' => User::class,
-                'notifiable_id' => $publisher->id,
-                'type' => $type,
-                'related_type' => TerminalReport::class,
-                'related_id' => $terminalReport->id,
-                'data' => json_encode([
-                    'message' => "The terminal report titled '" . addslashes($reportTitle) . "' has been submitted for publishing.",
-                    'approver' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
-                    'role' => 'approver',
-                    'type' => $type,
-                    'status' => $statusPublisher,
-                ]),
-                'created_at' => now(),
-            ]);
-        }
-    
+       
         // Log the "approved" action in the activity_log table
         ActivityLog::create([
             'log_name' => 'Terminal Report Approved',
@@ -388,6 +366,7 @@ class TerminalReportController extends Controller
         session()->flash('alert-success', 'Terminal report approved successfully.');
         return to_route('approver.terminal_reports.index');
     }
+
     public function showProjectRejected(string $id, Request $request)
     {
     // Find the terminal report by its ID, including the user who logged it
@@ -470,7 +449,8 @@ class TerminalReportController extends Controller
        // Initialize the query for terminalReport
         $reportsQuery = terminalReport::query()
         ->whereIn('id', $roleActions)
-        ->whereIn('review_status_id', [3,6])
+        ->where('review_status_id', 3)
+        ->where('is_publish', 1)
             ->when($title, function ($query, $title) {
                 return $query->where('related_title', 'like', '%' . $title . '%');
             })

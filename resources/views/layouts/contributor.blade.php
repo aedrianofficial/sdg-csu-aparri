@@ -28,7 +28,8 @@
         integrity="sha256-4MX+61mt9NVvvuPjUWdUdyfZfxSB1/Rf9WtqRHgG5S0=" crossorigin="anonymous"><!-- jsvectormap -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/css/jsvectormap.min.css"
         integrity="sha256-+uGLJmmTKOqBr+2E6KDYs/NRsHxSkONXFHUL0fy2O/4=" crossorigin="anonymous">
-
+    <!-- Quill.js CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     {{-- sweet alert --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -125,7 +126,7 @@
                 </ul> <!--end::Start Navbar Links--> <!--begin::End Navbar Links-->
                 <ul class="navbar-nav ms-auto"> <!--begin::Navbar Search-->
                     <!--end::Navbar Search-->
-                    
+
                     <!-- Theme toggle dropdown -->
                     {{-- <li class="nav-item dropdown">
                         <button
@@ -345,7 +346,7 @@
         <aside class="app-sidebar bg-body-secondary shadow">
             <!--begin::Sidebar Brand-->
             <div class="sidebar-brand">
-                <a href="./index.html" class="brand-link">
+                <a href="{{ route('website.home2') }}" class="brand-link">
                     <img src="{{ asset('assets/website/images/csu-sdg-logo.png') }}" alt="Logo"
                         class="brand-image opacity-75">
                     <span class="brand-text fw-light">SDG CSU-APARRI</span>
@@ -563,7 +564,7 @@
     <!--begin::Required Plugin(AdminLTE)-->
     <script src="{{ asset('assets/auth/js/script.js') }}"></script>
     <script src="{{ asset('assets/auth/vendors/js/vendor.bundle.base.js') }}"></script>
-
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <!--leaflet-->
     <script src="{{ asset('assets/auth/js/leaflet.js') }}" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
         crossorigin=""></script>

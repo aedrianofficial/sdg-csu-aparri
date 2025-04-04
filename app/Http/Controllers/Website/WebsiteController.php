@@ -18,10 +18,65 @@ use Illuminate\Support\Facades\Log;
 class WebsiteController extends Controller
 {
 
-   
+    public function showSdg($id)
+    {
+        $sdgs = [
+            1 => "End poverty in all its forms everywhere",
+            2 => "End hunger, achieve food security and improved nutrition and promote sustainable agriculture",
+            3 => "Ensure healthy lives and promote well-being for all at all ages",
+            4 => "Ensure inclusive and equitable quality education and promote lifelong learning opportunities for all",
+            5 => "Achieve gender equality and empower all women and girls",
+            6 => "Ensure availability and sustainable management of water and sanitation for all",
+            7 => "Ensure access to affordable, reliable, sustainable and modern energy for all",
+            8 => "Promote sustained, inclusive and sustainable economic growth, full and productive employment and decent work for all",
+            9 => "Build resilient infrastructure, promote inclusive and sustainable industrialization and foster innovation",
+            10 => "Reduce inequality within and among countries",
+            11 => "Make cities and human settlements inclusive, safe, resilient and sustainable",
+            12 => "Ensure sustainable consumption and production patterns",
+            13 => "Take urgent action to combat climate change and its impacts",
+            14 => "Conserve and sustainably use the oceans, seas and marine resources for sustainable development",
+            15 => "Protect, restore and promote sustainable use of terrestrial ecosystems, sustainably manage forests, combat desertification, and halt and reverse land degradation and halt biodiversity loss",
+            16 => "Promote peaceful and inclusive societies for sustainable development, provide access to justice for all and build effective, accountable and inclusive institutions at all levels",
+            17 => "Strengthen the means of implementation and revitalize the Global Partnership for Sustainable Development"
+        ];
+
+        $sdg = (object) [
+            'id' => $id,
+            'name' => 'SDG ' . $id,
+            'description' => $sdgs[$id] ?? 'No description available'
+        ];
+
+        // Get published projects related to this SDG
+        $projects = Project::whereHas('sdg', function($query) use ($id) {
+                $query->where('sdgs.id', $id);
+            })
+            ->where('is_publish', Project::Published)
+            ->with(['projectimg', 'sdg'])
+            ->get();
+
+        // Get published research related to this SDG
+        $researches = Research::whereHas('sdg', function($query) use ($id) {
+                $query->where('sdgs.id', $id);
+            })
+            ->where('is_publish', Research::Published)
+            ->with(['researchCategory', 'sdg'])
+            ->get();
+
+        // Get all SDGs with research count
+        $sdgPublished = Sdg::withCount('research')
+            ->orderBy('name')
+            ->get();
+
+        // Get all research categories with count
+        $researchCategories = Researchcategory::withCount('research')
+            ->orderBy('name')
+            ->get();
+
+        return view('website.sdg_content.sdgs.index', compact('sdg', 'projects', 'researches', 'sdgPublished', 'researchCategories'));
+    }
 
     public function projectsByCoordinates($latitude, $longitude)
-{
+    {
     // Fetch published projects based on the given coordinates
     $projects = Project::where('is_publish', 1)
         ->where('latitude', $latitude)
@@ -255,23 +310,12 @@ class WebsiteController extends Controller
             ->whereNotNull('longitude')
             ->get(['id','title', 'location_address', 'latitude', 'longitude']);
     
-        // Paginate projects and reports for the list
-        $projects = Project::orderBy('id', 'desc')->where('is_publish', Project::Published)->take(3)->get();
-        $reports = Report::orderBy('id', 'desc')->where('is_publish', Report::Published)->take(3)->get();
-    
-        // Fetch the latest research with their categories
-        $research = Research::with(['researchcategory', 'researchfiles']) // Load research category and files
-        ->orderBy('id', 'desc')
-        ->where('is_publish', Research::Published) 
-        ->take(3)
-        ->get();
-    
+       
         return view('website.sdg_content.index2', [
-            'reports' => $reports,
-            'projects' => $projects,
+           
             'sdgs' => $sdgs,
             'mapProjects' => $mapProjects, // Pass projects with geolocation for map
-            'research' => $research, // Pass the latest research
+          
         ]);
     }
     

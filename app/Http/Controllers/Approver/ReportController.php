@@ -272,7 +272,7 @@ class ReportController extends Controller
             'related_type' => Report::class,
             'related_id' => $report->id,
             'data' => json_encode([
-                'message' => "Your $type '" . addslashes($reportTitle) . "' has been approved.", // Escape the report title
+                'message' => "Your $type '" . addslashes($reportTitle) . "' has been approved and is now published.", // Escape the report title
                 'approver' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
                 'role' => 'approver',  // Specify the role
                 'type' => $type, // Include the type

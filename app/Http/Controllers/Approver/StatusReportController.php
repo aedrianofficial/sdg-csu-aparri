@@ -284,7 +284,10 @@ class StatusReportController extends Controller
         $statusReport = StatusReport::findOrFail($id);
     
         // Update the review status to 'Forwarded to Approver'
-        $statusReport->update(['review_status_id' => 6]); 
+        $statusReport->update([
+            'review_status_id' => 3,
+            'is_publish' => 1
+        ]); 
     
         // Log the action in the role_actions table
         RoleAction::create([
@@ -310,7 +313,7 @@ class StatusReportController extends Controller
             'related_type' => StatusReport::class,
             'related_id' => $statusReport->id,
             'data' => json_encode([
-                'message' => "Your $type '" . addslashes($reportTitle) . "' has been approved.",
+                'message' => "Your $type '" . addslashes($reportTitle) . "' has been approved and is now published.",
                 'approver' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
                 'role' => 'approver',
                 'type' => $type,
@@ -319,32 +322,7 @@ class StatusReportController extends Controller
             'created_at' => now(),
         ]);
     
-        // Notify all publisher
-        $statusPublisher = 'submitted for publishing';
-    
-        // Retrieve all approvers
-        $publishers = User::where('role', 'publisher')->get();
-    
-        // Create notifications for each approver
-        foreach ($publishers as $publisher) {
-            Notification::create([
-                'user_id' => $publisher->id,
-                'notifiable_type' => User::class,
-                'notifiable_id' => $publisher->id,
-                'type' => $type,
-                'related_type' => StatusReport::class,
-                'related_id' => $statusReport->id,
-                'data' => json_encode([
-                    'message' => "The status report titled '" . addslashes($reportTitle) . "' has been submitted for publishing.",
-                    'approver' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
-                    'role' => 'approver',
-                    'type' => $type,
-                    'status' => $statusPublisher,
-                ]),
-                'created_at' => now(),
-            ]);
-        }
-    
+       
         // Log the "approved" action in the activity_log table
         ActivityLog::create([
             'log_name' => 'Status Report Approved',
@@ -437,7 +415,8 @@ class StatusReportController extends Controller
        // Initialize the query for StatusReport
         $reportsQuery = StatusReport::query()
         ->whereIn('id', $roleActions)
-        ->whereIn('review_status_id', [3,6])
+        ->where('review_status_id', 3)
+        ->where('is_publish', 1)
             ->when($title, function ($query, $title) {
                 return $query->where('related_title', 'like', '%' . $title . '%');
             })

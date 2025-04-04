@@ -3,7 +3,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Admin')</title>
     <meta name="author" content="">
@@ -33,7 +33,8 @@
     <link rel="stylesheet" href="{{ asset('assets/auth/css/Control.Geocoder.css') }}" />
 
     <link href="{{ asset('assets/auth/css/select2.min.css') }}" rel="stylesheet" />
-
+    <!-- Quill.js CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
         /* Dark mode styles for Select2 */
         [data-bs-theme="dark"] .select2-container--default .select2-selection--single {
@@ -267,7 +268,7 @@
 
 
 
-                            <!--begin::Fullscreen Toggle-->
+                        <!--begin::Fullscreen Toggle-->
                     <li class="nav-item"> <a class="nav-link" href="#" data-lte-toggle="fullscreen"> <i
                                 data-lte-icon="maximize" class="bi bi-arrows-fullscreen"></i> <i
                                 data-lte-icon="minimize" class="bi bi-fullscreen-exit" style="display: none;"></i>
@@ -328,7 +329,7 @@
         <aside class="app-sidebar bg-body-secondary shadow">
             <!--begin::Sidebar Brand-->
             <div class="sidebar-brand">
-                <a href="{{ route('auth.dashboard') }}" class="brand-link">
+                <a href="{{ route('website.home2') }}" class="brand-link">
                     <img src="{{ asset('assets/website/images/csu-sdg-logo.png') }}" alt="Logo"
                         class="brand-image opacity-75">
                     <span class="brand-text fw-light">SDG CSU-APARRI</span>
@@ -385,15 +386,16 @@
                         </li>
 
                         <li class="nav-item {{ request()->routeIs('auth.status_reports.*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ request()->routeIs('auth.status_reports.*') ? 'active' : '' }}">
+                            <a href="#"
+                                class="nav-link {{ request()->routeIs('auth.status_reports.*') ? 'active' : '' }}">
                                 <i class="nav-icon bi bi-file-earmark-bar-graph"></i> <!-- Changed to reports icon -->
                                 <p>
-                                   Status Reports
+                                    Status Reports
                                     <i class="nav-arrow bi bi-chevron-right"></i>
                                 </p>
                             </a>
                             <ul class="nav nav-treeview">
-                                
+
                                 <li class="nav-item">
                                     <a href="{{ route('auth.status_reports.index') }}"
                                         class="nav-link {{ request()->routeIs('auth.status_reports.index') ? 'active' : '' }}">
@@ -401,7 +403,7 @@
                                         <p>All Status Reports</p>
                                     </a>
                                 </li>
-                                
+
                                 <li class="nav-item">
                                     <a href="{{ route('auth.status_reports.my_reports') }}"
                                         class="nav-link {{ request()->routeIs('auth.status_reports.my_reports') ? 'active' : '' }}">
@@ -412,7 +414,8 @@
                             </ul>
                         </li>
                         <li class="nav-item {{ request()->routeIs('auth.terminal_reports.*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ request()->routeIs('auth.terminal_reports.*') ? 'active' : '' }}">
+                            <a href="#"
+                                class="nav-link {{ request()->routeIs('auth.terminal_reports.*') ? 'active' : '' }}">
                                 <i class="nav-icon bi bi-file-earmark-bar-graph"></i> <!-- Changed to reports icon -->
                                 <p>
                                     Terminal Reports
@@ -427,7 +430,7 @@
                                         <p>All Terminal Reports</p>
                                     </a>
                                 </li>
-                          
+
                                 <li class="nav-item">
                                     <a href="{{ route('auth.terminal_reports.my_reports') }}"
                                         class="nav-link {{ request()->routeIs('auth.terminal_reports.my_reportscontributor') ? 'active' : '' }}">
@@ -435,7 +438,7 @@
                                         <p>My Terminal Reports</p>
                                     </a>
                                 </li>
-                              
+
                             </ul>
                         </li>
                         <li class="nav-item {{ request()->routeIs('research.*') ? 'menu-open' : '' }}">
@@ -503,7 +506,7 @@
                             <a href="{{ route('users.index') }}"
                                 class="nav-link {{ request()->routeIs('users.index') ? 'active' : '' }}">
                                 <i class="nav-icon bi bi-people-fill"></i>
-                                <p>Users</p>
+                                <p>User Management</p>
                             </a>
                         </li>
                     </ul> <!--end::Sidebar Menu-->
@@ -578,6 +581,7 @@
             }
         });
     </script> <!--end::OverlayScrollbars Configure--> <!-- OPTIONAL SCRIPTS --> <!-- sortablejs -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"
         integrity="sha256-ipiJrswvAR4VAx/th+6zWsdeYmVae0iJuiR+6OqHJHQ=" crossorigin="anonymous"></script> <!-- sortablejs -->
     <script>

@@ -97,14 +97,13 @@
                                     value="{{ $research->title }}" readonly>
                             </div>
 
+                            <!-- Description -->
                             <div class="mb-3">
                                 <label for="description" class="form-label">Description:</label>
-                                @php
-                                    $description = $research->description;
-                                    $rowCount = substr_count($description, "\n") + floor(strlen($description) / 100);
-                                    $rowCount = $rowCount < 3 ? 3 : $rowCount;
-                                @endphp
-                                <textarea name="description" id="description" cols="30" rows="{{ $rowCount }}" class="form-control" readonly>{{ $description }}</textarea>
+                                <div class="form-control" style="min-height: 100px; overflow-y: auto;"
+                                    contenteditable="false">
+                                    {!! $research->description !!}
+                                </div>
                             </div>
 
                             <div class="mb-3">
@@ -112,8 +111,8 @@
                                 <input type="text" name="research_category" id="research_category" class="form-control"
                                     value="{{ $research->researchcategory->name ?? 'N/A' }}" readonly>
                             </div>
-                             <!-- SDGs -->
-                             <div class="mb-3">
+                            <!-- SDGs -->
+                            <div class="mb-3">
                                 <label for="sdg" class="form-label">SDGs:</label>
                                 <textarea name="sdg" id="sdg" cols="30" rows="3" class="form-control" readonly>
 @foreach ($research->sdg as $sdg)
@@ -144,7 +143,7 @@ No SDG Targets available.
                             <div class="mb-3">
                                 <label for="research_status" class="form-label">Research Status:</label>
                                 <input type="text" name="research_status" id="research_status" class="form-control"
-                                    value="{{  $research->status->status ?? 'N/A' }}" readonly>
+                                    value="{{ $research->status->status ?? 'N/A' }}" readonly>
                             </div>
 
                             <div class="mb-3">

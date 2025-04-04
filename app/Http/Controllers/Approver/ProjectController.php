@@ -215,8 +215,8 @@ class ProjectController extends Controller
         // Start querying the Report model
         $query = Project::query()
             ->whereIn('id', $roleActions) // Only include reports related to the role actions
-            ->whereIN('review_status_id', [3,6]) 
-            ->where('is_publish', 0); // Ensure they are not published
+            ->where('review_status_id', 3) 
+            ->where('is_publish', 1); // Ensure they are not published
     
         // Apply filters based on request parameters
         if ($request->filled('title')) {
@@ -256,7 +256,8 @@ public function approved($id)
 
     // Update the review status to 'Forwarded to Approver'
     $project->update([
-        'review_status_id' => 6,
+        'review_status_id' => 3,
+        'is_publish' => 1
     ]);
 
     // Log the action into the role_actions table using polymorphic relationship fields
@@ -283,7 +284,7 @@ public function approved($id)
         'related_type' => Project::class,
         'related_id' => $project->id,
         'data' => json_encode([
-            'message' => "Your $type '" . addslashes($projectTitle) . "' has been approved.",
+            'message' => "Your $type '" . addslashes($projectTitle) . "' has been approved and is now published.",
             'approver' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
             'role' => 'approver',  // Specify the role
             'type' => $type,
@@ -292,31 +293,6 @@ public function approved($id)
         'created_at' => now(),
     ]);
 
-    // Notify all publishers
-    $statusPublisher = 'submitted for publishing';
-
-    // Retrieve all publishers
-    $publishers = User::where('role', 'publisher')->get();
-
-    // Create notifications for each publisher
-    foreach ($publishers as $publisher) {
-        Notification::create([
-            'user_id' => $publisher->id,
-            'notifiable_type' => User::class,
-            'notifiable_id' => $publisher->id,
-            'type' => $type,
-            'related_type' => Project::class,
-            'related_id' => $project->id,
-            'data' => json_encode([
-                'message' => "The project titled '" . addslashes($projectTitle) . "' has been submitted for publishing.",
-                'approver' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
-                'role' => 'approver',
-                'type' => $type,
-                'status' => $statusPublisher,
-            ]),
-            'created_at' => now(),
-        ]);
-    }
     // Log the activity for approving the project
     ActivityLog::create([
         'log_name' => 'Project Approved',

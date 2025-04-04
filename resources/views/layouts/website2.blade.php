@@ -65,9 +65,9 @@ scratch. This page gets rid of all links and provides the needed markup only.
                         <li class="nav-item">
                             <a href="{{ route('website.yearly_overview') }}" class="nav-link">Yearly Overview</a>
                         </li>
-                        <li class="nav-item">
+                        {{-- <li class="nav-item">
                             <a href="#" class="nav-link">About Us</a>
-                        </li>
+                        </li> --}}
                     </ul>
                 </div>
 

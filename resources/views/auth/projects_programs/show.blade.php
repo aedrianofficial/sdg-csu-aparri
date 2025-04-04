@@ -127,13 +127,10 @@
                                 <!-- Description -->
                                 <div class="mb-3">
                                     <label for="description" class="form-label">Description:</label>
-                                    @php
-                                        $description = $project->description;
-                                        $rowCount =
-                                            substr_count($description, "\n") + floor(strlen($description) / 100); // Adjust the row count based on length
-                                        $rowCount = $rowCount < 3 ? 3 : $rowCount; // Ensure a minimum of 3 rows for short descriptions
-                                    @endphp
-                                    <textarea name="description" id="description" rows="{{ $rowCount }}" class="form-control" readonly>{{ $description }}</textarea>
+                                    <div class="form-control" style="min-height: 100px; overflow-y: auto;"
+                                        contenteditable="false">
+                                        {!! $project->description !!}
+                                    </div>
                                 </div>
 
                                 <!-- Project Status -->
@@ -185,7 +182,7 @@ No SDG Targets available.
                                             target="_blank">https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf</a>
                                     </p>
                                 </div>
-                                
+
                                 <div class="mb-3">
                                     <label for="">Image: </label>
                                     <div>

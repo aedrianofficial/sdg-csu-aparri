@@ -24,6 +24,7 @@ class ProjectController extends Controller
 {
     /**
      * Display a listing of the resource.
+     *
      */
 
      public function rejected($id, Request $request)
@@ -250,23 +251,23 @@ class ProjectController extends Controller
                     'content_type' => Project::class,
                     'user_id' => $user->id,
                     'role' => 'admin',
-                    'action' => 'published',
+                    'action' => 'approved',
                     'created_at' => now()
                 ]);
 
                 // Log the activity for publishing the project
                 ActivityLog::create([
-                    'log_name' => 'Project Published',
-                    'description' => 'Published the project titled "' . addslashes($project->title) . '"',
+                    'log_name' => 'Project Approved',
+                    'description' => 'Approved the project titled "' . addslashes($project->title) . '"',
                     'subject_type' => Project::class,
                     'subject_id' => $project->id,
-                    'event' => 'published',
+                    'event' => 'approved',
                     'causer_type' => User::class,
                     'causer_id' => $user->id,
                     'properties' => json_encode([
                         'project_title' => $project->title,
-                        'review_status' => 'published',
-                        'role' => 'publisher',
+                        'review_status' => 'approved',
+                        'role' => 'approver',
                     ]),
                     'created_at' => now(),
                 ]);
@@ -487,14 +488,13 @@ class ProjectController extends Controller
             $actionMap = [
                 1 => 'requested change',
                 2 => 'rejected',
-                3 => 'published',
+                3 => 'approved',
                 4 => 'submitted for review',
                 5 => 'reviewed',
-                6 => 'approved'
             ];
             $action = $actionMap[$project->review_status_id] ?? 'updated';
             if ($project->review_status_id == 3) {
-                $action = 'published';
+                $action = 'approved';
                 $is_publish = 1;
             }
     
@@ -582,7 +582,7 @@ class ProjectController extends Controller
                     
                     break;
     
-                case 3: // Published
+                case 3: // Approved
                     Notification::create([
                         'user_id' => $originalContributor,
                         'notifiable_type' => User::class,
@@ -591,11 +591,11 @@ class ProjectController extends Controller
                         'related_type' => Project::class,
                         'related_id' => $project->id,
                         'data' => json_encode([
-                            'message' => "Your project '$projectTitle' has been published.",
-                            'publisher' => $user->first_name . ' ' . $user->last_name,
-                            'role' => ['admin', 'publisher'],
+                            'message' => "Your project '$projectTitle' has been approved and is now published.",
+                            'approver' => $user->first_name . ' ' . $user->last_name,
+                            'role' => ['admin', 'approver'],
                             'type' => 'project',
-                            'status' => 'published'
+                            'status' => 'approved'
                         ]),
                         'created_at' => now(),
                     ]);
@@ -605,13 +605,13 @@ class ProjectController extends Controller
                         'description' => 'Published the project titled "' . addslashes($project->title) . '"',
                         'subject_type' => Project::class,
                         'subject_id' => $project->id,
-                        'event' => 'published',
+                        'event' => 'approved',
                         'causer_type' => User::class,
                         'causer_id' => $user->id,
                         'properties' => json_encode([
                             'project_title' => $project->title,
-                            'review_status' => 'published',
-                            'role' => 'publisher',
+                            'review_status' => 'approved',
+                            'role' => 'approver',
                         ]),
                         'created_at' => now(),
                     ]);
@@ -704,63 +704,6 @@ class ProjectController extends Controller
                             'project_title' => $project->title,
                             'review_status' => 'reviewed',
                             'role' => 'reviewer',
-                        ]),
-                        'created_at' => now(),
-                    ]);
-                    break;
-    
-                case 6: // Approved
-                    Notification::create([
-                        'user_id' => $originalContributor,
-                        'notifiable_type' => User::class,
-                        'notifiable_id' => $originalContributor,
-                        'type' => 'project',
-                        'related_type' => Project::class,
-                        'related_id' => $project->id,
-                        'data' => json_encode([
-                            'message' => "Your project '$projectTitle' has been approved.",
-                            'approver' => $user->first_name . ' ' . $user->last_name,
-                            'role' => ['admin', 'approver'],
-                            'type' => 'project',
-                            'status' => 'approved'
-                        ]),
-                        'created_at' => now(),
-                    ]);
-    
-                    $statusPublisher = 'submitted for publishing';
-                    $publishers = User::where('role', 'publisher')->get();
-    
-                    foreach ($publishers as $publisher) {
-                        Notification::create([
-                            'user_id' => $publisher->id,
-                            'notifiable_type' => User::class,
-                            'notifiable_id' => $publisher->id,
-                            'type' => 'project',
-                            'related_type' => Project::class,
-                            'related_id' => $project->id,
-                            'data' => json_encode([
-                                'message' => "The project titled '" . addslashes($projectTitle) . "' has been submitted for publishing.",
-                                'approver' => $user->first_name . ' ' . $user->last_name,
-                                'role' => 'approver',
-                                'type' => 'project',
-                                'status' => $statusPublisher,
-                            ]),
-                            'created_at' => now(),
-                        ]);
-                    }
-    
-                    ActivityLog::create([
-                        'log_name' => 'Project Approved',
-                        'description' => 'Approved the project titled "' . addslashes($project->title) . '"',
-                        'subject_type' => Project::class,
-                        'subject_id' => $project->id,
-                        'event' => 'approved',
-                        'causer_type' => User::class,
-                        'causer_id' => auth()->user()->id,
-                        'properties' => json_encode([
-                            'project_title' => $project->title,
-                            'review_status' => 'approved',
-                            'role' => 'approver',
                         ]),
                         'created_at' => now(),
                     ]);
