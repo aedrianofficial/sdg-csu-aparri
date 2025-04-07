@@ -242,12 +242,12 @@ class ResearchController extends Controller
      * Show the form for creating a new resource.
      */
     public function create()
-{
-    $researchcategories = Researchcategory::all();
-    $sdgs = Sdg::all();
-    $projectResearchStatuses = ProjectResearchStatus::all(); // Fetch all project research statuses
-    return view('contributor.research_extension.create', compact('researchcategories', 'sdgs', 'projectResearchStatuses'));
-}
+    {
+        $researchcategories = Researchcategory::all();
+        $sdgs = Sdg::all();
+        $projectResearchStatuses = ProjectResearchStatus::all(); // Fetch all project research statuses
+        return view('contributor.research_extension.create', compact('researchcategories', 'sdgs', 'projectResearchStatuses'));
+    }
 
     /**
      * Store a newly created resource in storage.

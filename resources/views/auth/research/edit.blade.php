@@ -160,9 +160,15 @@
 
                                 <!-- Research Description -->
                                 <div class="mb-3">
-                                    <label for="description" class="form-label">Description</label>
-                                    <textarea name="description" class="form-control" id="description" rows="10" required>{{ old('description', $research->description) }}</textarea>
+                                    <label for="description-container" class="form-label">Description</label>
+
+                                    <!-- Quill Editor Container -->
+                                    <div id="description-editor" style="height: 300px;">{!! old('description', $research->description) !!}</div>
+
+                                    <!-- Hidden input to submit description -->
+                                    <input type="hidden" name="description" id="description">
                                 </div>
+
                                 <!-- Created By (Display Only) -->
                                 <div class="mb-3">
                                     <label for="created_by" class="form-label">Created by:</label>
@@ -213,6 +219,81 @@
 @endsection
 
 @section('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Quill editor
+            var quill = new Quill('#description-editor', {
+                theme: 'snow',
+                placeholder: 'Write your description here...',
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline', 'strike'],
+                        ['blockquote', 'code-block'],
+                        [{
+                            'header': 1
+                        }, {
+                            'header': 2
+                        }],
+                        [{
+                            'list': 'ordered'
+                        }, {
+                            'list': 'bullet'
+                        }],
+                        [{
+                            'script': 'sub'
+                        }, {
+                            'script': 'super'
+                        }],
+                        [{
+                            'indent': '-1'
+                        }, {
+                            'indent': '+1'
+                        }],
+                        [{
+                            'direction': 'rtl'
+                        }],
+                        [{
+                            'size': ['small', false, 'large', 'huge']
+                        }],
+                        [{
+                            'header': [1, 2, 3, 4, 5, 6, false]
+                        }],
+                        [{
+                            'color': []
+                        }, {
+                            'background': []
+                        }],
+                        [{
+                            'font': []
+                        }],
+                        [{
+                            'align': []
+                        }],
+                        ['clean'],
+                        ['link', 'image', 'video']
+                    ]
+                }
+            });
+
+            // Set initial content if it exists
+            const oldValue = document.getElementById('description').value;
+            if (oldValue) {
+                quill.root.innerHTML = oldValue;
+            }
+
+            // Update hidden input when text changes
+            quill.on('text-change', function() {
+                var htmlContent = quill.root.innerHTML;
+                document.getElementById('description').value = htmlContent;
+            });
+
+            // Ensure the form captures the Quill content when submitted
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function() {
+                document.getElementById('description').value = quill.root.innerHTML;
+            });
+        });
+    </script>
     <script>
         var selectedSubCategories = @json($selectedSubCategories);
     </script>

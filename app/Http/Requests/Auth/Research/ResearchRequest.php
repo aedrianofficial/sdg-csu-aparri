@@ -28,7 +28,7 @@ class ResearchRequest extends FormRequest
             'sdg' => ['required', 'array'],
             'is_publish' => ['required', 'boolean'],
             'file_link' => 'nullable|url',
-            'file' => ['file', 'mimes:pdf,docx', 'max:2048'], // Adjust mime types and size as needed
+            'file' => ['file', 'mimes:pdf', 'max:2048'], // Adjust mime types and size as needed
             'description' => ['required', 'min:10'],
         ];
     }

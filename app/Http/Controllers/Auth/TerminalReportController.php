@@ -27,6 +27,21 @@ class TerminalReportController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+     public function viewTerminalReportFile($id)
+     {
+         // Find the file
+         $file = TerminalReportFile::findOrFail($id);
+         
+         // Get binary data directly from the database
+         $fileContent = $file->file;
+         
+         // Return the file content as PDF for viewing
+         return response($fileContent)
+             ->header('Content-Type', 'application/pdf')
+             ->header('Content-Disposition', 'inline; filename="' . $file->original_filename . '"');
+     }
+
     public function downloadFile($id)
 {
     // Find the terminal report file by ID
@@ -244,7 +259,8 @@ class TerminalReportController extends Controller
         'researchers_id' => 'required|array', // New validation rule
         'researchers_id.*' => 'integer', // Ensure each researcher ID is an integer
         'related_link' => 'nullable|url',
-        'terminal_report_file' => 'nullable|file|max:2048', // Optional file validation
+        'terminal_report_file' => 'nullable|file|mimes:pdf|max:2048',
+
     ]);
         
     try {
@@ -849,7 +865,8 @@ class TerminalReportController extends Controller
         'researchers_id' => 'required|array',
         'researchers_id.*' => 'integer',
         'related_link' => 'nullable|url',
-        'terminal_report_file' => 'nullable|file|max:2048',
+        'terminal_report_file' => 'nullable|file|mimes:pdf|max:2048',
+
     ]);
 
     try {

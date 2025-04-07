@@ -1,5 +1,12 @@
 @extends('layouts.website2')
-
+@section('styles')
+    <style>
+        .quill-content p {
+            margin-bottom: 0;
+            line-height: 1.5;
+        }
+    </style>
+@endsection
 @section('content')
     <div class="container">
         <!-- Reports Section -->
@@ -53,7 +60,7 @@
                             <!-- Description -->
                             <div class="report-detail-item mb-2">
                                 <i class="fas fa-align-left"></i> <strong>Description:</strong>
-                                <span>{!! $report->description !!}</span>
+                                <span class="quill-content" style="color: black;">{!! $report->description !!}</span>
                             </div>
 
 

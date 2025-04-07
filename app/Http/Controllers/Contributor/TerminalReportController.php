@@ -281,7 +281,7 @@ class TerminalReportController extends Controller
         'researchers_id' => 'required|array',
         'researchers_id.*' => 'integer',
         'related_link' => 'nullable|url',
-        'terminal_report_file' => 'nullable|file|max:2048',
+        'terminal_report_file' => 'nullable|file|mimes:pdf|max:2048',
     ]);
     
     try {
@@ -557,7 +557,7 @@ class TerminalReportController extends Controller
         'researchers_id' => 'required|array',
         'researchers_id.*' => 'integer',
         'related_link' => 'nullable|url',
-        'terminal_report_file' => 'nullable|file|max:2048',
+        'terminal_report_file' => 'nullable|file|mimes:pdf|max:2048',
     ]);
     
     try {

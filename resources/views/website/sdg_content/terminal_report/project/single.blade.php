@@ -89,40 +89,96 @@
                                     @endif
                                 </span>
                             </div>
-                            <!-- Terminal Report File -->
-                            <div class="report-detail-item mb -2">
-                                <i class="fas fa-file"></i> <strong>Files:</strong>
+
+                            <div class="mb-3">
+                                <label for="file" class="form-label">Terminal Report File (View Only):</label>
+
                                 @if (!$terminalReportFile)
-                                    <span>No files available for this terminal report.</span>
+                                    <input type="text" name="file" id="file" class="form-control"
+                                        value="No files available for this terminal report." readonly>
                                 @else
-                                    <div class="input-group">
-                                        <a href="{{ route('terminal.report.file.download', $terminalReportFile->id) }}"
-                                            class="form-control" target="_blank" rel="noopener noreferrer">
-                                            <span>Download</span>
-                                            {{ $terminalReportFile->original_filename ?? 'terminal_report_file' }}
-                                        </a>
+                                    <div class="pdf-viewer-container"
+                                        style="width: 100%; max-height: 80vh; border: 1px solid #ddd; overflow-y: auto;">
+                                        <div id="pdf-viewer"
+                                            style="width: 100%; padding: 10px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center;">
+                                        </div>
                                     </div>
+
+                                    <!-- Include PDF.js -->
+                                    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+                                    <script>
+                                        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+
+                                        const viewerContainer = document.getElementById('pdf-viewer');
+                                        const pdfUrl = "{{ route('terminal.report.file.view', $terminalReportFile->id) }}";
+
+                                        pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
+                                            const totalPages = pdf.numPages;
+
+                                            const renderPage = (pageNumber) => {
+                                                pdf.getPage(pageNumber).then(page => {
+                                                    const containerWidth = viewerContainer.offsetWidth;
+                                                    const viewport = page.getViewport({
+                                                        scale: 1
+                                                    });
+                                                    const scale = containerWidth / viewport.width;
+                                                    const scaledViewport = page.getViewport({
+                                                        scale
+                                                    });
+
+                                                    const canvas = document.createElement('canvas');
+                                                    canvas.style.marginBottom = '15px';
+                                                    canvas.style.maxWidth = '100%';
+                                                    canvas.className = 'shadow-sm rounded';
+
+                                                    const context = canvas.getContext('2d');
+                                                    canvas.width = scaledViewport.width;
+                                                    canvas.height = scaledViewport.height;
+
+                                                    viewerContainer.appendChild(canvas);
+
+                                                    const renderContext = {
+                                                        canvasContext: context,
+                                                        viewport: scaledViewport
+                                                    };
+
+                                                    page.render(renderContext).promise.then(() => {
+                                                        if (pageNumber < totalPages) {
+                                                            renderPage(pageNumber + 1);
+                                                        }
+                                                    });
+                                                });
+                                            };
+
+                                            renderPage(1);
+                                        }).catch(error => {
+                                            console.error("PDF load error:", error);
+                                            viewerContainer.innerHTML =
+                                                '<div class="text-danger p-3">Failed to load PDF. Please try again later.</div>';
+                                        });
+                                    </script>
                                 @endif
                             </div>
-                        </div>
 
-                        <!-- Meta Info -->
-                        <div class="post-meta mt-4">
-                            <ul class="list-unstyled">
 
-                                <li>
-                                    <strong><i class="fas fa-tags"></i> Related Project:</strong>
-                                    <a href="{{ route('website.display_single_project2', $terminalReport->related_id) }}">
-                                        {{ $terminalReport->related_title }}
-                                    </a>
-                                </li>
-                            </ul>
+                            <!-- Meta Info -->
+                            <div class="post-meta mt-4">
+                                <ul class="list-unstyled">
+                                    <li>
+                                        <strong><i class="fas fa-tags"></i> Related Project:</strong>
+                                        <a
+                                            href="{{ route('website.display_single_project2', $terminalReport->related_id) }}">
+                                            {{ $terminalReport->related_title }}
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- SDGs Section -->
+            <!-- SDGs Section - Moved outside the terminal report content div -->
             <div class="col-lg-4">
                 <div class="card card-widget card-danger card-outline">
                     <div class="card-header">

@@ -11,6 +11,11 @@
         .leaflet-popup .fas {
             color: #007bff;
         }
+
+        .quill-content p {
+            margin-bottom: 0;
+            line-height: 1.5;
+        }
     </style>
 @endsection
 
@@ -55,28 +60,84 @@
                             <!-- Description -->
                             <div class="research-detail-item mb-2">
                                 <i class="fas fa-align-left"></i> <strong>Description:</strong>
-                                <span>{!! $research->description !!}</span>
+                                <span class="quill-content" style="color: black;">{!! $research->description !!}</span>
                             </div>
 
-                            <!--File-->
-                            <div class="research-detail-item mb-2">
-                                <strong><i class="fas fa-file"></i> Files:</strong>
-                                <ul>
-                                    @if ($research->researchfiles->isEmpty())
-                                        <li class="text-muted">No files available for this research.</li>
-                                    @else
-                                        @foreach ($research->researchfiles as $file)
-                                            <li>
-                                                <i class="fas fa-download"></i>
-                                                <a href="{{ route('research.file.download', $file->id) }}" target="_blank"
-                                                    rel="noopener noreferrer">
-                                                    Download Abstract: {{ $file->original_filename ?? $research->title }}
-                                                </a>
-                                            </li>
-                                        @endforeach
-                                    @endif
-                                </ul>
+                            <!-- Research File Viewer -->
+                            <div class="mb-3">
+                                <label for="file" class="form-label">Research File (View Only):</label>
+
+                                @if ($research->researchfiles->isEmpty())
+                                    <input type="text" name="file" id="file" class="form-control"
+                                        value="No files available for this research." readonly>
+                                @else
+                                    @php
+                                        $firstResearchFile = $research->researchfiles->first(); // You can loop for multiple files later
+                                    @endphp
+
+                                    <div class="pdf-viewer-container"
+                                        style="width: 100%; max-height: 80vh; border: 1px solid #ddd; overflow-y: auto;">
+                                        <div id="research-pdf-viewer"
+                                            style="width: 100%; padding: 10px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center;">
+                                        </div>
+                                    </div>
+
+                                    <!-- Include PDF.js -->
+                                    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+                                    <script>
+                                        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+
+                                        const researchViewer = document.getElementById('research-pdf-viewer');
+                                        const researchPdfUrl = "{{ route('research.file.view', $firstResearchFile->id) }}";
+
+                                        pdfjsLib.getDocument(researchPdfUrl).promise.then(pdf => {
+                                            const totalPages = pdf.numPages;
+
+                                            const renderPage = (pageNumber) => {
+                                                pdf.getPage(pageNumber).then(page => {
+                                                    const containerWidth = researchViewer.offsetWidth;
+                                                    const viewport = page.getViewport({
+                                                        scale: 1
+                                                    });
+                                                    const scale = containerWidth / viewport.width;
+                                                    const scaledViewport = page.getViewport({
+                                                        scale
+                                                    });
+
+                                                    const canvas = document.createElement('canvas');
+                                                    canvas.style.marginBottom = '15px';
+                                                    canvas.style.maxWidth = '100%';
+                                                    canvas.className = 'shadow-sm rounded';
+
+                                                    const context = canvas.getContext('2d');
+                                                    canvas.width = scaledViewport.width;
+                                                    canvas.height = scaledViewport.height;
+
+                                                    researchViewer.appendChild(canvas);
+
+                                                    const renderContext = {
+                                                        canvasContext: context,
+                                                        viewport: scaledViewport
+                                                    };
+
+                                                    page.render(renderContext).promise.then(() => {
+                                                        if (pageNumber < totalPages) {
+                                                            renderPage(pageNumber + 1);
+                                                        }
+                                                    });
+                                                });
+                                            };
+
+                                            renderPage(1);
+                                        }).catch(error => {
+                                            console.error("PDF load error:", error);
+                                            researchViewer.innerHTML =
+                                                '<div class="text-danger p-3">Failed to load PDF. Please try again later.</div>';
+                                        });
+                                    </script>
+                                @endif
                             </div>
+
                             <div class="research-detail-item mb-2">
                                 <strong><i class="fas fa-file"></i> Full version File:</strong>
                                 @if ($research->file_link)

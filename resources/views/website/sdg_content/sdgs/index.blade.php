@@ -118,27 +118,27 @@
                             <ul class="nav flex-column">
                                 @foreach ($sdgPublished as $singleSdg)
                                     <li class="nav-item">
-                                        <a href="{{ route('website.display_research_sdg2', $singleSdg->id) }}"
+                                        <a href="{{ route('website.sdg.show', $singleSdg->id) }}"
                                             class="nav-link">
 
                                             @php
                                                 // Set badge color based on research count for categories
                                                 $badgeColor = 'bg-primary';
-                                                if ($singleSdg->research_count == 0) {
+                                                if ($singleSdg->project_research_count == 0) {
                                                     $badgeColor = 'bg-danger';
                                                 } elseif (
-                                                    $singleSdg->research_count >= 1 &&
-                                                    $singleSdg->research_count < 10
+                                                    $singleSdg->project_research_count >= 1 &&
+                                                    $singleSdg->project_research_count < 10
                                                 ) {
                                                     $badgeColor = 'bg-warning';
-                                                } elseif ($singleSdg->research_count >= 20) {
+                                                } elseif ($singleSdg->project_research_count >= 20) {
                                                     $badgeColor = 'bg-success';
                                                 }
                                             @endphp
 
                                             {{ $singleSdg->name }}
                                             <span class="float-right badge {{ $badgeColor }}">
-                                                {{ $singleSdg->research_count }}
+                                                {{ $singleSdg->project_research_count }}
                                             </span>
                                         </a>
                                     </li>

@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\Report;
 use App\Models\Research;
 use App\Models\Researchcategory;
+use App\Models\Researchfile;
 use App\Models\Sdg;
 use App\Models\StatusReport;
 use App\Models\TerminalReport;
@@ -17,7 +18,16 @@ use Illuminate\Support\Facades\Log;
 
 class WebsiteController extends Controller
 {
-
+    public function viewResearchFile($id)
+    {
+        $file = Researchfile::findOrFail($id);
+        $fileContent = $file->file;
+    
+        return response($fileContent)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="' . $file->original_filename . '"');
+    }
+    
     public function showSdg($id)
     {
         $sdgs = [
@@ -62,10 +72,19 @@ class WebsiteController extends Controller
             ->with(['researchCategory', 'sdg'])
             ->get();
 
-        // Get all SDGs with research count
-        $sdgPublished = Sdg::withCount('research')
-            ->orderBy('name')
-            ->get();
+            // Get all SDGs with research count
+            $sdgPublished = Sdg::withCount([
+                'research as research_count' => function ($query) {
+                    $query->where('is_publish', Research::Published); // or simply: where('is_publish', 1)
+                },
+                'project as project_count' => function ($query) {
+                    $query->where('is_publish', Project::Published); // or simply: where('is_publish', 1)
+                },
+            ])->get()->map(function ($sdg) {
+                $sdg->project_research_count = $sdg->research_count + $sdg->project_count;
+                return $sdg;
+            });
+        
 
         // Get all research categories with count
         $researchCategories = Researchcategory::withCount('research')

@@ -702,5 +702,10 @@ Route::middleware(NoCache::class)->group(function(){
     Route::get('sdg/status-reports-research-published/{id}', [WebsiteController::class, 'showStatusReportResearchPublished'])->name('website.status_reports.show_research_published');
     Route::get('sdg/terminal-reports-research-published/{id}', [WebsiteController::class, 'showTerminalReportResearchPublished'])->name('website.terminal_reports.show_research_published');
 
+    Route::get('/terminal-report/file/view/{id}', [TerminalReportController::class, 'viewTerminalReportFile'])
+    ->name('terminal.report.file.view');
+
+    Route::get('/research/file/view/{id}', [WebsiteController::class, 'viewResearchFile'])->name('research.file.view');
+
 // routes/web.php
 });

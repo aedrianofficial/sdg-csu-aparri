@@ -11,6 +11,10 @@
         .leaflet-popup .fas {
             color: #007bff;
         }
+        .quill-content p {
+            margin-bottom: 0;
+            line-height: 1.5;
+        }
     </style>
 @endsection
 @section('content')
@@ -59,7 +63,7 @@
                             <!-- Description -->
                             <div class="project-detail-item mb-2">
                                 <i class="fas fa-align-left"></i> <strong>Description:</strong>
-                                <span>{!! $project->description !!}</span>
+                                <span class="quill-content" style="color: black;">{!! $project->description !!}</span>
                             </div>
                         </div>
 
