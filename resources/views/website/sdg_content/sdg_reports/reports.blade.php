@@ -19,16 +19,15 @@
                 <div class="container">
                     <div class="row mb-2">
                         <div class="col-sm-6">
-                            <h1 class="m-0">All Reports</h1>
+                            <h1 class="m-0">Reports for {{ $sdg->name }}</h1>
                         </div>
                         <div class="col-sm-6">
                             <ol class="breadcrumb float-sm-right">
-                                <li class="breadcrumb-item">
-                                    <a href="{{ route('website.home2') }}">
-                                        <i class="fas fa-home"></i> Home
-                                    </a>
+                                <li class="breadcrumb-item"><a href="{{ route('website.home') }}"><i
+                                            class="fas fa-home"></i> Home</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('website.sdg_report_main') }}">All
+                                        Reports</a>
                                 </li>
-                                <li class="breadcrumb-item active">All Reports</li>
                             </ol>
                         </div>
                     </div>
@@ -50,7 +49,7 @@
                                                     </h5>
                                                 </div>
                                                 <div class="card-body d-flex flex-column">
-                                                    <a href="{{ route('website.display_single_report2', $report->id) }}">
+                                                    <a href="{{ route('website.display_single_report', $report->id) }}">
                                                         <img src="{{ $report->reportimg->image }}" class="card-img-top"
                                                             alt="" style="height: 200px; object-fit: cover;">
                                                     </a>
@@ -61,6 +60,7 @@
                                                                 {{ date('d M Y', strtotime($report->created_at)) }}
                                                             </li>
                                                             <li>
+
                                                                 @foreach ($report->sdg as $report_sdgs)
                                                                     <i class="fas fa-tags"></i>
                                                                     {{ $report_sdgs->name }}&nbsp;
@@ -69,9 +69,9 @@
                                                         </ul>
                                                     </div>
 
-                                                    <a href="{{ route('website.display_single_report2', $report->id) }}"
+                                                    <a href="{{ route('website.display_single_report', $report->id) }}"
                                                         class="btn btn-success mt-auto continue-reading">
-                                                        <i class="fas fa-book-open"></i> Continue Reading
+                                                        <i class="fas fa-arrow-right"></i> Continue Reading
                                                     </a>
                                                 </div>
                                             </div>
@@ -87,9 +87,7 @@
                                                 <!-- Previous Button -->
                                                 <li class="page-item {{ $reports->onFirstPage() ? 'disabled' : '' }}">
                                                     <a class="page-link" href="{{ $reports->previousPageUrl() }}"
-                                                        tabindex="-1">
-                                                        <i class="fas fa-chevron-left"></i> Previous
-                                                    </a>
+                                                        tabindex="-1"><i class="fas fa-chevron-left"></i> Previous</a>
                                                 </li>
 
                                                 <!-- Page Number Links -->
@@ -108,9 +106,8 @@
 
                                                 <!-- Next Button -->
                                                 <li class="page-item {{ $reports->hasMorePages() ? '' : 'disabled' }}">
-                                                    <a class="page-link" href="{{ $reports->nextPageUrl() }}">
-                                                        Next <i class="fas fa-chevron-right"></i>
-                                                    </a>
+                                                    <a class="page-link" href="{{ $reports->nextPageUrl() }}">Next <i
+                                                            class="fas fa-chevron-right"></i></a>
                                                 </li>
                                             </ul>
                                         </nav>
@@ -137,7 +134,7 @@
                             <ul class="nav flex-column">
                                 @foreach ($sdgs as $singleSdg)
                                     <li class="nav-item">
-                                        <a href="{{ route('website.display_report_sdg2', $singleSdg->id) }}"
+                                        <a href="{{ route('website.display_report_sdg', $singleSdg->id) }}"
                                             class="nav-link">
                                             {{ $singleSdg->name }}
 
@@ -156,9 +153,8 @@
                                                 }
                                             @endphp
 
-                                            <span class="float-right badge {{ $badgeColor }}">
-                                                {{ $singleSdg->report_count }}
-                                            </span>
+                                            <span
+                                                class="float-right badge {{ $badgeColor }}">{{ $singleSdg->report_count }}</span>
                                         </a>
                                     </li>
                                 @endforeach

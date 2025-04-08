@@ -7,7 +7,7 @@
                 <div class="col-sm-8 mx-auto">
                     <div class="card">
                         <div class="card-header text-center">
-                            <a href="{{ route('website.home2') }}">
+                            <a href="{{ route('website.home') }}">
                                 <img src="{{ asset('assets/website/images/csulogo.png') }}" alt="Logo"
                                     class="img-fluid mb-3" style="max-width: 200px;">
                             </a>

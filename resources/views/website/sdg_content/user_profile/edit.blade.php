@@ -50,7 +50,7 @@
                         </div>
                         <div class="col-sm-6">
                             <ol class="breadcrumb float-sm-right">
-                                <li class="breadcrumb-item"><a href="{{ route('website.home2') }}"><i
+                                <li class="breadcrumb-item"><a href="{{ route('website.home') }}"><i
                                             class="fas fa-home"></i> Home</a></li>
                                 <li class="breadcrumb-item">Edit Profile
 
@@ -202,10 +202,10 @@
                 const confirmationMessage = 'You have unsaved changes. Are you sure you want to leave?';
                 if (confirm(confirmationMessage)) {
                     isDirty = false; // Reset the dirty flag
-                    window.location.href = '{{ route('website.home2') }}'; // Redirect to home or desired route
+                    window.location.href = '{{ route('website.home') }}'; // Redirect to home or desired route
                 }
             } else {
-                window.location.href = '{{ route('website.home2') }}'; // Redirect to home or desired route
+                window.location.href = '{{ route('website.home') }}'; // Redirect to home or desired route
             }
         });
 

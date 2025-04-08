@@ -20,13 +20,15 @@
                 <div class="container">
                     <div class="row mb-2">
                         <div class="col-sm-6">
-                            <h1 class="m-0">All Projects</h1>
+                            <h1 class="m-0">Projects for {{ $sdg->name }}</h1>
                         </div>
                         <div class="col-sm-6">
                             <ol class="breadcrumb float-sm-right">
-                                <li class="breadcrumb-item"><a href="{{ route('website.home2') }}"><i
+                                <li class="breadcrumb-item"><a href="{{ route('website.home') }}"><i
                                             class="fas fa-home"></i>Home</a></li>
-                                <li class="breadcrumb-item active">All Projects</li>
+                                <li class="breadcrumb-item active"><a href="{{ route('website.sdg_project_main') }}">All
+                                        Projects</a>
+                                </li>
                             </ol>
                         </div>
                     </div>
@@ -49,26 +51,28 @@
                                                     </h5>
                                                 </div>
                                                 <div class="card-body d-flex flex-column">
-                                                    <a href="{{ route('website.display_single_project2', $project->id) }}">
+                                                    <a href="{{ route('website.display_single_project', $project->id) }}">
                                                         <img src="{{ $project->projectimg->image }}" class="card-img-top"
-                                                            alt="Project Image" style="height: 200px; object-fit: cover;">
+                                                            alt="" style="height: 200px; object-fit: cover;">
                                                     </a>
                                                     <div class="post-meta mt-3">
                                                         <ul class="list-unstyled">
                                                             <li>
                                                                 <i class="fas fa-calendar-alt"></i>
+                                                                <!-- FontAwesome icon for calendar -->
                                                                 {{ date('d M Y', strtotime($project->created_at)) }}
                                                             </li>
                                                             <li>
-                                                                @foreach ($project->sdg as $project_sdg)
-                                                                    <i class="fas fa-tag"></i>
-                                                                    {{ $project_sdg->name }}&nbsp;
+                                                                <i class="fas fa-tags"></i>
+                                                                <!-- FontAwesome icon for tags -->
+                                                                @foreach ($project->sdg as $project_sdgs)
+                                                                    {{ $project_sdgs->name }}&nbsp;
                                                                 @endforeach
                                                             </li>
                                                         </ul>
                                                     </div>
 
-                                                    <a href="{{ route('website.display_single_project2', $project->id) }}"
+                                                    <a href="{{ route('website.display_single_project', $project->id) }}"
                                                         class="btn btn-primary mt-auto continue-reading">Continue
                                                         Reading</a>
                                                 </div>
@@ -85,7 +89,7 @@
                                                 <!-- Previous Button -->
                                                 <li class="page-item {{ $projects->onFirstPage() ? 'disabled' : '' }}">
                                                     <a class="page-link" href="{{ $projects->previousPageUrl() }}"
-                                                        tabindex="-1"><i class="fas fa-chevron-left"></i> Previous</a>
+                                                        tabindex="-1">Previous</a>
                                                 </li>
 
                                                 <!-- Page Number Links -->
@@ -104,8 +108,7 @@
 
                                                 <!-- Next Button -->
                                                 <li class="page-item {{ $projects->hasMorePages() ? '' : 'disabled' }}">
-                                                    <a class="page-link" href="{{ $projects->nextPageUrl() }}">Next <i
-                                                            class="fas fa-chevron-right"></i></a>
+                                                    <a class="page-link" href="{{ $projects->nextPageUrl() }}">Next</a>
                                                 </li>
                                             </ul>
                                         </nav>
@@ -124,16 +127,18 @@
                 <div class="col-lg-4">
                     <div class="card card-widget card-danger card-outline">
                         <div class="card-header">
+
                             <h5 class="card-title m-0 text-truncate">
-                                <i class="fas fa-globe"></i> Sustainable Development Goals
+                                <i class="fas fa-globe"></i>Sustainable Development Goals
                             </h5>
                         </div>
                         <div class="card-footer p-0">
                             <ul class="nav flex-column">
                                 @foreach ($sdgs as $singleSdg)
                                     <li class="nav-item">
-                                        <a href="{{ route('website.display_project_sdg2', $singleSdg->id) }}"
+                                        <a href="{{ route('website.display_project_sdg', $singleSdg->id) }}"
                                             class="nav-link">
+
                                             {{ $singleSdg->name }}
 
                                             @php

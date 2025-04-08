@@ -23,7 +23,7 @@
                         </div>
                         <div class="col-sm-6">
                             <ol class="breadcrumb float-sm-right">
-                                <li class="breadcrumb-item"><a href="{{ route('website.home2') }}"><i
+                                <li class="breadcrumb-item"><a href="{{ route('website.home') }}"><i
                                             class="fas fa-home"></i>Home</a></li>
                                 <li class="breadcrumb-item active">Projects by Coordinates</li>
                             </ol>
@@ -48,7 +48,7 @@
                                                     </h5>
                                                 </div>
                                                 <div class="card-body d-flex flex-column">
-                                                    <a href="{{ route('website.display_single_project2', $project->id) }}">
+                                                    <a href="{{ route('website.display_single_project', $project->id) }}">
                                                         <img src="{{ $project->projectimg->image }}" class="card-img-top"
                                                             alt="Project Image" style="height: 200px; object-fit: cover;">
                                                     </a>
@@ -67,7 +67,7 @@
                                                         </ul>
                                                     </div>
 
-                                                    <a href="{{ route('website.display_single_project2', $project->id) }}"
+                                                    <a href="{{ route('website.display_single_project', $project->id) }}"
                                                         class="btn btn-primary mt-auto continue-reading">Continue
                                                         Reading</a>
                                                 </div>
@@ -130,7 +130,7 @@
                             <ul class="nav flex-column">
                                 @foreach ($sdgs as $singleSdg)
                                     <li class="nav-item">
-                                        <a href="{{ route('website.display_project_sdg2', $singleSdg->id) }}"
+                                        <a href="{{ route('website.display_project_sdg', $singleSdg->id) }}"
                                             class="nav-link">
                                             {{ $singleSdg->name }}
 

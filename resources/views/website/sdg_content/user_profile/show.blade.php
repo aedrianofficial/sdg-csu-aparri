@@ -88,7 +88,7 @@
                         </div>
                         <div class="col-sm-6">
                             <ol class="breadcrumb float-sm-right">
-                                <li class="breadcrumb-item"><a href="{{ route('website.home2') }}"><i
+                                <li class="breadcrumb-item"><a href="{{ route('website.home') }}"><i
                                             class="fas fa-home"></i> Home</a></li>
                                 <li class="breadcrumb-item">Profile
                                 </li>

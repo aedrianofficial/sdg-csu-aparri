@@ -23,7 +23,7 @@
                         </div>
                         <div class="col-sm-6">
                             <ol class="breadcrumb float-sm-right">
-                                <li class="breadcrumb-item"><a href="{{ route('website.home2') }}"><i
+                                <li class="breadcrumb-item"><a href="{{ route('website.home') }}"><i
                                             class="fas fa-home"></i> Home</a></li>
                                 <li class="breadcrumb-item active">All Research</li>
                             </ol>
@@ -68,7 +68,7 @@
                                                         </ul>
                                                     </div>
 
-                                                    <a href="{{ route('website.display_single_research2', $singleResearch->id) }}"
+                                                    <a href="{{ route('website.display_single_research', $singleResearch->id) }}"
                                                         class="btn btn-secondary mt-auto continue-reading">
                                                         {{-- <i class="fas fa-arrow-right"></i> --}} Continue Reading
                                                     </a>
@@ -131,7 +131,7 @@
                             <ul class="nav flex-column">
                                 @foreach ($sdgs as $singleSdg)
                                     <li class="nav-item">
-                                        <a href="{{ route('website.display_research_sdg2', $singleSdg->id) }}"
+                                        <a href="{{ route('website.display_research_sdg', $singleSdg->id) }}"
                                             class="nav-link">
 
                                             @php

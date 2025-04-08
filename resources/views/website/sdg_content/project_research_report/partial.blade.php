@@ -9,7 +9,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ route('website.sdg_project_main2') }}">Show
+                        <li class="breadcrumb-item"><a href="{{ route('website.sdg_project_main') }}">Show
                                 All Projects</a></li>
                         <li class="breadcrumb-item active">Home</li>
                     </ol>
@@ -31,9 +31,9 @@
                                     </h5>
                                 </div>
                                 <div class="card-body d-flex flex-column">
-                                    <a href="{{ route('website.display_single_project2', $project->id) }}">
-                                        <img src="{{ $project->projectimg->image }}" class="card-img-top"
-                                            alt="" style="height: 200px; object-fit: cover;">
+                                    <a href="{{ route('website.display_single_project', $project->id) }}">
+                                        <img src="{{ $project->projectimg->image }}" class="card-img-top" alt=""
+                                            style="height: 200px; object-fit: cover;">
                                     </a>
                                     <div class="post-meta mt-3">
                                         <ul class="list-unstyled">
@@ -46,7 +46,7 @@
                                             </li>
                                         </ul>
                                     </div>
-                                    <a href="{{ route('website.display_single_project2', $project->id) }}"
+                                    <a href="{{ route('website.display_single_project', $project->id) }}"
                                         class="btn btn-primary mt-auto continue-reading">Continue
                                         Reading</a>
                                 </div>
@@ -105,7 +105,7 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ route('website.sdg_research_main2') }}">Show All
+                        <li class="breadcrumb-item"><a href="{{ route('website.sdg_research_main') }}">Show All
                                 Research</a></li>
                         <li class="breadcrumb-item active">Home</li>
                     </ol>
@@ -134,8 +134,7 @@
                                             </li>
                                             <li>
                                                 @foreach ($singleResearch->sdg as $singleResearch_sdgs)
-                                                    <i
-                                                        class="ion-pricetags">{{ $singleResearch_sdgs->name }}&nbsp;</i>
+                                                    <i class="ion-pricetags">{{ $singleResearch_sdgs->name }}&nbsp;</i>
                                                 @endforeach
                                             </li>
                                             <li>
@@ -144,7 +143,7 @@
                                             </li>
                                         </ul>
                                     </div>
-                                    <a href="{{ route('website.display_single_research2', $singleResearch->id) }}"
+                                    <a href="{{ route('website.display_single_research', $singleResearch->id) }}"
                                         class="btn btn-secondary mt-auto continue-reading">Continue
                                         Reading</a>
                                 </div>
@@ -161,11 +160,12 @@
                     <ul class="pagination justify-content-center">
                         <!-- Previous Button -->
                         <li class="page-item {{ $research->onFirstPage() ? 'disabled' : '' }}">
-                            <a class="page-link" href="{{ $research->appends(request()->query())->previousPageUrl() }}" tabindex="-1">
+                            <a class="page-link" href="{{ $research->appends(request()->query())->previousPageUrl() }}"
+                                tabindex="-1">
                                 Previous
                             </a>
                         </li>
-            
+
                         <!-- Page Number Links -->
                         @php
                             $currentPage = $research->currentPage(); // Current page number
@@ -173,13 +173,14 @@
                             $start = max($currentPage - 1, 1); // Calculate start of the visible page items
                             $end = min($start + 2, $lastPage); // Calculate end of the visible page items
                         @endphp
-            
+
                         @for ($i = $start; $i <= $end; $i++)
                             <li class="page-item {{ $currentPage == $i ? 'active' : '' }}">
-                                <a class="page-link" href="{{ $research->appends(request()->query())->url($i) }}">{{ $i }}</a>
+                                <a class="page-link"
+                                    href="{{ $research->appends(request()->query())->url($i) }}">{{ $i }}</a>
                             </li>
                         @endfor
-            
+
                         <!-- Next Button -->
                         <li class="page-item {{ $research->hasMorePages() ? '' : 'disabled' }}">
                             <a class="page-link" href="{{ $research->appends(request()->query())->nextPageUrl() }}">

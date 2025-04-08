@@ -318,7 +318,7 @@ class WebsiteController extends Controller
     
     
 
-    public function home2()
+    public function home()
     {
        
         $sdgs = Sdg::all();
@@ -330,7 +330,7 @@ class WebsiteController extends Controller
             ->get(['id','title', 'location_address', 'latitude', 'longitude']);
     
        
-        return view('website.sdg_content.index2', [
+        return view('website.sdg_content.index', [
            
             'sdgs' => $sdgs,
             'mapProjects' => $mapProjects, // Pass projects with geolocation for map
@@ -340,7 +340,7 @@ class WebsiteController extends Controller
     
 
 
-    public function display_single_report2($report_id) {
+    public function display_single_report($report_id) {
         $report = Report::findOrFail($report_id);
         $latestReports = Report::orderBy('id', 'desc')->take(5)->get();
         $sdgs = Sdg::withCount([
@@ -353,7 +353,7 @@ class WebsiteController extends Controller
         // Fetch related projects based on related_id
         $projects = Project::where('id', $report->related_id)->where('is_publish', true)->get();
     
-        return view('website.sdg_content.sdg_reports.single2', [
+        return view('website.sdg_content.sdg_reports.single', [
             'report' => $report,
             'latestReports' => $latestReports,
             'sdgs' => $sdgs,
@@ -362,8 +362,7 @@ class WebsiteController extends Controller
     }
     
 
-  
-    public function sdg_report_main2(Sdg $sdg)
+    public function sdg_report_main(Sdg $sdg)
     {
         // Fetch SDGs with the count of related reports
         $sdgs = Sdg::withCount([
@@ -376,7 +375,7 @@ class WebsiteController extends Controller
         // Fetch reports for the selected SDG and paginate
         $reports = Report::orderBy('id', 'desc')->where('is_publish', Report::Published)->paginate(4    );
     
-        return view('website.sdg_content.sdg_reports.index2', [
+        return view('website.sdg_content.sdg_reports.index', [
             'sdg' => $sdg,
             'reports' => $reports,
             'sdgs' => $sdgs // Pass the SDGs with the report count
@@ -385,7 +384,7 @@ class WebsiteController extends Controller
     
 
 
-    public function display_report_sdg2(Sdg $sdg)
+    public function display_report_sdg(Sdg $sdg)
     {
         // Fetch SDGs with the count of published reports
         $sdgs = Sdg::withCount([
@@ -400,7 +399,7 @@ class WebsiteController extends Controller
             ->orderBy('id', 'desc')  // Optional: Order by newest first
             ->paginate(4);
     
-        return view('website.sdg_content.sdg_reports.reports2', [
+        return view('website.sdg_content.sdg_reports.', [
             'reports' => $reports,
             'sdg' => $sdg,
             'sdgs' => $sdgs
@@ -482,7 +481,7 @@ class WebsiteController extends Controller
     }
   
 
-    public function display_single_project2($project_id)
+    public function display_single_project($project_id)
 {
     // Fetch the specific project
     $project = Project::where('id', $project_id)
@@ -519,7 +518,7 @@ class WebsiteController extends Controller
         ->where('related_type', 'App\Models\Project') // Ensure it's related to Project
         ->get();
 
-    return view('website.sdg_content.projects_programs.single2', [
+    return view('website.sdg_content.projects_programs.single', [
         'project' => $project,
         'latestProjects' => $latestProjects,
         'sdgs' => $sdgs,
@@ -530,7 +529,7 @@ class WebsiteController extends Controller
     
     
 
-    public function sdg_project_main2()
+    public function sdg_project_main()
     {
         // Fetch SDGs with the count of published projects
         $sdgs = Sdg::withCount([
@@ -544,14 +543,14 @@ class WebsiteController extends Controller
             ->orderBy('id', 'desc')
             ->paginate(4);
     
-        return view('website.sdg_content.projects_programs.index2', [
+        return view('website.sdg_content.projects_programs.index', [
             'sdgs' => $sdgs,
             'projects' => $projects,
         ]);
     }
     
 
-    public function display_project_sdg2(Sdg $sdg)
+    public function display_project_sdg(Sdg $sdg)
     {
         // Fetch SDGs with the count of related published projects
         $sdgs = Sdg::withCount([
@@ -566,7 +565,7 @@ class WebsiteController extends Controller
             ->orderBy('id', 'desc')
             ->paginate(4);
 
-        return view('website.sdg_content.projects_programs.projects_programs2', [
+        return view('website.sdg_content.projects_programs.projects_programs', [
             'projects' => $projects,
             'sdgs' => $sdgs,
             'sdg' => $sdg,
@@ -574,7 +573,7 @@ class WebsiteController extends Controller
     }
 
  
-    public function display_single_research2($research_id)
+    public function display_single_research($research_id)
     {
         // Fetch SDGs with the count of related published research
         $sdgs = Sdg::withCount([
@@ -618,7 +617,7 @@ class WebsiteController extends Controller
             ->where('related_type', 'App\Models\Research') // Ensure it's related to Project
             ->get();
 
-        return view('website.sdg_content.research_extension.single2', [
+        return view('website.sdg_content.research_extension.single', [
             'research' => $research,
             'researchCategories' => $researchCategories,
             'statusReports'=>$statusReports,
@@ -629,7 +628,7 @@ class WebsiteController extends Controller
     }
     
     
-    public function sdg_research_main2()
+    public function sdg_research_main()
 {
     // Fetch SDGs with the count of related published research
     $sdgs = Sdg::withCount([
@@ -650,7 +649,7 @@ class WebsiteController extends Controller
         ->orderBy('id', 'desc')
         ->paginate(4);
 
-    return view('website.sdg_content.research_extension.index2', [
+    return view('website.sdg_content.research_extension.index', [
         'research' => $research,
         'sdgs' => $sdgs,
         'researchCategories' => $researchCategories,
@@ -659,7 +658,7 @@ class WebsiteController extends Controller
 
     
 
-public function display_research_sdg2(Sdg $sdg)
+public function display_research_sdg(Sdg $sdg)
 {
     // Fetch SDGs with the count of related published research
     $sdgs = Sdg::withCount([

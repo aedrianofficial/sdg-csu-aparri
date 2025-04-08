@@ -308,7 +308,7 @@
         <aside class="app-sidebar bg-body-secondary shadow">
             <!--begin::Sidebar Brand-->
             <div class="sidebar-brand">
-                <a href="{{ route('website.home2') }}" class="brand-link">
+                <a href="{{ route('website.home') }}" class="brand-link">
                     <img src="{{ asset('assets/website/images/csulogo.png.png') }}" alt="Logo"
                         class="brand-image opacity-75">
                     <span class="brand-text fw-light">SDG CSU-APARRI</span>

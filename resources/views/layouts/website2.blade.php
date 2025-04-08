@@ -37,7 +37,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
         <!-- My Navbar -->
         <nav class="main-header navbar navbar-expand-md navbar-light navbar-white">
             <div class="container">
-                <a href="{{ route('website.home2') }}" class="navbar-brand">
+                <a href="{{ route('website.home') }}" class="navbar-brand">
                     <img src="{{ asset('assets/website/images/csulogo.png') }}" alt="Logo" class="brand-image"
                         style="opacity: .8">
                     <span class="brand-text font-weight-light d-none d-md-inline">SDG CSU-APARRI</span>
@@ -53,14 +53,14 @@ scratch. This page gets rid of all links and provides the needed markup only.
                 <div class="collapse navbar-collapse order-3" id="navbarCollapse">
                     <ul class="navbar-nav">
                         <li class="nav-item">
-                            <a href="{{ route('website.home2') }}" class="nav-link">Home</a>
+                            <a href="{{ route('website.home') }}" class="nav-link">Home</a>
                         </li>
                        
                         <li class="nav-item">
-                            <a href="{{ route('website.sdg_project_main2') }}" class="nav-link">Projects</a>
+                            <a href="{{ route('website.sdg_project_main') }}" class="nav-link">Projects</a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('website.sdg_research_main2') }}" class="nav-link">Research &
+                            <a href="{{ route('website.sdg_research_main') }}" class="nav-link">Research &
                                 Extensions</a>
                         </li>
                         <li class="nav-item">

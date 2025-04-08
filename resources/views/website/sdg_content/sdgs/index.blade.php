@@ -33,7 +33,7 @@
                                         </h5>
                                     </div>
                                     <div class="card-body d-flex flex-column">
-                                        <a href="{{ route('website.display_single_project2', $project->id) }}">
+                                        <a href="{{ route('website.display_single_project', $project->id) }}">
                                             <img src="{{ $project->projectimg->image }}" class="card-img-top"
                                                 alt="Project Image" style="height: 200px; object-fit: cover;">
                                         </a>
@@ -52,7 +52,7 @@
                                             </ul>
                                         </div>
 
-                                        <a href="{{ route('website.display_single_project2', $project->id) }}"
+                                        <a href="{{ route('website.display_single_project', $project->id) }}"
                                             class="btn btn-primary mt-auto continue-reading">Continue
                                             Reading</a>
                                     </div>
@@ -90,7 +90,7 @@
                                             </ul>
                                         </div>
 
-                                        <a href="{{ route('website.display_single_research2', $singleResearch->id) }}"
+                                        <a href="{{ route('website.display_single_research', $singleResearch->id) }}"
                                             class="btn btn-secondary mt-auto continue-reading">
                                             Continue Reading
                                         </a>

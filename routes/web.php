@@ -661,7 +661,7 @@ Route::middleware(['auth', 'role:publisher', NoCache::class])->group(function(){
 //User
 Route::middleware(NoCache::class)->group(function(){
     //website dashboard
-    Route::get('/',[WebsiteController::class, 'home2',NoCache::class])->name('website.home2');
+    Route::get('/',[WebsiteController::class, 'home', NoCache::class])->name('website.home');
     Route::get('/sdg/{id}', [WebsiteController::class, 'showSdg'])->name('website.sdg.show');
 
     //Yearly Overview of SDG
@@ -675,23 +675,23 @@ Route::middleware(NoCache::class)->group(function(){
 
 
     //report
-    Route::get('/sdg/all/reports/', [WebsiteController::class, 'sdg_report_main2'])->name('website.sdg_report_main2');
-    Route::get('/sdg/reports/{sdg}', [WebsiteController::class, 'display_report_sdg2'])->name('website.display_report_sdg2');
-    Route::get('sdg/report/{report_id}', [WebsiteController::class, 'display_single_report2'])->name('website.display_single_report2');
+    Route::get('/sdg/all/reports/', [WebsiteController::class, 'sdg_report_main'])->name('website.sdg_report_main');
+    Route::get('/sdg/reports/{sdg}', [WebsiteController::class, 'display_report_sdg'])->name('website.display_report_sdg');
+    Route::get('sdg/report/{report_id}', [WebsiteController::class, 'display_single_report'])->name('website.display_single_report');
 
     //projects
-    Route::get('/sdg/all/projects/', [WebsiteController::class, 'sdg_project_main2'])->name('website.sdg_project_main2');
-    Route::get('/sdg/projects/{sdg}', [WebsiteController::class, 'display_project_sdg2'])->name('website.display_project_sdg2');
-    Route::get('sdg/project/{project_id}', [WebsiteController::class, 'display_single_project2'])->name('website.display_single_project2');
+    Route::get('/sdg/all/projects/', [WebsiteController::class, 'sdg_project_main'])->name('website.sdg_project_main');
+    Route::get('/sdg/projects/{sdg}', [WebsiteController::class, 'display_project_sdg'])->name('website.display_project_sdg');
+    Route::get('sdg/project/{project_id}', [WebsiteController::class, 'display_single_project'])->name('website.display_single_project');
     Route::get('/sdg/projects/coordinates/{latitude}/{longitude}', [WebsiteController::class, 'projectsByCoordinates'])->name('website.projects_by_coordinates');
     
 
 
     //research_extensions
-    Route::get('/sdg/all/research', [WebsiteController::class, 'sdg_research_main2'])->name('website.sdg_research_main2');
-    Route::get('/sdg/research/{sdg}', [WebsiteController::class, 'display_research_sdg2'])->name('website.display_research_sdg2');
+    Route::get('/sdg/all/research', [WebsiteController::class, 'sdg_research_main'])->name('website.sdg_research_main');
+    Route::get('/sdg/research/{sdg}', [WebsiteController::class, 'display_research_sdg'])->name('website.display_research_sdg');
     Route::get('/sdg/research/researchcategories/{researchcategory}', [WebsiteController::class, 'display_research_category'])->name('website.display_research_category');
-    Route::get('/sdg/research/item/{research_id}', [WebsiteController::class, 'display_single_research2'])->name('website.display_single_research2');
+    Route::get('/sdg/research/item/{research_id}', [WebsiteController::class, 'display_single_research'])->name('website.display_single_research');
 
 
     Route::get('/sdg/contact_us', [WebsiteController::class, 'contact_us'])->name('website.contact_us');

@@ -17,9 +17,9 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ route('website.home2') }}"><i class="fas fa-home"></i> Home</a>
+                        <li class="breadcrumb-item"><a href="{{ route('website.home') }}"><i class="fas fa-home"></i> Home</a>
                         </li>
-                        <li class="breadcrumb-item"><a href="{{ route('website.sdg_report_main2') }}">All Reports</a>
+                        <li class="breadcrumb-item"><a href="{{ route('website.sdg_report_main') }}">All Reports</a>
                         </li>
                     </ol>
                 </div>
@@ -124,7 +124,7 @@
                                                 </h5>
                                             </div>
                                             <div class="card-body d-flex flex-column">
-                                                <a href="{{ route('website.display_single_project2', $project->id) }}">
+                                                <a href="{{ route('website.display_single_project', $project->id) }}">
                                                     <img src="{{ $project->projectimg->image }}" class="card-img-top"
                                                         alt="Project Image" style="height: 200px; object-fit: cover;">
                                                 </a>
@@ -143,7 +143,7 @@
                                                     </ul>
                                                 </div>
 
-                                                <a href="{{ route('website.display_single_project2', $project->id) }}"
+                                                <a href="{{ route('website.display_single_project', $project->id) }}"
                                                     class="btn btn-primary mt-auto continue-reading">Continue Reading</a>
                                             </div>
                                         </div>
@@ -169,7 +169,7 @@
                         <ul class="nav flex-column">
                             @foreach ($sdgs as $singleSdg)
                                 <li class="nav-item">
-                                    <a href="{{ route('website.display_report_sdg2', $singleSdg->id) }}" class="nav-link">
+                                    <a href="{{ route('website.display_report_sdg', $singleSdg->id) }}" class="nav-link">
                                         {{ $singleSdg->name }}
                                         @php
                                             // Set badge color based on the report count

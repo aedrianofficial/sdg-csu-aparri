@@ -27,9 +27,9 @@
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ route('website.home2') }}"><i class="fas fa-home"></i>Home</a>
+                        <li class="breadcrumb-item"><a href="{{ route('website.home') }}"><i class="fas fa-home"></i>Home</a>
                         </li>
-                        <li class="breadcrumb-item active"><a href="{{ route('website.sdg_project_main2') }}">All
+                        <li class="breadcrumb-item active"><a href="{{ route('website.sdg_project_main') }}">All
                                 Projects</a>
                     </ol>
                 </div>
@@ -209,7 +209,7 @@
                         <ul class="nav flex-column">
                             @foreach ($sdgs as $singleSdg)
                                 <li class="nav-item">
-                                    <a href="{{ route('website.display_project_sdg2', $singleSdg->id) }}" class="nav-link">
+                                    <a href="{{ route('website.display_project_sdg', $singleSdg->id) }}" class="nav-link">
                                         {{ $singleSdg->name }}
                                         @php
                                             $badgeColor = 'bg-primary';

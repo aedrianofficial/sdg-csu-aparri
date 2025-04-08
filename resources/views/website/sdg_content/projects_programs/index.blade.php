@@ -1,4 +1,5 @@
 @extends('layouts.website2')
+
 @section('styles')
     <style>
         .post {
@@ -14,65 +15,62 @@
 @section('content')
     <div class="content">
         <div class="container">
-            <!-- Reports Section -->
+            <!-- Projects Section -->
             <div class="content-header">
                 <div class="container">
                     <div class="row mb-2">
                         <div class="col-sm-6">
-                            <h1 class="m-0">Reports for {{ $sdg->name }}</h1>
+                            <h1 class="m-0">All Projects</h1>
                         </div>
                         <div class="col-sm-6">
                             <ol class="breadcrumb float-sm-right">
-                                <li class="breadcrumb-item"><a href="{{ route('website.home2') }}"><i
-                                            class="fas fa-home"></i> Home</a></li>
-                                <li class="breadcrumb-item"><a href="{{ route('website.sdg_report_main2') }}">All
-                                        Reports</a>
-                                </li>
+                                <li class="breadcrumb-item"><a href="{{ route('website.home') }}"><i
+                                            class="fas fa-home"></i>Home</a></li>
+                                <li class="breadcrumb-item active">All Projects</li>
                             </ol>
                         </div>
                     </div>
                 </div>
             </div>
+
             <div class="row">
                 <div class="col-lg-8">
                     <div class="content">
                         <div class="container">
-                            @if ($reports !== null && count($reports) > 0)
+                            @if ($projects !== null && count($projects) > 0)
                                 <div class="row">
-                                    @foreach ($reports as $report)
+                                    @foreach ($projects as $project)
                                         <div class="col-lg-6 mb-4"> <!-- Column for each card -->
-                                            <div class="card card-success card-outline h-100 d-flex flex-column post">
+                                            <div class="card card-primary card-outline h-100 d-flex flex-column post">
                                                 <div class="card-header">
-                                                    <h5 class="card-title m-0 text-truncate" title="{{ $report->title }}">
-                                                        <i class="fas fa-file-alt"></i>
-                                                        {{ Str::limit($report->title, 35) }}
+                                                    <h5 class="card-title m-0 text-truncate" title="{{ $project->title }}">
+                                                        <i class="fas fa-project-diagram"></i>
+                                                        {{ Str::limit($project->title, 35) }}
                                                     </h5>
                                                 </div>
                                                 <div class="card-body d-flex flex-column">
-                                                    <a href="{{ route('website.display_single_report2', $report->id) }}">
-                                                        <img src="{{ $report->reportimg->image }}" class="card-img-top"
-                                                            alt="" style="height: 200px; object-fit: cover;">
+                                                    <a href="{{ route('website.display_single_project', $project->id) }}">
+                                                        <img src="{{ $project->projectimg->image }}" class="card-img-top"
+                                                            alt="Project Image" style="height: 200px; object-fit: cover;">
                                                     </a>
                                                     <div class="post-meta mt-3">
                                                         <ul class="list-unstyled">
                                                             <li>
                                                                 <i class="fas fa-calendar-alt"></i>
-                                                                {{ date('d M Y', strtotime($report->created_at)) }}
+                                                                {{ date('d M Y', strtotime($project->created_at)) }}
                                                             </li>
                                                             <li>
-
-                                                                @foreach ($report->sdg as $report_sdgs)
-                                                                    <i class="fas fa-tags"></i>
-                                                                    {{ $report_sdgs->name }}&nbsp;
+                                                                @foreach ($project->sdg as $project_sdg)
+                                                                    <i class="fas fa-tag"></i>
+                                                                    {{ $project_sdg->name }}&nbsp;
                                                                 @endforeach
                                                             </li>
                                                         </ul>
                                                     </div>
 
-                                                    <a href="{{ route('website.display_single_report2', $report->id) }}"
-                                                        class="btn btn-success mt-auto continue-reading">
-                                                        <i class="fas fa-arrow-right"></i> Continue Reading
-                                                    </a>
+                                                    <a href="{{ route('website.display_single_project', $project->id) }}"
+                                                        class="btn btn-primary mt-auto continue-reading">Continue
+                                                        Reading</a>
                                                 </div>
                                             </div>
                                         </div> <!-- End of card column -->
@@ -81,42 +79,42 @@
 
                                 <!-- Pagination Links -->
                                 <div class="container">
-                                    @if (count($reports) > 0)
+                                    @if (count($projects) > 0)
                                         <nav aria-label="Page navigation">
                                             <ul class="pagination justify-content-center">
                                                 <!-- Previous Button -->
-                                                <li class="page-item {{ $reports->onFirstPage() ? 'disabled' : '' }}">
-                                                    <a class="page-link" href="{{ $reports->previousPageUrl() }}"
+                                                <li class="page-item {{ $projects->onFirstPage() ? 'disabled' : '' }}">
+                                                    <a class="page-link" href="{{ $projects->previousPageUrl() }}"
                                                         tabindex="-1"><i class="fas fa-chevron-left"></i> Previous</a>
                                                 </li>
 
                                                 <!-- Page Number Links -->
                                                 @php
-                                                    $currentPage = $reports->currentPage();
-                                                    $lastPage = $reports->lastPage();
+                                                    $currentPage = $projects->currentPage();
+                                                    $lastPage = $projects->lastPage();
                                                     $start = max($currentPage - 1, 1);
                                                     $end = min($start + 2, $lastPage);
                                                 @endphp
                                                 @for ($i = $start; $i <= $end; $i++)
                                                     <li class="page-item {{ $currentPage == $i ? 'active' : '' }}">
                                                         <a class="page-link"
-                                                            href="{{ $reports->url($i) }}">{{ $i }}</a>
+                                                            href="{{ $projects->url($i) }}">{{ $i }}</a>
                                                     </li>
                                                 @endfor
 
                                                 <!-- Next Button -->
-                                                <li class="page-item {{ $reports->hasMorePages() ? '' : 'disabled' }}">
-                                                    <a class="page-link" href="{{ $reports->nextPageUrl() }}">Next <i
+                                                <li class="page-item {{ $projects->hasMorePages() ? '' : 'disabled' }}">
+                                                    <a class="page-link" href="{{ $projects->nextPageUrl() }}">Next <i
                                                             class="fas fa-chevron-right"></i></a>
                                                 </li>
                                             </ul>
                                         </nav>
                                     @else
-                                        <h3 class="text-danger text-center">No reports found</h3>
+                                        <h3 class="text-danger text-center">No projects found</h3>
                                     @endif
                                 </div>
                             @else
-                                <h2 class="text-center text-danger mt-5">No Reports added</h2>
+                                <h2 class="text-center text-danger mt-5">No Projects added</h2>
                             @endif
                         </div>
                     </div>
@@ -134,27 +132,27 @@
                             <ul class="nav flex-column">
                                 @foreach ($sdgs as $singleSdg)
                                     <li class="nav-item">
-                                        <a href="{{ route('website.display_report_sdg2', $singleSdg->id) }}"
+                                        <a href="{{ route('website.display_project_sdg', $singleSdg->id) }}"
                                             class="nav-link">
                                             {{ $singleSdg->name }}
 
                                             @php
-                                                // Set badge color based on the report count
+                                                // Set badge color based on the project count
                                                 $badgeColor = 'bg-primary'; // Default color
 
-                                                if ($singleSdg->report_count == 0) {
+                                                if ($singleSdg->project_count == 0) {
                                                     $badgeColor = 'bg-danger';
-                                                } elseif ($singleSdg->report_count >= 1) {
+                                                } elseif ($singleSdg->project_count >= 1) {
                                                     $badgeColor = 'bg-warning';
-                                                } elseif ($singleSdg->report_count >= 10) {
+                                                } elseif ($singleSdg->project_count >= 10) {
                                                     $badgeColor = 'bg-primary';
-                                                } elseif ($singleSdg->report_count >= 20) {
+                                                } elseif ($singleSdg->project_count >= 20) {
                                                     $badgeColor = 'bg-success';
                                                 }
                                             @endphp
 
                                             <span
-                                                class="float-right badge {{ $badgeColor }}">{{ $singleSdg->report_count }}</span>
+                                                class="float-right badge {{ $badgeColor }}">{{ $singleSdg->project_count }}</span>
                                         </a>
                                     </li>
                                 @endforeach
