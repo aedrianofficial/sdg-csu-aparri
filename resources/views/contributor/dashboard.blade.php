@@ -73,7 +73,7 @@
         <div class="container-fluid"> <!--begin::Row-->
             <div class="row"> <!--begin::Col-->
                 <div class="col-12">
-              
+
 
                     <!-- My Projects, My Reports, and My Research Status -->
                     <div class="content">
@@ -134,8 +134,25 @@
                                 <div class="col-md-12 mb-4">
                                     <div class="card card-primary card-outline">
                                         <div class="card-header">
-                                            <h4 class="text-center mb-4" style="font-weight: 600;">Overview of SDG
-                                                Contributions: Projects, Reports, and Research</h4>
+                                            <h4 class="text-center mb-4" style="font-weight: 600;">
+                                                Overview of SDG Contributions: Projects, Reports, and Research
+                                            </h4>
+                                            <!-- College Filter Dropdown -->
+                                            <div class="form-group">
+                                                <select id="collegeFilter" class="form-control">
+                                                    <option value="0">All Colleges</option>
+                                                    <option value="1">College of Teacher Education</option>
+                                                    <option value="2">College of Information and Computing Sciences
+                                                    </option>
+                                                    <option value="3">College of Industrial Technology</option>
+                                                    <option value="4">College of Hospitality Management</option>
+                                                    <option value="5">College of Fisheries and Aquatic Sciences
+                                                    </option>
+                                                    <option value="6">College of Criminal Justice Education</option>
+                                                    <option value="7">College of Business Entrepreneurship and
+                                                        Accountancy</option>
+                                                </select>
+                                            </div>
                                         </div>
                                         <div class="card-body">
                                             <div class="chart-container"
@@ -190,15 +207,23 @@
                     url: "{{ route('analytics.myStatusAnalytics') }}", // Ensure the route is correct
                     method: 'GET',
                     success: function(response) {
-                        $('#myTotalProjectsHeader').text(`My Projects Status (${response.myTotalProjects})`);
-                        $('#myTotalStatusReportsHeader').text(`My Status Reports Status (${response.myTotalStatusReports})`);
-                        $('#myTotalTerminalReportsHeader').text(`My Terminal Reports Status (${response.myTotalTerminalReports})`);
-                        $('#myTotalResearchHeader').text(`My Research Status (${response.myTotalResearch})`);
-    
-                        updateChart(myProjectChart, response.myProjectStatusCounts, response.myStatuses);
-                        updateChart(myStatusReportChart, response.myStatusReportStatusCounts, response.myStatuses);
-                        updateChart(myTerminalReportChart, response.myTerminalReportStatusCounts, response.myStatuses);
-                        updateChart(myResearchChart, response.myResearchStatusCounts, response.myStatuses);
+                        $('#myTotalProjectsHeader').text(
+                            `My Projects Status (${response.myTotalProjects})`);
+                        $('#myTotalStatusReportsHeader').text(
+                            `My Status Reports Status (${response.myTotalStatusReports})`);
+                        $('#myTotalTerminalReportsHeader').text(
+                            `My Terminal Reports Status (${response.myTotalTerminalReports})`);
+                        $('#myTotalResearchHeader').text(
+                            `My Research Status (${response.myTotalResearch})`);
+
+                        updateChart(myProjectChart, response.myProjectStatusCounts, response
+                            .myStatuses);
+                        updateChart(myStatusReportChart, response.myStatusReportStatusCounts, response
+                            .myStatuses);
+                        updateChart(myTerminalReportChart, response.myTerminalReportStatusCounts,
+                            response.myStatuses);
+                        updateChart(myResearchChart, response.myResearchStatusCounts, response
+                            .myStatuses);
                     },
                     error: function(xhr, status, error) {
                         console.error("Error fetching status data:", error);
@@ -206,17 +231,17 @@
                     }
                 });
             }
-    
+
             // Function to update a chart
             function updateChart(chart, data, myStatuses) {
                 const chartLabels = Object.values(myStatuses); // Labels from myStatuses
                 const chartData = chartLabels.map((label) => data[label] || 0); // Use labels for mapping
-    
+
                 chart.data.labels = chartLabels; // Set new labels
                 chart.data.datasets[0].data = chartData; // Set new data
                 chart.update(); // Update the chart
             }
-    
+
             // Chart options for a professional look
             const chartOptions = {
                 responsive: true,
@@ -243,7 +268,7 @@
                     }
                 }
             };
-    
+
             // Initialize pie charts with professional styling
             const myProjectChart = new Chart(document.getElementById('myProjectChart').getContext('2d'), {
                 type: 'pie',
@@ -267,7 +292,7 @@
                     }
                 }
             });
-    
+
             const myStatusReportChart = new Chart(document.getElementById('myStatusReportChart').getContext('2d'), {
                 type: 'pie',
                 data: {
@@ -290,15 +315,16 @@
                     }
                 }
             });
-    
-            const myTerminalReportChart = new Chart(document.getElementById('myTerminalReportChart').getContext('2d'), {
+
+            const myTerminalReportChart = new Chart(document.getElementById('myTerminalReportChart').getContext(
+                '2d'), {
                 type: 'pie',
                 data: {
                     labels: [],
                     datasets: [{
                         label: 'My Terminal Reports',
                         data: [],
-                        backgroundColor: [ '#FF9F40', '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB'],
+                        backgroundColor: ['#FF9F40', '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB'],
                         hoverOffset: 10
                     }]
                 },
@@ -313,7 +339,7 @@
                     }
                 }
             });
-    
+
             const myResearchChart = new Chart(document.getElementById('myResearchChart').getContext('2d'), {
                 type: 'pie',
                 data: {
@@ -336,10 +362,10 @@
                     }
                 }
             });
-    
+
             // Fetch and update data on page load
             fetchMyStatusData();
-    
+
             // Automatically refresh the data every 30 seconds
             setInterval(fetchMyStatusData, 30000);
         });
@@ -349,22 +375,32 @@
     <script>
         $(document).ready(function() {
             let combinedChart; // For the combined chart
+            let selectedCollege = 0; // Default to "All Colleges"
+
+            // Handle college filter change
+            $('#collegeFilter').on('change', function() {
+                selectedCollege = $(this).val();
+                fetchReviewStatusData();
+            });
 
             // Fetch and update chart data via AJAX
             function fetchReviewStatusData() {
                 $.ajax({
-                    url: "{{ route('analytics.sdgComparison') }}", // Update this route to fetch SDG comparison data
+                    url: "{{ route('analytics.sdgComparison') }}",
                     method: 'GET',
+                    data: {
+                        college_id: selectedCollege
+                    },
                     success: function(response) {
                         // Combine data from projects, status reports, terminal reports, and research
                         const combinedLabels = response
-                        .sdgLabels; // Assuming this contains unique SDG labels
+                            .sdgLabels; // Assuming this contains unique SDG labels
                         const combinedData = [];
                         const projectData = response.projectData; // Array of project counts
                         const statusReportData = response
-                        .statusReportData; // Array of status report counts
+                            .statusReportData; // Array of status report counts
                         const terminalReportData = response
-                        .terminalReportData; // Array of terminal report counts
+                            .terminalReportData; // Array of terminal report counts
                         const researchData = response.researchData; // Array of research counts
 
                         // Aggregate data from projects, status reports, terminal reports, and research
@@ -407,7 +443,7 @@
                 plugins: {
                     legend: {
                         display: true,
-                        position: 'top', // Position legend to the right
+                        position: 'top', // Position legend to the top
                         labels: {
                             maxWidth: 100,
                             boxWidth: 10,
@@ -436,8 +472,8 @@
                                 '#DCA93A', // Zero Hunger
                                 '#4C9E39', // Good Health and Well-Being
                                 '#C4182D', // Quality Education
-                                '#FF3B20', // Gender Equality
-                                '#26BCE3', // Clean Water and Sanitation
+                                '#D94E9A', // Gender Equality
+                                '#C4182D', // Clean Water and Sanitation
                                 '#FCC30B', // Affordable and Clean Energy
                                 '#A21942', // Decent Work and Economic Growth
                                 '#FC6825', // Industry, Innovation, and Infrastructure
@@ -487,7 +523,6 @@
             setInterval(fetchReviewStatusData, 30000);
         });
     </script>
-
 
 
     <!-- locator pin in the map for all projects-->

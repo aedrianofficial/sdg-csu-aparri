@@ -328,113 +328,196 @@ class Analytics extends Controller
         return response()->json($response);
     }
 
-public function getSdgComparisonData()
-{
-    try {
-        // Define SDG labels for easy reference
-        $sdgs = [
-            1 => '01 - No Poverty',
-            2 => '02 - Zero Hunger',
-            3 => '03 - Good Health & Well-Being',
-            4 => '04 - Quality Education',
-            5 => '05 - Gender Equality',
-            6 => '06 - Clean Water & Sanitation',
-            7 => '07 - Affordable & Clean Energy',
-            8 => '08 - Decent Work & Economic Growth',
-            9 => '09 - Industry, Innovation & Infrastructure',
-            10 => '10 - Reduced Inequalities',
-            11 => '11 - Sustainable Cities & Communities',
-            12 => '12 - Responsible Consumption & Production',
-            13 => '13 - Climate Action',
-            14 => '14 - Life Below Water',
-            15 => '15 - Life on Land',
-            16 => '16 - Peace, Justice & Strong Institutions',
-            17 => '17 - Partnerships for the Goals'
-        ];
-
-        // Initialize arrays to store the count of each component by SDG
-        $projectData = [];
-        $researchData = [];
-        $statusReportData = [];
-        $terminalReportData = [];
-
-        // Fetch data for projects, research, status reports, and terminal reports (only published ones)
-        foreach ($sdgs as $id => $label) {
-            Log::info("Processing SDG: $label (ID: $id)");
-
-            // Count projects related to the SDG
-            $projectCount = Project::where('is_publish', Project::Published)
-                ->whereHas('sdg', function ($query) use ($id) {
-                    $query->where('sdgs.id', $id);
-                })->count();
-            Log::info("Project Count for $label: $projectCount");
-
-            // Count research related to the SDG
-            $researchCount = Research::where('is_publish', 1)
-                ->whereHas('sdg', function ($query) use ($id) {
-                    $query->where('sdgs.id', $id);
-                })->count();
-            Log::info("Research Count for $label: $researchCount");
-
-                // Count status reports related to the SDG
-                $statusReportCount = StatusReport::where('is_publish', 1)
-                    ->where(function ($query) use ($id) {
-                        $query->where('related_type', 'App\Models\Project')
-                            ->whereHas('related', function ($query) use ($id) {
-                                $query->whereHas('sdg', function ($query) use ($id) {
-                                    $query->where('sdgs.id', $id);
-                                });
-                            })
-                            ->orWhere(function ($query) use ($id) {
-                                $query->where('related_type', 'App\Models\Research')
-                                    ->whereHas('related', function ($query) use ($id) {
-                                        $query->whereHas('sdg', function ($query) use ($id) {
-                                            $query->where('sdgs.id', $id);
-                                        });
-                                    });
-                            });
-                    })->count();
-                Log::info("Status Report Count for $label: $statusReportCount");
-
-                // Count terminal reports related to the SDG
-                $terminalReportCount = TerminalReport::where('is_publish', 1)
-                    ->where(function ($query) use ($id) {
-                        $query->where('related_type', 'App\Models\Project')
-                            ->whereHas('related', function ($query) use ($id) {
-                                $query->whereHas('sdg', function ($query) use ($id) {
-                                    $query->where('sdgs.id', $id);
-                                });
-                            })
-                            ->orWhere(function ($query) use ($id) {
-                                $query->where('related_type', 'App\Models\Research')
-                                    ->whereHas('related', function ($query) use ($id) {
-                                        $query->whereHas('sdg', function ($query) use ($id) {
-                                            $query->where('sdgs.id', $id);
-                                        });
-                                    });
-                            });
-                    })->count();
-                Log::info("Terminal Report Count for $label: $terminalReportCount");
+    public function getSdgComparisonData(Request $request)
+    {
+        try {
+            // Get the selected college_id from the request
+            $collegeId = $request->input('college_id', 0); // Default to 0 (All Colleges)
             
-            // Append counts to arrays
-            $projectData[] = $projectCount;
-            $researchData[] = $researchCount;
-            $statusReportData [] = $statusReportCount;
-            $terminalReportData[] = $terminalReportCount;
+            // Define SDG labels for easy reference
+            $sdgs = [
+                1 => '01 - No Poverty',
+                2 => '02 - Zero Hunger',
+                3 => '03 - Good Health & Well-Being',
+                4 => '04 - Quality Education',
+                5 => '05 - Gender Equality',
+                6 => '06 - Clean Water & Sanitation',
+                7 => '07 - Affordable & Clean Energy',
+                8 => '08 - Decent Work & Economic Growth',
+                9 => '09 - Industry, Innovation & Infrastructure',
+                10 => '10 - Reduced Inequalities',
+                11 => '11 - Sustainable Cities & Communities',
+                12 => '12 - Responsible Consumption & Production',
+                13 => '13 - Climate Action',
+                14 => '14 - Life Below Water',
+                15 => '15 - Life on Land',
+                16 => '16 - Peace, Justice & Strong Institutions',
+                17 => '17 - Partnerships for the Goals'
+            ];
+    
+            // Initialize arrays to store the count of each component by SDG
+            $projectData = [];
+            $researchData = [];
+            $statusReportData = [];
+            $terminalReportData = [];
+    
+            // Fetch data for projects, research, status reports, and terminal reports (only published ones)
+            foreach ($sdgs as $id => $label) {
+                Log::info("Processing SDG: $label (ID: $id)");
+    
+                // Base query for projects
+                $projectQuery = Project::where('is_publish', Project::Published)
+                    ->whereHas('sdg', function ($query) use ($id) {
+                        $query->where('sdgs.id', $id);
+                    })
+                    ->whereHas('user', function($query) {
+                        $query->where('campus_id', 2); // Aparri campus only
+                    });
+                    
+                // Filter by college if specified
+                if ($collegeId > 0) {
+                    $projectQuery->whereHas('user', function($query) use ($collegeId) {
+                        $query->where('college_id', $collegeId);
+                    });
+                }
+                
+                $projectCount = $projectQuery->count();
+                Log::info("Project Count for $label: $projectCount");
+    
+                // Base query for research
+                $researchQuery = Research::where('is_publish', 1)
+                    ->whereHas('sdg', function ($query) use ($id) {
+                        $query->where('sdgs.id', $id);
+                    })
+                    ->whereHas('user', function($query) {
+                        $query->where('campus_id', 2); // Aparri campus only
+                    });
+                    
+                // Filter by college if specified
+                if ($collegeId > 0) {
+                    $researchQuery->whereHas('user', function($query) use ($collegeId) {
+                        $query->where('college_id', $collegeId);
+                    });
+                }
+                
+                $researchCount = $researchQuery->count();
+                Log::info("Research Count for $label: $researchCount");
+    
+                // Status report query with additional filters
+                $statusReportQuery = StatusReport::where('is_publish', 1)
+                    ->where(function ($query) use ($id) {
+                        $query->where('related_type', 'App\Models\Project')
+                            ->whereHas('related', function ($query) use ($id) {
+                                $query->whereHas('sdg', function ($query) use ($id) {
+                                    $query->where('sdgs.id', $id);
+                                });
+                                $query->whereHas('user', function($query) {
+                                    $query->where('campus_id', 2); // Aparri campus only
+                                });
+                            })
+                            ->orWhere(function ($query) use ($id) {
+                                $query->where('related_type', 'App\Models\Research')
+                                    ->whereHas('related', function ($query) use ($id) {
+                                        $query->whereHas('sdg', function ($query) use ($id) {
+                                            $query->where('sdgs.id', $id);
+                                        });
+                                        $query->whereHas('user', function($query) {
+                                            $query->where('campus_id', 2); // Aparri campus only
+                                        });
+                                    });
+                            });
+                    });
+                    
+                // Filter by college if specified
+                if ($collegeId > 0) {
+                    $statusReportQuery->where(function ($query) use ($collegeId) {
+                        $query->where('related_type', 'App\Models\Project')
+                            ->whereHas('related', function ($query) use ($collegeId) {
+                                $query->whereHas('user', function($query) use ($collegeId) {
+                                    $query->where('college_id', $collegeId);
+                                });
+                            })
+                            ->orWhere(function ($query) use ($collegeId) {
+                                $query->where('related_type', 'App\Models\Research')
+                                    ->whereHas('related', function ($query) use ($collegeId) {
+                                        $query->whereHas('user', function($query) use ($collegeId) {
+                                            $query->where('college_id', $collegeId);
+                                        });
+                                    });
+                            });
+                    });
+                }
+                
+                $statusReportCount = $statusReportQuery->count();
+                Log::info("Status Report Count for $label: $statusReportCount");
+    
+                // Terminal report query with additional filters
+                $terminalReportQuery = TerminalReport::where('is_publish', 1)
+                    ->where(function ($query) use ($id) {
+                        $query->where('related_type', 'App\Models\Project')
+                            ->whereHas('related', function ($query) use ($id) {
+                                $query->whereHas('sdg', function ($query) use ($id) {
+                                    $query->where('sdgs.id', $id);
+                                });
+                                $query->whereHas('user', function($query) {
+                                    $query->where('campus_id', 2); // Aparri campus only
+                                });
+                            })
+                            ->orWhere(function ($query) use ($id) {
+                                $query->where('related_type', 'App\Models\Research')
+                                    ->whereHas('related', function ($query) use ($id) {
+                                        $query->whereHas('sdg', function ($query) use ($id) {
+                                            $query->where('sdgs.id', $id);
+                                        });
+                                        $query->whereHas('user', function($query) {
+                                            $query->where('campus_id', 2); // Aparri campus only
+                                        });
+                                    });
+                            });
+                    });
+                    
+                // Filter by college if specified
+                if ($collegeId > 0) {
+                    $terminalReportQuery->where(function ($query) use ($collegeId) {
+                        $query->where('related_type', 'App\Models\Project')
+                            ->whereHas('related', function ($query) use ($collegeId) {
+                                $query->whereHas('user', function($query) use ($collegeId) {
+                                    $query->where('college_id', $collegeId);
+                                });
+                            })
+                            ->orWhere(function ($query) use ($collegeId) {
+                                $query->where('related_type', 'App\Models\Research')
+                                    ->whereHas('related', function ($query) use ($collegeId) {
+                                        $query->whereHas('user', function($query) use ($collegeId) {
+                                            $query->where('college_id', $collegeId);
+                                        });
+                                    });
+                            });
+                    });
+                }
+                
+                $terminalReportCount = $terminalReportQuery->count();
+                Log::info("Terminal Report Count for $label: $terminalReportCount");
+                
+                // Append counts to arrays
+                $projectData[] = $projectCount;
+                $researchData[] = $researchCount;
+                $statusReportData[] = $statusReportCount;
+                $terminalReportData[] = $terminalReportCount;
+            }
+    
+            // Return data in JSON format for the AJAX request
+            return response()->json([
+                'sdgLabels' => array_values($sdgs),
+                'projectData' => $projectData,
+                'researchData' => $researchData,
+                'statusReportData' => $statusReportData,
+                'terminalReportData' => $terminalReportData
+            ]);
+        } catch (\Exception $e) {
+            // Log error details for debugging
+            Log::error('Error fetching SDG comparison data: ' . $e->getMessage());
+            return response()->json(['error' => 'Unable to fetch data'], 500). $e->getMessage();
         }
-
-        // Return data in JSON format for the AJAX request
-        return response()->json([
-            'sdgLabels' => array_values($sdgs),
-            'projectData' => $projectData,
-            'researchData' => $researchData,
-            'statusReportData' => $statusReportData,
-            'terminalReportData' => $terminalReportData
-        ]);
-    } catch (\Exception $e) {
-        // Log error details for debugging
-        Log::error('Error fetching SDG comparison data: ' . $e->getMessage());
-        return response()->json(['error' => 'Unable to fetch data'], 500). $e->getMessage();
     }
-}
 }

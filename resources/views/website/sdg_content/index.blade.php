@@ -37,16 +37,18 @@
         .post:hover {
             transform: scale(1.03);
         }
-         /* Make the cards perfect square */
-         .sdg-image {
-            height: 100%; 
+
+        /* Make the cards perfect square */
+        .sdg-image {
+            height: 100%;
             object-fit: cover;
         }
-    
+
         @media (max-width: 767px) {
             .sdg-image {
                 height: auto;
-                aspect-ratio: 1 / 1; /* Ensures a perfect square */
+                aspect-ratio: 1 / 1;
+                /* Ensures a perfect square */
             }
         }
     </style>
@@ -124,6 +126,19 @@
                             <h4 class="text-center mb-4" style="font-weight: 600;">
                                 Overview of SDG Contributions: Projects, Reports, and Research
                             </h4>
+                            <!-- College Filter Dropdown -->
+                            <div class="form-group">
+                                <select id="collegeFilter" class="form-control">
+                                    <option value="0">All Colleges</option>
+                                    <option value="1">College of Teacher Education</option>
+                                    <option value="2">College of Information and Computing Sciences</option>
+                                    <option value="3">College of Industrial Technology</option>
+                                    <option value="4">College of Hospitality Management</option>
+                                    <option value="5">College of Fisheries and Aquatic Sciences</option>
+                                    <option value="6">College of Criminal Justice Education</option>
+                                    <option value="7">College of Business Entrepreneurship and Accountancy</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="card-body">
                             <div class="chart-container" style="position: relative; height: 500px; width: 100%;">
@@ -143,53 +158,62 @@
                     @foreach ($sdgs as $index => $sdg)
                         @php
                             $sdgColors = [
-                                '#E5243B', '#DCA93A', '#4C9E39', '#C4182D', '#FF3B20',
-                                '#26BCE3', '#FCC30B', '#A21942', '#FC6825', '#DD1367',
-                                '#FD9C25', '#BF8A2F', '#3E7E45', '#0A96D8', '#56C12A',
-                                '#01689C', '#19486A'
+                                '#E5243B',
+                                '#DCA93A',
+                                '#4C9E39',
+                                '#C4182D',
+                                '#FF3B20',
+                                '#26BCE3',
+                                '#FCC30B',
+                                '#A21942',
+                                '#FC6825',
+                                '#DD1367',
+                                '#FD9C25',
+                                '#BF8A2F',
+                                '#3E7E45',
+                                '#0A96D8',
+                                '#56C12A',
+                                '#01689C',
+                                '#19486A',
                             ];
                             $bgColor = $sdgColors[$index % count($sdgColors)];
                         @endphp
-    
+
                         <div class="col-lg-3 col-md-4 col-6 mb-4 d-flex">
                             <div class="card card-primary card-outline w-100 d-flex flex-column post "
-                                 style="background-color: {{ $bgColor }}; border: none;">
+                                style="background-color: {{ $bgColor }}; border: none;">
                                 <div class="card-body p-0">
-                                    <a href="{{ route('website.sdg.show', ['id' => $sdg->id]) }}"> 
-                                        <img src="{{ asset($sdg->sdgimage ? $sdg->sdgimage->image : 'images/sdg/default.png') }}" 
-                                             class="card-img-top w-100 sdg-image rounded" 
-                                             alt="{{ $sdg->name }}">
+                                    <a href="{{ route('website.sdg.show', ['id' => $sdg->id]) }}">
+                                        <img src="{{ asset($sdg->sdgimage ? $sdg->sdgimage->image : 'images/sdg/default.png') }}"
+                                            class="card-img-top w-100 sdg-image rounded" alt="{{ $sdg->name }}">
                                     </a>
-                                    
+
                                 </div>
                             </div>
                         </div>
-    
-                        @if ($index == 16) 
+
+                        @if ($index == 16)
                             <!-- Special case: Add SDG Partnership logo beside SDG 17 -->
                             <div class="col-lg-9 col-md-12 col-6 mb-4 d-flex">
                                 <div class="card card-primary card-outline w-100 d-flex flex-column post"
-                                     style="background-color: #ffffff; border: none;">
+                                    style="background-color: #ffffff; border: none;">
                                     <div class="card-body p-0 d-flex align-items-center justify-content-center">
-                                        <img src="{{ asset('images/sdg/landing/E_SDG_logo_without_UN_emblem_horizontal_CMYK_Transparent.png') }}" 
-                                             class="w-100 d-none d-md-block rounded" 
-                                             alt="SDG Partnership Logo" 
-                                             style="max-height: 250px; object-fit: contain;">
-                                        <img src="{{ asset('images/sdg/landing/E_SDG_logo_UN_emblem_square_trans_WEB-400x343.png') }}" 
-                                             class="w-100 d-block d-md-none" 
-                                             alt="SDG Partnership Logo (Mobile)">
+                                        <img src="{{ asset('images/sdg/landing/E_SDG_logo_without_UN_emblem_horizontal_CMYK_Transparent.png') }}"
+                                            class="w-100 d-none d-md-block rounded" alt="SDG Partnership Logo"
+                                            style="max-height: 250px; object-fit: contain;">
+                                        <img src="{{ asset('images/sdg/landing/E_SDG_logo_UN_emblem_square_trans_WEB-400x343.png') }}"
+                                            class="w-100 d-block d-md-none" alt="SDG Partnership Logo (Mobile)">
                                     </div>
                                 </div>
                             </div>
                         @endif
-    
                     @endforeach
                 </div>
             @else
                 <h2 class="text-center text-danger mt-5">No SDG Data Available</h2>
             @endif
         </div>
-    </div>    
+    </div>
 @endsection
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -309,22 +333,32 @@
     <script>
         $(document).ready(function() {
             let combinedChart; // For the combined chart
+            let selectedCollege = 0; // Default to "All Colleges"
+
+            // Handle college filter change
+            $('#collegeFilter').on('change', function() {
+                selectedCollege = $(this).val();
+                fetchReviewStatusData();
+            });
 
             // Fetch and update chart data via AJAX
             function fetchReviewStatusData() {
                 $.ajax({
-                    url: "{{ route('analytics.sdgComparison') }}", // Update this route to fetch SDG comparison data
+                    url: "{{ route('analytics.sdgComparison') }}",
                     method: 'GET',
+                    data: {
+                        college_id: selectedCollege
+                    },
                     success: function(response) {
                         // Combine data from projects, status reports, terminal reports, and research
                         const combinedLabels = response
-                            .sdgLabels; // Assuming this contains unique SDG labels
+                        .sdgLabels; // Assuming this contains unique SDG labels
                         const combinedData = [];
                         const projectData = response.projectData; // Array of project counts
                         const statusReportData = response
-                            .statusReportData; // Array of status report counts
+                        .statusReportData; // Array of status report counts
                         const terminalReportData = response
-                            .terminalReportData; // Array of terminal report counts
+                        .terminalReportData; // Array of terminal report counts
                         const researchData = response.researchData; // Array of research counts
 
                         // Aggregate data from projects, status reports, terminal reports, and research
@@ -367,7 +401,7 @@
                 plugins: {
                     legend: {
                         display: true,
-                        position: 'top', // Position legend to the right
+                        position: 'top', // Position legend to the top
                         labels: {
                             maxWidth: 100,
                             boxWidth: 10,

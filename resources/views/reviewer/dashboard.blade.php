@@ -73,7 +73,7 @@
         <div class="container-fluid"> <!--begin::Row-->
             <div class="row"> <!--begin::Col-->
                 <div class="col-12">
-                   
+
 
                     <!-- My Projects, My Reports, and My Research Status -->
                     <div class="content">
@@ -82,7 +82,8 @@
                                 <div class="col-md-12 mb-4">
                                     <div class="card card-primary card-outline">
                                         <div class="card-header">
-                                            <h4 class="text-center mb-4" style="font-weight: 600;">My Review Activity Status</h4>
+                                            <h4 class="text-center mb-4" style="font-weight: 600;">My Review Activity Status
+                                            </h4>
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
@@ -90,23 +91,28 @@
                                                     <h5 class="mb-3" style="font-weight: 500;">
                                                         Projects Review Status (<span id="projectsTotalCount"></span>)
                                                     </h5>
-                                                    <div class="chart-container" style="position: relative; height: 350px; width: 100%;">
+                                                    <div class="chart-container"
+                                                        style="position: relative; height: 350px; width: 100%;">
                                                         <canvas id="myProjectReviewChart"></canvas>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-3 mb-4">
                                                     <h5 class="mb-3" style="font-weight: 500;">
-                                                        Status Reports Review Status (<span id="statusReportsTotalCount"></span>)
+                                                        Status Reports Review Status (<span
+                                                            id="statusReportsTotalCount"></span>)
                                                     </h5>
-                                                    <div class="chart-container" style="position: relative; height: 350px; width: 100%;">
+                                                    <div class="chart-container"
+                                                        style="position: relative; height: 350px; width: 100%;">
                                                         <canvas id="myStatusReportReviewChart"></canvas>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-3 mb-4">
                                                     <h5 class="mb-3" style="font-weight: 500;">
-                                                        Terminal Reports Review Status (<span id="terminalReportsTotalCount"></span>)
+                                                        Terminal Reports Review Status (<span
+                                                            id="terminalReportsTotalCount"></span>)
                                                     </h5>
-                                                    <div class="chart-container" style="position: relative; height: 350px; width: 100%;">
+                                                    <div class="chart-container"
+                                                        style="position: relative; height: 350px; width: 100%;">
                                                         <canvas id="myTerminalReportReviewChart"></canvas>
                                                     </div>
                                                 </div>
@@ -114,7 +120,8 @@
                                                     <h5 class="mb-3" style="font-weight: 500;">
                                                         Research Review Status (<span id="researchTotalCount"></span>)
                                                     </h5>
-                                                    <div class="chart-container" style="position: relative; height: 350px; width: 100%;">
+                                                    <div class="chart-container"
+                                                        style="position: relative; height: 350px; width: 100%;">
                                                         <canvas id="myResearchReviewChart"></canvas>
                                                     </div>
                                                 </div>
@@ -125,7 +132,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
 
 
                     <!-- SDG Contributions Overview -->
@@ -135,8 +142,25 @@
                                 <div class="col-md-12 mb-4">
                                     <div class="card card-primary card-outline">
                                         <div class="card-header">
-                                            <h4 class="text-center mb-4" style="font-weight: 600;">Overview of SDG
-                                                Contributions: Projects, Reports, and Research</h4>
+                                            <h4 class="text-center mb-4" style="font-weight: 600;">
+                                                Overview of SDG Contributions: Projects, Reports, and Research
+                                            </h4>
+                                            <!-- College Filter Dropdown -->
+                                            <div class="form-group">
+                                                <select id="collegeFilter" class="form-control">
+                                                    <option value="0">All Colleges</option>
+                                                    <option value="1">College of Teacher Education</option>
+                                                    <option value="2">College of Information and Computing Sciences
+                                                    </option>
+                                                    <option value="3">College of Industrial Technology</option>
+                                                    <option value="4">College of Hospitality Management</option>
+                                                    <option value="5">College of Fisheries and Aquatic Sciences
+                                                    </option>
+                                                    <option value="6">College of Criminal Justice Education</option>
+                                                    <option value="7">College of Business Entrepreneurship and
+                                                        Accountancy</option>
+                                                </select>
+                                            </div>
                                         </div>
                                         <div class="card-body">
                                             <div class="chart-container"
@@ -192,11 +216,16 @@
                     method: 'GET',
                     success: function(response) {
                         // Update total counts for projects, status reports, terminal reports, and research
-                        $('#projectsTotalCount').text(response.projects.reviewed + response.projects.rejected + response.projects.requested_change);
-                        $('#statusReportsTotalCount').text(response.status_reports.reviewed + response.status_reports.rejected + response.status_reports.requested_change);
-                        $('#terminalReportsTotalCount').text(response.terminal_reports.reviewed + response.terminal_reports.rejected + response.terminal_reports.requested_change);
-                        $('#researchTotalCount').text(response.research.reviewed + response.research.rejected + response.research.requested_change);
-    
+                        $('#projectsTotalCount').text(response.projects.reviewed + response.projects
+                            .rejected + response.projects.requested_change);
+                        $('#statusReportsTotalCount').text(response.status_reports.reviewed + response
+                            .status_reports.rejected + response.status_reports.requested_change);
+                        $('#terminalReportsTotalCount').text(response.terminal_reports.reviewed +
+                            response.terminal_reports.rejected + response.terminal_reports
+                            .requested_change);
+                        $('#researchTotalCount').text(response.research.reviewed + response.research
+                            .rejected + response.research.requested_change);
+
                         updateReviewChart(myProjectReviewChart, response.projects);
                         updateReviewChart(myStatusReportReviewChart, response.status_reports);
                         updateReviewChart(myTerminalReportReviewChart, response.terminal_reports);
@@ -207,7 +236,7 @@
                     }
                 });
             }
-    
+
             // Function to update a chart with the fetched data
             function updateReviewChart(chart, data) {
                 const chartLabels = ['Reviewed', 'Rejected', 'Requested Change'];
@@ -216,12 +245,12 @@
                     data.rejected || 0,
                     data.requested_change || 0
                 ];
-    
+
                 chart.data.labels = chartLabels; // Set new labels
                 chart.data.datasets[0].data = chartData; // Set new data
                 chart.update(); // Update the chart
             }
-    
+
             // Chart options for a professional look
             const chartOptions = {
                 responsive: true,
@@ -248,7 +277,7 @@
                     }
                 }
             };
-    
+
             // Initialize pie charts for projects, status reports, terminal reports, and research review statuses
             var myProjectReviewChart = new Chart(document.getElementById('myProjectReviewChart').getContext('2d'), {
                 type: 'pie',
@@ -263,40 +292,43 @@
                 },
                 options: chartOptions
             });
-    
-            var myStatusReportReviewChart = new Chart(document.getElementById('myStatusReportReviewChart').getContext('2d'), {
+
+            var myStatusReportReviewChart = new Chart(document.getElementById('myStatusReportReviewChart')
+                .getContext('2d'), {
+                    type: 'pie',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Status Reports Review Status',
+                            data: [],
+                            backgroundColor: ['#FF9F40', '#FF6384', '#36A2EB'],
+                            hoverOffset: 10
+                        }]
+                    },
+                    options: chartOptions
+                });
+
+            var myTerminalReportReviewChart = new Chart(document.getElementById('myTerminalReportReviewChart')
+                .getContext('2d'), {
+                    type: 'pie',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Terminal Reports Review Status',
+                            data: [],
+                            backgroundColor: ['#FF9F40', '#4BC0C0', '#36A2EB'],
+                            hoverOffset: 10
+                        }]
+                    },
+                    options: chartOptions
+                });
+
+            var myResearchReviewChart = new Chart(document.getElementById('myResearchReviewChart').getContext(
+                '2d'), {
                 type: 'pie',
                 data: {
                     labels: [],
                     datasets: [{
-                        label: 'Status Reports Review Status',
-                        data: [],
-                        backgroundColor: ['#FF9F40', '#FF6384', '#36A2EB'],
-                        hoverOffset: 10
-                    }]
-                },
-                options: chartOptions
-            });
-    
-            var myTerminalReportReviewChart = new Chart(document.getElementById('myTerminalReportReviewChart').getContext('2d'), {
-                type: 'pie',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Terminal Reports Review Status',
-                        data: [],
-                        backgroundColor: ['#FF9F40', '#4BC0C0', '#36A2EB'],
-                        hoverOffset: 10
-                    }]
-                },
-                options: chartOptions
-            });
-    
-            var myResearchReviewChart = new Chart(document.getElementById('myResearchReviewChart').getContext('2d'), {
-                type: 'pie',
-                data: {
-                    labels: [],
-     datasets: [{
                         label: 'Research Review Status',
                         data: [],
                         backgroundColor: ['#FF9F40', '#4BC0C0', '#36A2EB'],
@@ -305,10 +337,10 @@
                 },
                 options: chartOptions
             });
-    
+
             // Fetch and update data on page load
             fetchMyReviewActivityData();
-    
+
             // Automatically refresh the data every 30 seconds
             setInterval(fetchMyReviewActivityData, 30000);
         });
@@ -319,22 +351,32 @@
     <script>
         $(document).ready(function() {
             let combinedChart; // For the combined chart
+            let selectedCollege = 0; // Default to "All Colleges"
+
+            // Handle college filter change
+            $('#collegeFilter').on('change', function() {
+                selectedCollege = $(this).val();
+                fetchReviewStatusData();
+            });
 
             // Fetch and update chart data via AJAX
             function fetchReviewStatusData() {
                 $.ajax({
-                    url: "{{ route('analytics.sdgComparison') }}", // Update this route to fetch SDG comparison data
+                    url: "{{ route('analytics.sdgComparison') }}",
                     method: 'GET',
+                    data: {
+                        college_id: selectedCollege
+                    },
                     success: function(response) {
                         // Combine data from projects, status reports, terminal reports, and research
                         const combinedLabels = response
-                        .sdgLabels; // Assuming this contains unique SDG labels
+                            .sdgLabels; // Assuming this contains unique SDG labels
                         const combinedData = [];
                         const projectData = response.projectData; // Array of project counts
                         const statusReportData = response
-                        .statusReportData; // Array of status report counts
+                            .statusReportData; // Array of status report counts
                         const terminalReportData = response
-                        .terminalReportData; // Array of terminal report counts
+                            .terminalReportData; // Array of terminal report counts
                         const researchData = response.researchData; // Array of research counts
 
                         // Aggregate data from projects, status reports, terminal reports, and research
@@ -377,7 +419,7 @@
                 plugins: {
                     legend: {
                         display: true,
-                        position: 'top', // Position legend to the right
+                        position: 'top', // Position legend to the top
                         labels: {
                             maxWidth: 100,
                             boxWidth: 10,
@@ -406,8 +448,8 @@
                                 '#DCA93A', // Zero Hunger
                                 '#4C9E39', // Good Health and Well-Being
                                 '#C4182D', // Quality Education
-                                '#FF3B20', // Gender Equality
-                                '#26BCE3', // Clean Water and Sanitation
+                                '#D94E9A', // Gender Equality
+                                '#C4182D', // Clean Water and Sanitation
                                 '#FCC30B', // Affordable and Clean Energy
                                 '#A21942', // Decent Work and Economic Growth
                                 '#FC6825', // Industry, Innovation, and Infrastructure

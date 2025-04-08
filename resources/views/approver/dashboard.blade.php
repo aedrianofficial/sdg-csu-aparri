@@ -133,15 +133,32 @@
                         </div>
                     </div>
 
-                    <!-- SDG Contributions Overview -->
+                    <!-- Charts for SDG -->
                     <div class="content">
                         <div class="container">
                             <div class="row text-center">
                                 <div class="col-md-12 mb-4">
                                     <div class="card card-primary card-outline">
                                         <div class="card-header">
-                                            <h4 class="text-center mb-4" style="font-weight: 600;">Overview of SDG
-                                                Contributions: Projects, Reports, and Research</h4>
+                                            <h4 class="text-center mb-4" style="font-weight: 600;">
+                                                Overview of SDG Contributions: Projects, Reports, and Research
+                                            </h4>
+                                            <!-- College Filter Dropdown -->
+                                            <div class="form-group">
+                                                <select id="collegeFilter" class="form-control">
+                                                    <option value="0">All Colleges</option>
+                                                    <option value="1">College of Teacher Education</option>
+                                                    <option value="2">College of Information and Computing Sciences
+                                                    </option>
+                                                    <option value="3">College of Industrial Technology</option>
+                                                    <option value="4">College of Hospitality Management</option>
+                                                    <option value="5">College of Fisheries and Aquatic Sciences
+                                                    </option>
+                                                    <option value="6">College of Criminal Justice Education</option>
+                                                    <option value="7">College of Business Entrepreneurship and
+                                                        Accountancy</option>
+                                                </select>
+                                            </div>
                                         </div>
                                         <div class="card-body">
                                             <div class="chart-container"
@@ -326,16 +343,25 @@
 
 
     <!-- Chart for overall status of SDG projects, reports, research-->
-    <!-- Chart for overall status of SDG projects, reports, research-->
     <script>
         $(document).ready(function() {
             let combinedChart; // For the combined chart
+            let selectedCollege = 0; // Default to "All Colleges"
+
+            // Handle college filter change
+            $('#collegeFilter').on('change', function() {
+                selectedCollege = $(this).val();
+                fetchReviewStatusData();
+            });
 
             // Fetch and update chart data via AJAX
             function fetchReviewStatusData() {
                 $.ajax({
-                    url: "{{ route('analytics.sdgComparison') }}", // Update this route to fetch SDG comparison data
+                    url: "{{ route('analytics.sdgComparison') }}",
                     method: 'GET',
+                    data: {
+                        college_id: selectedCollege
+                    },
                     success: function(response) {
                         // Combine data from projects, status reports, terminal reports, and research
                         const combinedLabels = response
@@ -388,7 +414,7 @@
                 plugins: {
                     legend: {
                         display: true,
-                        position: 'top', // Position legend to the right
+                        position: 'top', // Position legend to the top
                         labels: {
                             maxWidth: 100,
                             boxWidth: 10,
@@ -417,8 +443,8 @@
                                 '#DCA93A', // Zero Hunger
                                 '#4C9E39', // Good Health and Well-Being
                                 '#C4182D', // Quality Education
-                                '#FF3B20', // Gender Equality
-                                '#26BCE3', // Clean Water and Sanitation
+                                '#D94E9A', // Gender Equality
+                                '#C4182D', // Clean Water and Sanitation
                                 '#FCC30B', // Affordable and Clean Energy
                                 '#A21942', // Decent Work and Economic Growth
                                 '#FC6825', // Industry, Innovation, and Infrastructure
@@ -468,7 +494,6 @@
             setInterval(fetchReviewStatusData, 30000);
         });
     </script>
-
     <!-- locator pin in the map for all projects-->
     <script>
         $(document).ready(function() {
