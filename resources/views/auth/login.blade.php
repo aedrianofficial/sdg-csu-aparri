@@ -82,6 +82,7 @@
             const loginForm = document.getElementById('login-form');
             const loginInput = document.getElementById('login');
             const passwordInput = document.getElementById('password');
+            const loginBtn = document.getElementById('login-btn');
 
             // Validation function
             function validateInput(input) {
@@ -128,10 +129,33 @@
             loginForm.addEventListener('submit', function(event) {
                 const isLoginValid = validateInput(loginInput);
                 const isPasswordValid = validateInput(passwordInput);
+
                 if (!isLoginValid || !isPasswordValid) {
                     event.preventDefault(); // Prevent form submission if validation fails
+                } else {
+                    // Show loading message
+                    loginBtn.innerHTML =
+                        '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Authenticating...';
+                    loginBtn.disabled = true;
+
+                    // Add loading notification
+                    if (!document.getElementById('login-notification')) {
+                        const notification = document.createElement('div');
+                        notification.id = 'login-notification';
+                        notification.className = 'alert alert-info mt-3 d-flex align-items-center';
+                        notification.innerHTML = `
+                    <div class="spinner-grow spinner-grow-sm text-info me-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div>
+                        <strong>Please wait!</strong> Verifying your credentials...
+                    </div>
+                `;
+                        loginForm.appendChild(notification);
+                    }
                 }
             });
+
             // Show Password Functionality
             document.getElementById("show-password").addEventListener("change", function() {
                 const passwordField = document.getElementById("password");
@@ -139,4 +163,5 @@
             });
         });
     </script>
+   
 @endsection

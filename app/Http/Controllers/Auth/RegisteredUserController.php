@@ -35,11 +35,11 @@ class RegisteredUserController extends Controller
         $request->validate([
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
-            'username' => ['required', 'string', 'max:255', 'unique:users,username'], // Ensure username is unique
+            'username' => ['required', 'string', 'max:255', 'unique:users,username'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'college_id' => ['required', 'exists:colleges,id'], // Validate the college ID
-            'campus_id' => ['required', 'exists:campuses,id'], // Ensure the campus ID exists
+            'college_id' => ['required', 'exists:colleges,id'],
+            'campus_id' => ['required', 'exists:campuses,id'],
         ]);
     
         $user = User::create([
@@ -53,10 +53,8 @@ class RegisteredUserController extends Controller
             'campus_id' => $request->campus_id,
         ]);
     
-        event(new Registered($user));
-    
         Auth::login($user);
-
+    
         ActivityLog::create([
             'log_name' => 'User Registration',
             'description' => $user->first_name . ' ' . $user->last_name . ' registered an account.',
@@ -76,9 +74,17 @@ class RegisteredUserController extends Controller
             ]),
             'created_at' => now(),
         ]);
-        
-        return redirect(route('contributor.dashboard'));
+    
+        event(new Registered($user));
+    
+        // Redirect the user based on email verification status
+        if (!$user->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice');
+        }
+    
+        return redirect()->route('contributor.dashboard');
     }
+    
     
      public function checkUsername(Request $request)
     {

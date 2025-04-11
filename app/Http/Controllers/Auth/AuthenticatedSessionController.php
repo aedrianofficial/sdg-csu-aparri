@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\ActivityLog;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,12 +29,13 @@ class AuthenticatedSessionController extends Controller
     {
         // Ensure no previous role-based redirect path is stored
         session()->forget('url.intended');
-
+    
         $request->authenticate();
-
+    
         $request->session()->regenerate();
-         // Log the login activity
-         ActivityLog::create([
+    
+        // Log the login activity
+        ActivityLog::create([
             'log_name' => 'User Login',
             'description' => auth()->user()->first_name . ' ' . auth()->user()->last_name . ' logged in.',
             'subject_type' => User::class,
@@ -49,9 +51,17 @@ class AuthenticatedSessionController extends Controller
             ]),
             'created_at' => now(),
         ]);
-
-        return redirect()->intended($this->redirectTo()); // Redirect based on role
+    
+       
+        // If the email is not verified, dispatch the Registered event and redirect
+        if (is_null(auth()->user()->email_verified_at)) {
+            event(new Registered(auth()->user()));
+            return redirect()->route('verification.notice')->with('status', 'verification-link-sent');
+        }
+    
+        return redirect()->intended($this->redirectTo());
     }
+    
 
     /**
      * Destroy an authenticated session.

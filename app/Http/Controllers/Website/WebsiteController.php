@@ -13,11 +13,26 @@ use App\Models\StatusReport;
 use App\Models\TerminalReport;
 use App\Models\User;
 use Exception;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class WebsiteController extends Controller
 {
+    public function verifyNotice(){
+        return view('auth.verify-email');
+    }
+    public function verifyHandler(Request $request) {
+        $request->user()->sendEmailVerificationNotification();
+     
+        return back()->with('message', 'Verification link sent!');
+    }
+    
+    public function verifyEmail(EmailVerificationRequest $request) {
+        $request->fulfill();
+     
+        return redirect()->route('contributor.dashboard')->with('verified', 'Email verified successfully.');
+    }
     public function viewResearchFile($id)
     {
         $file = Researchfile::findOrFail($id);

@@ -56,6 +56,7 @@ use App\Http\Controllers\Website\WebsiteController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Middleware\NoCache;
+use Illuminate\Auth\Notifications\VerifyEmail;
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -195,12 +196,21 @@ Route::middleware(['auth', 'role:admin', NoCache::class])->group(function(){
 });
 
 
-
 //contributor
 Route::middleware(['auth', 'role:contributor', NoCache::class])->group(function(){
 
+ 
+    Route::get('/email/verify', [WebsiteController::class, 'verifyNotice'])->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [WebsiteController::class, 'verifyEmail'])
+        ->middleware('signed')
+        ->name('verification.verify');
+    Route::post('/email/verification-notification', [WebsiteController::class, 'verifyHandler'])
+        ->middleware('throttle:6,1')
+        ->name('verification.send');
+
     //contributor dashboard
-    Route::get('contributor/dashboard',[ContributorController::class, 'index'])->name('contributor.dashboard');
+    Route::get('contributor/dashboard',[ContributorController::class, 'index'])->middleware('verified')->name('contributor.dashboard');
+
      //contributor notifications
      Route::get('contributor/notifications',[NotificationController::class, 'contributor_notification'])->name('contributor.notifications');
      Route::get('contributor/activity-logs',[ContributorController::class, 'activity_logs'])->name('contributor.activity_logs');

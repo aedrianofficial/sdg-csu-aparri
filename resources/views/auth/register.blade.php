@@ -299,7 +299,7 @@
             document.getElementById("show-confirm-password").addEventListener("change", function() {
                 const confirmPasswordField = document.getElementById("password_confirmation");
                 confirmPasswordField.type = this.checked ? "text" :
-                "password"; // Toggle confirm password visibility
+                    "password"; // Toggle confirm password visibility
             });
         });
     </script>
@@ -316,6 +316,43 @@
 
             // Prepend the placeholder option to the select element
             collegeSelect.prepend(placeholderOption);
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const registerForm = document.getElementById("register-form");
+            const registerBtn = document.getElementById("register-btn");
+
+            registerForm.addEventListener('submit', function(event) {
+                // Check if form is valid before showing loading message
+                const allInputs = document.querySelectorAll(".form-control");
+                const allValid = Array.from(allInputs).every(input => input.classList.contains("is-valid"));
+
+                if (allValid) {
+                    // Show loading spinner in button
+                    registerBtn.innerHTML =
+                        '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Registering...';
+                    registerBtn.disabled = true;
+
+                    // Add loading notification
+                    if (!document.getElementById('register-notification')) {
+                        const notification = document.createElement('div');
+                        notification.id = 'register-notification';
+                        notification.className = 'alert alert-info mt-3 d-flex align-items-center';
+                        notification.innerHTML = `
+                    <div class="spinner-grow spinner-grow-sm text-info me-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div>
+                        <strong>Please wait!</strong> Creating your account...
+                    </div>
+                `;
+                        registerForm.appendChild(notification);
+                    }
+                } else {
+                    event.preventDefault(); // Prevent form submission if validation fails
+                }
+            });
         });
     </script>
 @endsection
