@@ -64,6 +64,7 @@
                             </div>
 
                             <!-- Research File Viewer -->
+                            <!-- Research File Viewer -->
                             <div class="mb-3">
                                 <label for="file" class="form-label">Research File (View Only):</label>
 
@@ -72,71 +73,170 @@
                                         value="No files available for this research." readonly>
                                 @else
                                     @php
-                                        $firstResearchFile = $research->researchfiles->first(); // You can loop for multiple files later
+                                        $firstResearchFile = $research->researchfiles->first(); // First file, add loop if needed
                                     @endphp
 
                                     <div class="pdf-viewer-container"
-                                        style="width: 100%; max-height: 80vh; border: 1px solid #ddd; overflow-y: auto;">
-                                        <div id="research-pdf-viewer"
-                                            style="width: 100%; padding: 10px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center;">
+                                        style="width: 100%; max-height: 80vh; border: 1px solid #ddd; overflow: auto; position: relative;">
+                                        <div id="research-zoom-wrapper"
+                                            style="touch-action: pan-x pan-y; transform-origin: 0 0; min-width: 100%; min-height: 100%;">
+                                            <div id="research-pdf-viewer"
+                                                style="width: 100%; padding: 10px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center;">
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <!-- Include PDF.js -->
+                                    <!-- Include PDF.js and Hammer.js -->
                                     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+                                    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+
                                     <script>
-                                        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+                                        document.addEventListener('DOMContentLoaded', function() {
+                                            pdfjsLib.GlobalWorkerOptions.workerSrc =
+                                                'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
 
-                                        const researchViewer = document.getElementById('research-pdf-viewer');
-                                        const researchPdfUrl = "{{ route('research.file.view', $firstResearchFile->id) }}";
+                                            const viewerContainer = document.getElementById('research-pdf-viewer');
+                                            const zoomWrapper = document.getElementById('research-zoom-wrapper');
+                                            const pdfContainer = document.querySelector('.pdf-viewer-container');
+                                            const pdfUrl = "{{ route('research.file.view', $firstResearchFile->id) }}";
 
-                                        pdfjsLib.getDocument(researchPdfUrl).promise.then(pdf => {
-                                            const totalPages = pdf.numPages;
+                                            let currentScale = 1;
+                                            let lastPosX = 0;
+                                            let lastPosY = 0;
+                                            let isDragging = false;
 
-                                            const renderPage = (pageNumber) => {
-                                                pdf.getPage(pageNumber).then(page => {
-                                                    const containerWidth = researchViewer.offsetWidth;
-                                                    const viewport = page.getViewport({
-                                                        scale: 1
+                                            if (window.innerWidth < 768) {
+                                                currentScale = 1.5;
+                                            }
+
+                                            pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
+                                                const totalPages = pdf.numPages;
+
+                                                const renderPage = (pageNumber) => {
+                                                    pdf.getPage(pageNumber).then(page => {
+                                                        const containerWidth = viewerContainer.offsetWidth;
+                                                        const unscaledViewport = page.getViewport({
+                                                            scale: 1
+                                                        });
+                                                        let scale = containerWidth / unscaledViewport.width;
+                                                        const outputScale = window.devicePixelRatio || 1;
+                                                        const viewport = page.getViewport({
+                                                            scale
+                                                        });
+
+                                                        const canvas = document.createElement('canvas');
+                                                        const context = canvas.getContext('2d');
+
+                                                        canvas.width = viewport.width * outputScale;
+                                                        canvas.height = viewport.height * outputScale;
+                                                        canvas.style.width = `${viewport.width}px`;
+                                                        canvas.style.height = `${viewport.height}px`;
+                                                        canvas.className = 'shadow-sm rounded';
+
+                                                        context.setTransform(outputScale, 0, 0, outputScale, 0, 0);
+
+                                                        viewerContainer.appendChild(canvas);
+
+                                                        const renderContext = {
+                                                            canvasContext: context,
+                                                            viewport: viewport
+                                                        };
+
+                                                        page.render(renderContext).promise.then(() => {
+                                                            if (pageNumber < totalPages) {
+                                                                renderPage(pageNumber + 1);
+                                                            } else if (window.innerWidth < 768) {
+                                                                zoomWrapper.style.transform = `scale(${currentScale})`;
+                                                                updateScrollability();
+                                                            }
+                                                        });
                                                     });
-                                                    const scale = containerWidth / viewport.width;
-                                                    const scaledViewport = page.getViewport({
-                                                        scale
-                                                    });
+                                                };
 
-                                                    const canvas = document.createElement('canvas');
-                                                    canvas.style.marginBottom = '15px';
-                                                    canvas.style.maxWidth = '100%';
-                                                    canvas.className = 'shadow-sm rounded';
+                                                renderPage(1);
+                                            }).catch(error => {
+                                                console.error("PDF load error:", error);
+                                                viewerContainer.innerHTML =
+                                                    '<div class="text-danger p-3">Failed to load PDF. Please try again later.</div>';
+                                            });
 
-                                                    const context = canvas.getContext('2d');
-                                                    canvas.width = scaledViewport.width;
-                                                    canvas.height = scaledViewport.height;
+                                            function updateScrollability() {
+                                                if (currentScale > 1) {
+                                                    pdfContainer.style.overflow = 'auto';
+                                                    const newWidth = viewerContainer.offsetWidth * currentScale;
+                                                    const newHeight = viewerContainer.offsetHeight * currentScale;
+                                                    zoomWrapper.style.width = `${newWidth}px`;
+                                                    zoomWrapper.style.height = `${newHeight}px`;
+                                                } else {
+                                                    pdfContainer.style.overflow = 'auto';
+                                                    zoomWrapper.style.width = '100%';
+                                                    zoomWrapper.style.height = '100%';
+                                                }
+                                            }
 
-                                                    researchViewer.appendChild(canvas);
+                                            const hammer = new Hammer(zoomWrapper);
+                                            hammer.get('pinch').set({
+                                                enable: true
+                                            });
+                                            hammer.get('pan').set({
+                                                direction: Hammer.DIRECTION_ALL
+                                            });
 
-                                                    const renderContext = {
-                                                        canvasContext: context,
-                                                        viewport: scaledViewport
-                                                    };
+                                            hammer.on('pinchmove', function(ev) {
+                                                const newScale = Math.min(Math.max(0.5, currentScale * ev.scale), 4);
+                                                zoomWrapper.style.transform = `scale(${newScale})`;
+                                            });
 
-                                                    page.render(renderContext).promise.then(() => {
-                                                        if (pageNumber < totalPages) {
-                                                            renderPage(pageNumber + 1);
-                                                        }
-                                                    });
-                                                });
-                                            };
+                                            hammer.on('pinchend', function(ev) {
+                                                currentScale = Math.min(Math.max(0.5, currentScale * ev.scale), 4);
+                                                updateScrollability();
+                                            });
 
-                                            renderPage(1);
-                                        }).catch(error => {
-                                            console.error("PDF load error:", error);
-                                            researchViewer.innerHTML =
-                                                '<div class="text-danger p-3">Failed to load PDF. Please try again later.</div>';
+                                            let isZoomed = false;
+                                            hammer.on('doubletap', function(ev) {
+                                                isZoomed = !isZoomed;
+                                                currentScale = isZoomed ? 2 : 1;
+                                                zoomWrapper.style.transform = `scale(${currentScale})`;
+                                                updateScrollability();
+
+                                                if (isZoomed) {
+                                                    const rect = pdfContainer.getBoundingClientRect();
+                                                    const tapX = ev.center.x - rect.left;
+                                                    const tapY = ev.center.y - rect.top;
+                                                    pdfContainer.scrollLeft = (tapX * 2) - (pdfContainer.clientWidth / 2);
+                                                    pdfContainer.scrollTop = (tapY * 2) - (pdfContainer.clientHeight / 2);
+                                                }
+                                            });
+
+                                            hammer.on('panstart', function(ev) {
+                                                if (currentScale > 1) {
+                                                    isDragging = true;
+                                                    lastPosX = pdfContainer.scrollLeft;
+                                                    lastPosY = pdfContainer.scrollTop;
+                                                }
+                                            });
+
+                                            hammer.on('panmove', function(ev) {
+                                                if (isDragging && currentScale > 1) {
+                                                    pdfContainer.scrollLeft = lastPosX - ev.deltaX;
+                                                    pdfContainer.scrollTop = lastPosY - ev.deltaY;
+                                                }
+                                            });
+
+                                            hammer.on('panend', function() {
+                                                isDragging = false;
+                                            });
+
+                                            window.addEventListener('resize', function() {
+                                                if (currentScale > 1) {
+                                                    updateScrollability();
+                                                }
+                                            });
                                         });
                                     </script>
                                 @endif
                             </div>
+
 
                             <div class="research-detail-item mb-2">
                                 <strong><i class="fas fa-file"></i> Full version File:</strong>
@@ -292,8 +392,7 @@
                         <ul class="nav flex-column">
                             @foreach ($sdgs as $singleSdg)
                                 <li class="nav-item">
-                                    <a href="{{ route('website.display_research_sdg', $singleSdg->id) }}"
-                                        class="nav-link">
+                                    <a href="{{ route('website.display_research_sdg', $singleSdg->id) }}" class="nav-link">
                                         {{ $singleSdg->name }}
                                         @php
                                             $badgeColor = 'bg-primary';

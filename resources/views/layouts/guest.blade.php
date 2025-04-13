@@ -180,7 +180,7 @@
     </script>
 
     <link rel="stylesheet" href="{{ asset('assets/auth/vendors/css/vendor.bundle.base.css') }}">
-    <script>
+    {{-- <script>
         // Color Mode Toggler
         (() => {
             "use strict";
@@ -244,7 +244,7 @@
                 }
             });
         })();
-    </script>
+    </script> --}}
 
     <script>
         @if (Session::has('alert-success'))

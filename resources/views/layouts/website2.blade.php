@@ -230,7 +230,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
     </script> <!--end::OverlayScrollbars Configure-->
 
     <!--dark mode-->
-    <script>
+    {{-- <script>
         // Color Mode Toggler
         (() => {
             "use strict";
@@ -305,7 +305,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
             });
 
         })();
-    </script>
+    </script> --}}
 
     <!-- jQuery -->
     <script src="{{ asset('assets/website/plugins/jquery/jquery.min.js') }}"></script>
