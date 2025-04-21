@@ -59,7 +59,9 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('verification.notice')->with('status', 'verification-link-sent');
         }
     
-        return redirect()->intended($this->redirectTo());
+        // Remove redirect()->intended and directly redirect by role
+        return redirect($this->redirectTo());
+
     }
     
 

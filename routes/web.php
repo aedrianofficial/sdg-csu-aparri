@@ -93,12 +93,21 @@ Route::get('/test-timezone', function () {
     return now(); // Should return the current time in Asia/Manila
 });
 
+Route::middleware(['auth', NoCache::class])->group(function () {
+    Route::get('/email/verify', [WebsiteController::class, 'verifyNotice'])->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [WebsiteController::class, 'verifyEmail'])
+        ->middleware('signed')
+        ->name('verification.verify');
+    Route::post('/email/verification-notification', [WebsiteController::class, 'verifyHandler'])
+        ->middleware('throttle:6,1')
+        ->name('verification.send');
+});
 
 //admin middleware
 Route::middleware(['auth', 'role:admin', NoCache::class])->group(function(){
 
     //dashboard
-    Route::get('auth/dashboard',[AdminController::class, 'index'])->name('auth.dashboard');
+    Route::get('auth/dashboard',[AdminController::class, 'index'])->middleware('verified')->name('auth.dashboard');
 
     Route::get('auth/my-activity-logs',[AdminController::class, 'my_activity_logs'])->name('auth.activity_logs.my_activity_logs');
     Route::get('auth/all-activity-logs',[AdminController::class, 'all_activity_logs'])->name('auth.activity_logs.all_activity_logs');
@@ -198,15 +207,6 @@ Route::middleware(['auth', 'role:admin', NoCache::class])->group(function(){
 
 //contributor
 Route::middleware(['auth', 'role:contributor', NoCache::class])->group(function(){
-
- 
-    Route::get('/email/verify', [WebsiteController::class, 'verifyNotice'])->name('verification.notice');
-    Route::get('/email/verify/{id}/{hash}', [WebsiteController::class, 'verifyEmail'])
-        ->middleware('signed')
-        ->name('verification.verify');
-    Route::post('/email/verification-notification', [WebsiteController::class, 'verifyHandler'])
-        ->middleware('throttle:6,1')
-        ->name('verification.send');
 
     //contributor dashboard
     Route::get('contributor/dashboard',[ContributorController::class, 'index'])->middleware('verified')->name('contributor.dashboard');
@@ -338,7 +338,7 @@ Route::middleware(['auth', 'role:reviewer', NoCache::class])->group(function(){
     Route::get('reviewer/activity-logs',[ReviewerController::class, 'activity_logs'])->name('reviewer.activity_logs');
 
     //dashboard
-    Route::get('reviewer/dashboard',[ReviewerController::class, 'index'])->name('reviewer.dashboard');
+    Route::get('reviewer/dashboard',[ReviewerController::class, 'index'])->middleware('verified')->name('reviewer.dashboard');
 
     //project/program
     //under review list
@@ -481,7 +481,7 @@ Route::middleware(['auth', 'role:reviewer', NoCache::class])->group(function(){
 Route::middleware(['auth', 'role:approver', NoCache::class])->group(function(){
     
     //Dashboard
-    Route::get('approver/dashboard',[ApproverController::class, 'index'])->name('approver.dashboard');
+    Route::get('approver/dashboard',[ApproverController::class, 'index'])->middleware('verified')->name('approver.dashboard');
 
     Route::get('approver/profile/show/{id}', [ApproverProfileController::class, 'show'])->name('approver.profile.show');
     Route::get('approver/profile/{id}/edit', [ApproverProfileController::class, 'edit'])->name('approver.profile.edit');

@@ -30,9 +30,24 @@ class WebsiteController extends Controller
     
     public function verifyEmail(EmailVerificationRequest $request) {
         $request->fulfill();
-     
-        return redirect()->route('contributor.dashboard')->with('verified', 'Email verified successfully.');
+    
+        // Redirect based on role after email is verified
+        $role = auth()->user()->role;
+    
+        switch ($role) {
+            case 'admin':
+                return redirect()->route('auth.dashboard')->with('verified', 'Email verified successfully.');
+            case 'reviewer':
+                return redirect()->route('reviewer.dashboard')->with('verified', 'Email verified successfully.');
+            case 'approver':
+                return redirect()->route('approver.dashboard')->with('verified', 'Email verified successfully.');
+            case 'contributor':
+            default:
+                return redirect()->route('contributor.dashboard')->with('verified', 'Email verified successfully.');
+        }
     }
+    
+
     public function viewResearchFile($id)
     {
         $file = Researchfile::findOrFail($id);
