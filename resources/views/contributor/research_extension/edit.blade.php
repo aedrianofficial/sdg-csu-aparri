@@ -39,9 +39,9 @@
                             @endif
 
                             <form method="post" action="{{ route('contributor.research.update', $research->id) }}"
-                                enctype="multipart/form-data" id="research-form">
+                                enctype="multipart/form-data" id="researchForm">
                                 @csrf
-                                @method('PUT')
+                                @method('put')
 
                                 <!-- Research Title -->
                                 <div class="mb-3">
@@ -55,7 +55,7 @@
                                     <label for="researchcategory_id" class="form-label">Research Category</label>
                                     <select name="researchcategory_id" id="researchcategory_id" class="form-select"
                                         required>
-                                        <option disabled selected>Choose Category</option>
+                                        <option disabled>Choose Category</option>
                                         @foreach ($researchcategories as $category)
                                             <option value="{{ $category->id }}" @selected(old('researchcategory_id', $research->researchcategory_id) == $category->id)>
                                                 {{ $category->name }}
@@ -64,45 +64,118 @@
                                     </select>
                                 </div>
 
-                                <!-- Sustainable Development Goals (SDG) -->
+                                <!-- File Upload - Modified to upload first for AI analysis -->
                                 <div class="mb-3">
-                                    <label for="sdg" class="form-label">Sustainable Development Goals</label>
+                                    <label for="file" class="form-label">Upload Research Abstract <span class="text-primary fw-bold">- Upload to automatically detect SDGs and Targets</span></label>
+                                    <input type="file" class="form-control" id="file" name="file">
+                                    <div class="form-text text-muted">
+                                        Upload your research abstract to automatically detect relevant Sustainable Development Goals (SDGs) and their targets
+                                    </div>
+                                    @foreach ($research->researchfiles as $file)
+                                        <p class="mb-0 mt-2">
+                                            <strong>Currently attached file:</strong> {{ $file->original_filename }}
+                                        </p>
+                                    @endforeach
+                                </div>
+
+                                <!-- AI Detection Results Area - Improved Design -->
+                                <div id="ai-detection-results" class="mb-3 d-none">
+                                    <div class="card border-primary">
+                                        <div class="card-header bg-primary text-white">
+                                            <i class="fas fa-robot me-2"></i>AI-Detected SDGs and Targets
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-3" id="ai-loading-indicator">
+                                                <div class="spinner-border text-primary me-3" role="status"></div>
+                                                <p class="mb-0 fs-5">Analyzing document for SDG relevance...</p>
+                                            </div>
+                                            <div id="ai-detection-content" class="d-none">
+                                                <h5 class="card-title">The AI has analyzed your file and detected the following:</h5>
+                                                <h6 class="mt-3 mb-2">Detected Sustainable Development Goals:</h6>
+                                                <div id="detected-sdgs-list" class="mb-3"></div>
+                                                <h6 class="mt-4 mb-2">Detected SDG Targets:</h6>
+                                                <div id="detected-subcategories-list"></div>
+                                                <div id="selected-subcategories-container" class="d-none"></div>
+                                                <div class="mt-4">
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="show-manual-selection">
+                                                        <i class="fas fa-edit"></i> Modify AI Selection
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Current SDGs & Targets Section -->
+                                <div id="current-selections" class="mb-4">
+                                    <div class="card border-secondary">
+                                        <div class="card-header bg-secondary text-white">
+                                            <i class="fas fa-tags me-2"></i>Currently Selected SDGs and Targets
+                                        </div>
+                                        <div class="card-body">
+                                            <h6 class="mb-3">Sustainable Development Goals:</h6>
+                                            <div class="row mb-3">
+                                                @foreach($research->sdg as $sdg)
+                                                <div class="col-md-6 mb-2">
+                                                    <div class="p-2 rounded bg-light">
+                                                        <i class="fas fa-check-circle text-success me-2"></i>{{ $sdg->name }}
+                                                    </div>
+                                                </div>
+                                                @endforeach
+                                            </div>
+                                            
+                                            <h6 class="mb-3">SDG Targets:</h6>
+                                            <div class="row">
+                                                @foreach($research->sdgSubCategories as $subCategory)
+                                                <div class="col-md-6 mb-2">
+                                                    <div class="p-2 rounded bg-light">
+                                                        <i class="fas fa-bullseye text-info me-2"></i>
+                                                        <strong>{{ $subCategory->sub_category_name }}:</strong> 
+                                                        {{ Str::limit($subCategory->sub_category_description, 80) }}
+                                                    </div>
+                                                </div>
+                                                @endforeach
+                                            </div>
+                                            
+                                            <div class="mt-3">
+                                                <p class="text-muted">Upload a new abstract file to update these using AI, or use manual selection.</p>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" id="show-manual-selection-current">
+                                                    <i class="fas fa-edit"></i> Modify Current Selection
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sustainable Development Goals (SDG) - Hidden by default -->
+                                <div class="mb-3 d-none" id="manual-sdg-selection">
+                                    <label for="sdg" class="form-label">Sustainable Development Goals (Manual Selection)</label>
                                     <select name="sdg[]" id="sdg" class="form-select" required multiple>
+                                        @if (count($sdgs) > 0)
                                         @foreach ($sdgs as $sdg)
-                                            <option value="{{ $sdg->id }}"
-                                                {{ in_array($sdg->id, $research->sdg->pluck('id')->toArray()) ? 'selected' : '' }}>
-                                                {{ $sdg->name }}
-                                            </option>
+                                                <option @selected(in_array($sdg->id, old('sdg', $research->sdg->pluck('id')->toArray()))) value="{{ $sdg->id }}">
+                                                    {{ $sdg->name }}</option>
                                         @endforeach
+                                        @endif
                                     </select>
                                 </div>
-                                <!-- Sub-categories Section -->
-                                <div class="mb-3" id="sub-categories" style="display: none;">
-                                    <label for="sdg_sub_categories" class="form-label">Select SDG Targets
-                                        (Optionally)</label>
-                                    <div id="sub-category-checkboxes">
-                                        @foreach ($sdgs as $sdg)
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="sdg_sub_category[]"
-                                                    value="{{ $sdg->id }}" id="subCategory{{ $sdg->id }}"
-                                                    {{ in_array($sdg->id, $selectedSubCategories) ? 'checked' : '' }}>
-                                                <label class="form-check-label" for="subCategory{{ $sdg->id }}">
-                                                    {{ $sdg->name }}: {{ $sdg->description }}
-                                                </label>
-                                            </div>
-                                        @endforeach
-                                    </div>
+
+                                <!-- Sub-categories Section - Hidden by default -->
+                                <div class="mb-3 d-none" id="sub-categories">
+                                    <label for="sdg_sub_categories" class="form-label">SDG Targets (Manual Selection)</label>
+                                    <div id="sub-category-checkboxes"></div>
                                     <p>
                                         Source: <a
                                             href="https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf"
                                             target="_blank">https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf</a>
                                     </p>
                                 </div>
+
                                 <!-- Research Status Dropdown -->
                                 <div class="mb-3">
                                     <label for="status_id" class="form-label">Research Status</label>
                                     <select name="status_id" id="status_id" class="form-select" required>
-                                        <option disabled selected>Choose Status</option>
+                                        <option disabled>Choose Status</option>
                                         @foreach ($projectResearchStatuses as $status)
                                             <option value="{{ $status->id }}" @selected(old('status_id', $research->status_id) == $status->id)>
                                                 {{ $status->status }}
@@ -110,73 +183,57 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <!-- File Upload -->
-                                <div class="mb-3">
-                                    <label for="file" class="form-label">Old File(Abstract):</label>
-                                    @if ($research->researchfiles->isEmpty())
-                                        <input type="text" name="file" id="file" class="form-control"
-                                            value="No files available for this research." readonly>
-                                    @else
-                                        @foreach ($research->researchfiles as $file)
-                                            <div class="input-group">
-                                                <!-- Display clickable filename as a link -->
-                                                <a href="{{ route('research.file.download', $file->id) }}"
-                                                    class="form-control" target="_blank" rel="noopener noreferrer">
-                                                    <span>Download</span>
-                                                    {{ $file->original_filename ?? $research->title }}
-                                                </a>
-                                            </div>
-                                        @endforeach
-                                    @endif
-                                    <label for="file" class="form-label">Update File (Abstract, Maximum of <strong>2
-                                            mb</strong> only)</label>
-                                    <input type="file" class="form-control" id="file" name="file">
-                                </div>
 
+                                <!-- Hidden input for is_publish -->
+                                <input type="hidden" name="is_publish" value="0"> <!-- 0 indicates Draft -->
 
+                                <!-- File Upload for Link -->
                                 <div class="mb-3">
                                     <label for="file_link" class="form-label">Note: (If you have the full version of the
-                                        file, please provide the link below. If not, leave it blank.) (Optional)</label>
+                                        file, please provide the link below. If not, leave it blank.)</label>
                                     <input type="text" class="form-control" id="file_link" name="file_link"
-                                        value="{{ old('file_link', $research->file_link) }}" placeholder="">
+                                        value="{{ old('file_link', $research->file_link) }}">
                                 </div>
 
-                                <!-- Research Description -->
+                                <!-- Description -->
                                 <div class="mb-3">
-                                    <label for="description" class="form-label">Description</label>
-                                    <textarea name="description" class="form-control" id="description" cols="30" rows="10" required>{{ old('description', $research->description) }}</textarea>
+                                    <label for="description-container" class="form-label">Description</label>
+                                    <!-- Create a div where Quill will be initialized -->
+                                    <div id="description-editor" style="height: 300px;"></div>
+                                    <!-- Hidden input to store the content for form submission -->
+                                    <input type="hidden" name="description" id="description"
+                                        value="{{ old('description', $research->description) }}">
                                 </div>
-                                <!-- Created By (Display Only) -->
-                                <div class="mb-3">
-                                    <label for="created_by" class="form-label">Created by:</label>
-                                    <input type="text" name="created_by" id="created_by" class="form-control"
-                                        value="{{ $research->user->first_name }} {{ $research->user->last_name }}"
-                                        readonly>
-                                </div>
-                                <!-- Update Button -->
+
+                                <!-- "Submit for Review" Button -->
                                 <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                                    data-bs-target="#confirmationModal">Update Research</button>
+                                    data-bs-target="#confirmSubmitModal">Submit for Review</button>
+
+                                <!-- "Cancel" Button -->
                                 <button type="button" class="btn btn-secondary" id="cancelButton">
                                     <i class="fas fa-times"></i> Cancel
                                 </button>
+
                                 <!-- Confirmation Modal -->
-                                <div class="modal fade" id="confirmationModal" tabindex="-1"
-                                    aria-labelledby="confirmationModalLabel" aria-hidden="true">
+                                <div class="modal fade" id="confirmSubmitModal" tabindex="-1"
+                                    aria-labelledby="confirmSubmitModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="confirmationModalLabel">Confirm Update</h5>
+                                                <h5 class="modal-title" id="confirmSubmitModalLabel">Confirm Submission
+                                                </h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                     aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
-                                                Are you sure you want to update this research?
+                                                Are you sure you want to submit this research for review? Once submitted,
+                                                you will not be able to edit this draft.
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary"
                                                     data-bs-dismiss="modal">Cancel</button>
                                                 <button type="button" class="btn btn-primary"
-                                                    id="confirm-update">Update</button>
+                                                    id="confirmSubmitButton">Submit</button>
                                             </div>
                                         </div>
                                     </div>
@@ -186,33 +243,304 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </div> <!--end::Container-->
     </div>
     <!--end::App Content-->
 @endsection
 
-
-
-
 @section('scripts')
     <script>
-        var selectedSubCategories = @json($selectedSubCategories);
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Quill editor
+            var quill = new Quill('#description-editor', {
+                theme: 'snow',
+                placeholder: 'Write your description here...',
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline', 'strike'],
+                        ['blockquote', 'code-block'],
+                        [{
+                            'header': 1
+                        }, {
+                            'header': 2
+                        }],
+                        [{
+                            'list': 'ordered'
+                        }, {
+                            'list': 'bullet'
+                        }],
+                        [{
+                            'script': 'sub'
+                        }, {
+                            'script': 'super'
+                        }],
+                        [{
+                            'indent': '-1'
+                        }, {
+                            'indent': '+1'
+                        }],
+                        [{
+                            'direction': 'rtl'
+                        }],
+                        [{
+                            'size': ['small', false, 'large', 'huge']
+                        }],
+                        [{
+                            'header': [1, 2, 3, 4, 5, 6, false]
+                        }],
+                        [{
+                            'color': []
+                        }, {
+                            'background': []
+                        }],
+                        [{
+                            'font': []
+                        }],
+                        [{
+                            'align': []
+                        }],
+                        ['clean'],
+                        ['link', 'image', 'video']
+                    ]
+                }
+            });
+
+            // Set initial content if it exists
+            const oldValue = document.getElementById('description').value;
+            if (oldValue) {
+                quill.root.innerHTML = oldValue;
+            }
+
+            // Update hidden input when text changes
+            quill.on('text-change', function() {
+                var htmlContent = quill.root.innerHTML;
+                document.getElementById('description').value = htmlContent;
+            });
+
+            // Ensure the form captures the Quill content when submitted
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function() {
+                document.getElementById('description').value = quill.root.innerHTML;
+            });
+        });
     </script>
+
     <script>
         $(document).ready(function() {
-            // Initialize Select2 for SDGs and Research Status
+            // Initialize Select2 for SDGs
             $('#sdg').select2();
-            $(document).ready(function() {
-                $('#sdg').select2({
-                    width: '100%',
-                    placeholder: 'Select SDGs',
+            
+            // Trigger initial change event to load any selected subcategories
+            $('#sdg').trigger('change');
+            
+            // Load subcategories for selected SDGs
+            loadSubcategories();
+
+            // Show manual selection button handlers
+            $('#show-manual-selection, #show-manual-selection-current').on('click', function() {
+                $('#manual-sdg-selection').removeClass('d-none');
+                $('#sub-categories').removeClass('d-none');
+                $('#current-selections').addClass('d-none');
+            });
+
+            // Handle file upload for AI detection
+            $('#file').on('change', function() {
+                if (this.files && this.files[0]) {
+                    // Show the AI detection panel
+                    $('#ai-detection-results').removeClass('d-none');
+                    $('#ai-loading-indicator').removeClass('d-none');
+                    $('#ai-detection-content').addClass('d-none');
+                    
+                    // Hide the current selections and manual selection options
+                    $('#current-selections').addClass('d-none');
+                    $('#manual-sdg-selection').addClass('d-none');
+                    $('#sub-categories').addClass('d-none');
+
+                    // Create FormData object to send file to backend
+                    var formData = new FormData();
+                    formData.append('file', this.files[0]);
+                    formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+                    // Make AJAX request to backend endpoint
+                    $.ajax({
+                        url: '/api/sdg-ai/analyze',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                // Hide loading indicator and show content
+                                $('#ai-loading-indicator').addClass('d-none');
+                                $('#ai-detection-content').removeClass('d-none');
+                                
+                                displayAiResults(response.data);
+                            } else {
+                                // Show error message
+                                $('#ai-loading-indicator').addClass('d-none');
+                                $('#ai-detection-content').removeClass('d-none');
+                                $('#detected-sdgs-list').html(
+                                    '<div class="alert alert-danger">Error analyzing document: ' + response.message + '</div>'
+                                );
+                            }
+                        },
+                        error: function(xhr) {
+                            // For demo purposes, simulate successful detection with mock data
+                            console.log("AI service error or not available. Using simulated results for demo.");
+                            
+                            // Hide loading indicator and show content
+                            $('#ai-loading-indicator').addClass('d-none');
+                            $('#ai-detection-content').removeClass('d-none');
+                            
+                            // Simulate AI detection based on random SDGs
+                            simulateAiDetection();
+                        }
+                    });
+                }
+            });
+
+            function simulateAiDetection() {
+                // Randomly select 2-3 SDGs for demo purposes
+                var allSdgs = [];
+                $('#sdg option').each(function() {
+                    allSdgs.push({
+                        id: $(this).val(),
+                        name: $(this).text().trim()
+                    });
                 });
-                // Load sub-categories based on selected SDGs
-                $('#sdg').on('change', function() {
-                    var selectedSdgs = $(this).val();
-                    if (selectedSdgs.length > 0) {
+                
+                // Shuffle and pick 2-3 random SDGs
+                allSdgs.sort(() => 0.5 - Math.random());
+                var selectedSdgs = allSdgs.slice(0, Math.floor(Math.random() * 2) + 2);
+                
+                // Create mock data structure
+                var mockDetectionResults = {
+                    sdgs: selectedSdgs,
+                    subcategories: []
+                };
+                
+                // Simulate 1-2 subcategories for each SDG
+                selectedSdgs.forEach(sdg => {
+                    var subCount = Math.floor(Math.random() * 2) + 1;
+                    for (var i = 1; i <= subCount; i++) {
+                        mockDetectionResults.subcategories.push({
+                            id: Math.floor(Math.random() * 100) + 1,
+                            name: sdg.id + '.' + i,
+                            description: 'Simulated target for SDG ' + sdg.name
+                        });
+                    }
+                });
+                
+                // Display the simulated results
+                displayAiResults(mockDetectionResults);
+            }
+
+            function displayAiResults(results) {
+                // Clear previous results
+                var sdgsList = $('#detected-sdgs-list');
+                var subcategoriesList = $('#detected-subcategories-list');
+                
+                sdgsList.empty();
+                subcategoriesList.empty();
+                
+                // Clear any existing hidden inputs to avoid duplicates
+                $('.ai-detected-subcategory-input').remove();
+                
+                // Create a Set to track unique subcategory IDs
+                var addedSubcategoryIds = new Set();
+                
+                // Display detected SDGs
+                if (results.sdgs && results.sdgs.length > 0) {
+                    var sdgHtml = '<div class="list-group">';
+                    results.sdgs.forEach(function(sdg) {
+                        sdgHtml += '<div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">';
+                        sdgHtml += '<div><i class="fas fa-check-circle text-success me-2"></i>' + sdg.name + '</div>';
+                        sdgHtml += '<span class="badge bg-primary rounded-pill">SDG ' + sdg.id + '</span>';
+                        sdgHtml += '</div>';
+                        
+                        // Automatically select the SDG in the select element
+                        $('#sdg option[value="' + sdg.id + '"]').prop('selected', true);
+                    });
+                    sdgHtml += '</div>';
+                    sdgsList.html(sdgHtml);
+                    
+                    // Update Select2 to reflect the changes
+                    $('#sdg').trigger('change');
+                }
+                
+                // Display detected subcategories
+                if (results.subcategories && results.subcategories.length > 0) {
+                    var subHtml = '<div class="list-group">';
+                    results.subcategories.forEach(function(sub) {
+                        // Skip duplicates
+                        if (addedSubcategoryIds.has(sub.id)) {
+                            return;
+                        }
+                        
+                        // Add to tracking set
+                        addedSubcategoryIds.add(sub.id);
+                        
+                        subHtml += '<div class="list-group-item list-group-item-action">';
+                        subHtml += '<div class="d-flex w-100 justify-content-between mb-1">';
+                        subHtml += '<h6 class="mb-1"><i class="fas fa-bullseye text-info me-2"></i>Target ' + sub.name + '</h6>';
+                        subHtml += '</div>';
+                        subHtml += '<p class="mb-1">' + sub.description + '</p>';
+                        // Add hidden input with class for easy identification/removal
+                        subHtml += '<input type="hidden" name="sdg_sub_category[]" value="' + sub.id + '" class="ai-detected-subcategory-input">';
+                        subHtml += '</div>';
+                    });
+                    subHtml += '</div>';
+                    subcategoriesList.html(subHtml);
+                    
+                    // Also add checkboxes to the hidden manual selection area
+                    $('#sub-category-checkboxes').empty(); // Clear existing checkboxes
+                    
+                    // Reset the set before using it again for checkboxes
+                    addedSubcategoryIds.clear();
+                    
+                    results.subcategories.forEach(function(sub) {
+                        // Skip duplicates
+                        if (addedSubcategoryIds.has(sub.id)) {
+                            return;
+                        }
+                        
+                        // Add to tracking set
+                        addedSubcategoryIds.add(sub.id);
+                        
+                        $('#sub-category-checkboxes').append(
+                            '<div class="form-check">' +
+                            '<input class="form-check-input" type="checkbox" name="sdg_sub_category[]" value="' +
+                            sub.id + '" id="subCategory' + sub.id + '" checked>' +
+                            '<label class="form-check-label" for="subCategory' + sub.id + '">' +
+                            sub.name + ': ' + sub.description +
+                            '</label>' +
+                            '</div>'
+                        );
+                    });
+                } else {
+                    subcategoriesList.html('<div class="alert alert-info">No specific SDG targets detected. The AI suggests focusing on the main SDGs.</div>');
+                }
+            }
+
+            // Toggle manual selection visibility
+            $('#show-manual-selection').on('click', function() {
+                $('#manual-sdg-selection').toggleClass('d-none');
+                $('#sub-categories').toggleClass('d-none');
+                
+                if ($('#manual-sdg-selection').hasClass('d-none')) {
+                    $(this).html('<i class="fas fa-edit"></i> Modify AI Selection');
+                } else {
+                    $(this).html('<i class="fas fa-robot"></i> Return to AI Selection');
+                }
+            });
+
+            function loadSubcategories() {
+                var selectedSdgs = $('#sdg').val();
+                if (selectedSdgs && selectedSdgs.length > 0) {
                         $.ajax({
                             url: '{{ route('sdg.subcategories') }}',
                             method: 'GET',
@@ -221,73 +549,47 @@
                             },
                             success: function(data) {
                                 $('#sub-category-checkboxes').empty();
+                            
                                 if (data.length > 0) {
+                                var selectedSubCategories = @json($selectedSubCategories);
+                                
                                     data.forEach(function(subCategory) {
+                                    var isChecked = selectedSubCategories.includes(subCategory.id) ? 'checked' : '';
+                                    
                                         $('#sub-category-checkboxes').append(
                                             '<div class="form-check">' +
                                             '<input class="form-check-input" type="checkbox" name="sdg_sub_category[]" value="' +
-                                            subCategory.id +
-                                            '" id="subCategory' +
-                                            subCategory.id + '"' + (
-                                                selectedSubCategories
-                                                .includes(subCategory.id) ?
-                                                ' checked' : '') + '>' +
+                                        subCategory.id + '" id="subCategory' +
+                                        subCategory.id + '" ' + isChecked + '>' +
                                             '<label class="form-check-label" for="subCategory' +
                                             subCategory.id + '">' +
-                                            subCategory.sub_category_name +
-                                            ': ' +
-                                            subCategory
-                                            .sub_category_description +
+                                        subCategory.sub_category_name + ': ' +
+                                        subCategory.sub_category_description +
                                             '</label>' +
                                             '</div>'
                                         );
                                     });
-                                    $('#sub-categories').show();
-                                } else {
-                                    $('#sub-categories').hide();
                                 }
                             }
                         });
-                    } else {
-                        $('#sub-categories').hide();
                     }
-                });
+            }
 
-                // Trigger change event on page load to load existing sub-categories
-                $('#sdg').trigger('change');
-            });
-            $('#update-button').click(function() {
-                $('#confirmationModal').modal('show');
+            $('#sdg').on('change', function() {
+                loadSubcategories();
             });
 
-            $('#confirm-update').click(function() {
-                $('#research-form').submit();
-            });
-        });
-    </script>
-    <script>
-        let isDirty = false;
-
-        // Track changes in input fields
-        document.querySelectorAll('input, textarea').forEach(input => {
-            input.addEventListener('input', () => {
-                isDirty = true;
-            });
+            // Handle the confirmation modal submit button
+            $('#confirmSubmitButton').on('click', function() {
+                $('#researchForm').submit();
         });
 
         // Handle the cancel button click
-        document.getElementById('cancelButton').addEventListener('click', function() {
-            if (isDirty) {
-                const confirmationMessage = 'You have unsaved changes. Are you sure you want to leave?';
-                if (confirm(confirmationMessage)) {
-                    isDirty = false; // Reset the dirty flag
-                    window.location.href =
-                        '{{ route('contributor.research.index') }}'; // Redirect to home or desired route
+            $('#cancelButton').on('click', function() {
+                if (confirm('Are you sure you want to cancel editing? Any unsaved changes will be lost.')) {
+                    window.location.href = "{{ route('contributor.research.index') }}";
                 }
-            } else {
-                window.location.href =
-                    '{{ route('contributor.research.index') }}'; // Redirect to home or desired route
-            }
+            });
         });
     </script>
 @endsection

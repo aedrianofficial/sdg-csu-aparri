@@ -87,7 +87,11 @@ Route::get('/terminal-report/file/download/{id}', [TerminalReportController::cla
 
 Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
 
-Route::get('/sdg/subcategories', [SdgController::class, 'getSubCategories'])->name('sdg.subcategories');
+Route::get('/sdg/subcategories', [SdgController::class, 'getSubcategories'])->name('sdg.subcategories');
+
+// SDG AI Engine API route
+Route::post('/api/sdg-ai/analyze', [App\Http\Controllers\Api\SdgAiController::class, 'analyze'])->name('api.sdg-ai.analyze');
+Route::get('/test', [App\Http\Controllers\Api\SdgAiController::class, 'test'])->name('api.sdg-ai.test');
 
 Route::get('/test-timezone', function () {
     return now(); // Should return the current time in Asia/Manila

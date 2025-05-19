@@ -9,7 +9,23 @@ class Sdg extends Model
 {
     use HasFactory;
 
-        protected $fillable = [ 'name','sdgimg_id'];
+    protected $table = 'sdgs';
+    
+    protected $fillable = [
+        'name',
+        'code',
+        'description',
+        'icon',
+        'color'
+    ];
+
+    /**
+     * Get the subcategories related to this SDG
+     */
+    public function subcategories()
+    {
+        return $this->hasMany(SdgSubCategory::class, 'sdg_id');
+    }
 
     public function report()
     {

@@ -15,11 +15,20 @@ use App\Models\ReviewStatus;
 use App\Models\RoleAction;
 use App\Models\Sdg;
 use App\Models\User;
+use App\Services\SdgAiService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ResearchController extends Controller
 {
+    protected $sdgAiService;
+
+    public function __construct(SdgAiService $sdgAiService)
+    {
+        $this->sdgAiService = $sdgAiService;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -252,115 +261,171 @@ class ResearchController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-   public function store(ResearchRequest $request)
-{
-    $user = Auth::user();
+    public function store(ResearchRequest $request)
+    {
+        $user = Auth::user();
+        $sdgIds = $request->sdg;
+        
+        // Remove duplicate sdg_sub_category IDs by converting to unique array
+        $sdgSubCategoryIds = $request->has('sdg_sub_category') 
+            ? array_unique($request->sdg_sub_category) 
+            : [];
+        
+        try {
+            DB::beginTransaction();
+            
+            // AI-based SDG detection if a PDF file is uploaded
+            $aiDetectionUsed = false;
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $extension = strtolower($file->getClientOriginalExtension());
+                
+                // Verify the file is a PDF
+                if ($extension !== 'pdf') {
+                    // Log non-PDF file attempt
+                    Log::warning('Non-PDF file uploaded for AI analysis', [
+                        'file_type' => $file->getMimeType(),
+                        'file_extension' => $extension,
+                        'user_id' => $user->id
+                    ]);
+                } else {
+                    // Proceed with AI analysis for PDF files
+                    $aiResults = $this->sdgAiService->analyzeResearchFile($file);
+                    
+                    if ($aiResults) {
+                        $aiDetectionUsed = true;
+                        $detectedIds = $this->sdgAiService->convertResultsToIds($aiResults);
+                        
+                        // Use AI-detected SDGs if available, otherwise use manual selection
+                        if (!empty($detectedIds['sdgIds'])) {
+                            $sdgIds = $detectedIds['sdgIds'];
+                        }
+                        
+                        // Use AI-detected subcategories if available, otherwise use manual selection
+                        if (!empty($detectedIds['subCategoryIds'])) {
+                            // Ensure unique subcategory IDs
+                            $sdgSubCategoryIds = array_unique($detectedIds['subCategoryIds']);
+                        }
+                        
+                        // Log successful AI detection
+                        Log::info('AI detection used for research submission', [
+                            'user_id' => $user->id,
+                            'sdg_count' => count($detectedIds['sdgIds']),
+                            'subcategory_count' => count($detectedIds['subCategoryIds'])
+                        ]);
+                    } else {
+                        Log::error('AI detection failed for PDF', [
+                            'file_name' => $file->getClientOriginalName(),
+                            'user_id' => $user->id
+                        ]);
+                    }
+                }
+            }
 
-    try {
-        DB::beginTransaction();
+            // Create the Research record
+            $research = Research::create([
+                'title' => $request->title,
+                'description' => $request->description,
+                'status_id' => $request->status_id,
+                'is_publish' => 0, // 0 indicates draft
+                'user_id' => $user->id, // Associate research with the current user
+                'researchcategory_id' => $request->researchcategory_id, // Research Category
+                'review_status_id'=> 4,
+                'file_link' => $request->file_link
+            ]);
 
-        // Create the Research record
-        $research = Research::create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'status_id' => $request->status_id, // Update to use status_id
-            'is_publish' => 0, // 0 indicates draft
-            'user_id' => $user->id, // Associate research with the current user
-            'researchcategory_id' => $request->researchcategory_id, // Research Category
-            'review_status_id'=> 4,
-            'file_link' => $request->file_link
-        ]);
+            // Attach SDGs to the research
+            $research->sdg()->attach($sdgIds);
+            
+            // Attach selected sub-categories to the research
+            if (!empty($sdgSubCategoryIds)) {
+                $research->sdgSubCategories()->attach($sdgSubCategoryIds);
+            }
 
-        // Attach SDGs to the research
-        $research->sdg()->attach($request->sdg);
-        // Attach selected sub-categories to the research
-        if ($request->has('sdg_sub_category')) {
-            $research->sdgSubCategories()->attach($request->sdg_sub_category);
-        }
+            $sdgs = $research->sdg()->pluck('name')->implode(', ');
+            $publishStatus = $research->is_publish == 1 ? 'Published' : 'Draft';
 
-        $sdgs = $research->sdg()->pluck('name')->implode(', ');
-        $publishStatus = $research->is_publish == 1 ? 'Published' : 'Draft';
+            RoleAction::create([
+                'content_id' => $research->id,
+                'content_type' => Research::class,
+                'user_id' => $user->id,
+                'role' => 'contributor',
+                'action' => 'submitted for review',
+                'created_at' => now()
+            ]);
 
-        RoleAction::create([
-            'content_id' => $research->id,
-            'content_type' => Research::class,
-            'user_id' => $user->id,
-            'role' => 'contributor',
-            'action' => 'submitted for review',
-            'created_at' => now()
-        ]);
+            $type = 'research';
+            $status = 'submitted for review';
+            $researchTitle = $research->title;
 
-        $type = 'research';
-        $status = 'submitted for review';
-        $researchTitle = $research->title;
+            // Retrieve all reviewers
+            $reviewers = User::where('role', 'reviewer')->get();
 
-        // Retrieve all reviewers
-        $reviewers = User::where('role', 'reviewer')->get();
-
-        // Create notifications for each reviewer
-        foreach ($reviewers as $reviewer) {
-            Notification::create([
-                'user_id' => $reviewer->id,
-                'notifiable_type' => User::class,
-                'notifiable_id' => $reviewer->id,
-                'type' => $type,
-                'related_type' => Research::class,
-                'related_id' => $research->id,
-                'data' => json_encode([
-                    'message' => "The research titled '" . addslashes($researchTitle) . "' has been submitted for review.",
-                    'contributor' => $user->first_name . ' ' . $user->last_name,
-                    'role' => 'contributor',
+            // Create notifications for each reviewer
+            foreach ($reviewers as $reviewer) {
+                Notification::create([
+                    'user_id' => $reviewer->id,
+                    'notifiable_type' => User::class,
+                    'notifiable_id' => $reviewer->id,
                     'type' => $type,
-                    'status' => $status,
+                    'related_type' => Research::class,
+                    'related_id' => $research->id,
+                    'data' => json_encode([
+                        'message' => "The research titled '" . addslashes($researchTitle) . "' has been submitted for review.",
+                        'contributor' => $user->first_name . ' ' . $user->last_name,
+                        'role' => 'contributor',
+                        'type' => $type,
+                        'status' => $status,
+                    ]),
+                    'created_at' => now(),
+                ]);
+            }
+
+            // Handle single file upload
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $fileData = file_get_contents($file); // Read file as binary data
+                $originalFilename = $file->getClientOriginalName(); // Original filename with extension
+                $extension = $file->getClientOriginalExtension(); // File extension (e.g., pdf or docx)
+
+                Researchfile::create([
+                    'research_id' => $research->id,
+                    'file' => $fileData,               // Store binary data
+                    'original_filename' => $originalFilename, // Store original filename
+                    'extension' => $extension,         // Store file extension 
+                    ]);
+            }
+
+            // Add Activity Log entry
+            ActivityLog::create([
+                'log_name' => 'Research Submission',
+                'description' => "Research titled '" . addslashes($research->title) . "' submitted for review by " . $user->first_name . ' ' . $user->last_name,
+                'subject_type' => Research::class,
+                'subject_id' => $research->id,
+                'event' => 'submitted for review',
+                'causer_type' => User::class,
+                'causer_id' => $user->id,
+                'properties' => json_encode([
+                    'research_title' => $research->title,
+                    'description' => $research->description,
+                    'status_id' => $research->status_id,
+                    'research_category' => $research->researchcategory_id,
+                    'sdgs' => $sdgs,
+                    'status' => $publishStatus,
+                    'ai_detected' => $aiDetectionUsed,
                 ]),
                 'created_at' => now(),
             ]);
+
+            DB::commit();
+        } catch (\Exception $ex) {
+            DB::rollBack();
+            dd($ex->getMessage());
         }
 
-        // Handle single file upload
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            $fileData = file_get_contents($file); // Read file as binary data
-            $originalFilename = $file->getClientOriginalName(); // Original filename with extension
-            $extension = $file->getClientOriginalExtension(); // File extension (e.g., pdf or docx)
-
-            Researchfile::create([
-                'research_id' => $research->id,
-                'file' => $fileData,               // Store binary data
-                'original_filename' => $originalFilename, // Store original filename
-                'extension' => $extension,         // Store file extension 
-                ]);
-        }
-
-        // Add Activity Log entry
-        ActivityLog::create([
-            'log_name' => 'Research Submission',
-            'description' => "Research titled '" . addslashes($research->title) . "' submitted for review by " . $user->first_name . ' ' . $user->last_name,
-            'subject_type' => Research::class,
-            'subject_id' => $research->id,
-            'event' => 'submitted for review',
-            'causer_type' => User::class,
-            'causer_id' => $user->id,
-            'properties' => json_encode([
-                'research_title' => $research->title,
-                'description' => $research->description,
-                'status_id' => $research->status_id, // Update to log status_id
-                'research_category' => $research->researchcategory_id,
-                'sdgs' => $sdgs,
-                'status' => $publishStatus,
-            ]),
-            'created_at' => now(),
-        ]);
-
-        DB::commit();
-    } catch (\Exception $ex) {
-        DB::rollBack();
-        dd($ex->getMessage());
+        session()->flash('alert-success', 'Research Submitted Successfully!');
+        return to_route('contributor.research.index');
     }
-
-    session()->flash('alert-success', 'Research Submitted Successfully!');
-    return to_route('contributor.research.index');
-}
 
 
     /**
@@ -398,14 +463,14 @@ class ResearchController extends Controller
      * Show the form for editing the specified resource.
      */
     public function edit(Research $research)
-{
-    $sdgs = Sdg::all();
-    $researchcategories = Researchcategory::all(); // Fetch all research categories
-    $projectResearchStatuses = ProjectResearchStatus::all(); // Fetch all project research statuses
-      // Load the selected SDG sub-categories
-      $selectedSubCategories = $research->sdgSubCategories()->pluck('sdg_sub_categories.id')->toArray();
-    return view('contributor.research_extension.edit', compact('research', 'sdgs', 'researchcategories', 'projectResearchStatuses','selectedSubCategories'));
-}
+    {
+        $sdgs = Sdg::all();
+        $researchcategories = Researchcategory::all(); // Fetch all research categories
+        $projectResearchStatuses = ProjectResearchStatus::all(); // Fetch all project research statuses
+        // Load the selected SDG sub-categories
+        $selectedSubCategories = $research->sdgSubCategories()->pluck('sdg_sub_categories.id')->toArray();
+        return view('contributor.research_extension.edit', compact('research', 'sdgs', 'researchcategories', 'projectResearchStatuses','selectedSubCategories'));
+    }
 
 
     /**
@@ -426,9 +491,35 @@ class ResearchController extends Controller
         ]);
     
         $user = Auth::user();
+        $sdgIds = $request->sdg;
+        
+        // Remove duplicate sdg_sub_category IDs by converting to unique array
+        $sdgSubCategoryIds = $request->has('sdg_sub_category') 
+            ? array_unique($request->sdg_sub_category) 
+            : [];
     
         try {
             DB::beginTransaction();
+            
+            // AI-based SDG detection if a file is uploaded
+            if ($request->hasFile('file')) {
+                $aiResults = $this->sdgAiService->analyzeResearchFile($request->file('file'));
+                
+                if ($aiResults) {
+                    $detectedIds = $this->sdgAiService->convertResultsToIds($aiResults);
+                    
+                    // Use AI-detected SDGs if available, otherwise use manual selection
+                    if (!empty($detectedIds['sdgIds'])) {
+                        $sdgIds = $detectedIds['sdgIds'];
+                    }
+                    
+                    // Use AI-detected subcategories if available, otherwise use manual selection
+                    if (!empty($detectedIds['subCategoryIds'])) {
+                        // Ensure unique subcategory IDs
+                        $sdgSubCategoryIds = array_unique($detectedIds['subCategoryIds']);
+                    }
+                }
+            }
     
             // Update research details
             $research->update([
@@ -442,14 +533,16 @@ class ResearchController extends Controller
             ]);
     
             // Update SDGs
-            $research->sdg()->sync($request->sdg);
+            $research->sdg()->sync($sdgIds);
             $sdgs = $research->sdg()->pluck('name')->implode(', ');
-            // Attach selected sub-categories to the research
-            if ($request->has('sdg_sub_category')) {
-                $research->sdgSubCategories()->sync($request->sdg_sub_category);
+            
+            // Update subcategories
+            if (!empty($sdgSubCategoryIds)) {
+                $research->sdgSubCategories()->sync($sdgSubCategoryIds);
             } else {
                 $research->sdgSubCategories()->detach(); // Detach if no sub-categories are selected
             }
+            
             // Handle single file upload
             if ($request->hasFile('file')) {
                 $file = $request->file('file'); // Get the uploaded file
@@ -524,6 +617,7 @@ class ResearchController extends Controller
                     'role' => $user->role,
                 ],
                 'timestamp' => now(),
+                'ai_detected' => !empty($aiResults),
             ];
     
             ActivityLog::create([

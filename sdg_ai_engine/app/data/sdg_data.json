@@ -1,0 +1,619 @@
+{
+    "sdgs": [
+        {
+            "number": "01",
+            "name": "No Poverty",
+            "description": "End poverty in all its forms everywhere",
+            "keywords": [
+                "poverty",
+                "poor",
+                "economic development",
+                "social protection",
+                "basic services",
+                "microfinance",
+                "vulnerable"
+            ],
+            "targets": [
+                {
+                    "code": "1.1",
+                    "description": "By 2030, eradicate extreme poverty for all people everywhere"
+                },
+                {
+                    "code": "1.2",
+                    "description": "By 2030, reduce at least by half the proportion of men, women and children living in poverty"
+                },
+                {
+                    "code": "1.3",
+                    "description": "Implement social protection systems and measures for all"
+                },
+                {
+                    "code": "1.4",
+                    "description": "Ensure that all men and women have equal rights to economic resources"
+                },
+                {
+                    "code": "1.5",
+                    "description": "Build the resilience of the poor and reduce their vulnerability to climate-related events"
+                }
+            ]
+        },
+        {
+            "number": "02",
+            "name": "Zero Hunger",
+            "description": "End hunger, achieve food security and improved nutrition and promote sustainable agriculture",
+            "keywords": [
+                "hunger",
+                "food security",
+                "nutrition",
+                "sustainable agriculture",
+                "malnutrition",
+                "agricultural productivity",
+                "food production"
+            ],
+            "targets": [
+                {
+                    "code": "2.1",
+                    "description": "By 2030, end hunger and ensure access to safe, nutritious and sufficient food"
+                },
+                {
+                    "code": "2.2",
+                    "description": "By 2030, end all forms of malnutrition"
+                },
+                {
+                    "code": "2.3",
+                    "description": "Double the agricultural productivity and incomes of small-scale food producers"
+                },
+                {
+                    "code": "2.4",
+                    "description": "Ensure sustainable food production systems and implement resilient agricultural practices"
+                },
+                {
+                    "code": "2.5",
+                    "description": "Maintain the genetic diversity of seeds, cultivated plants and animals"
+                }
+            ]
+        },
+        {
+            "number": "03",
+            "name": "Good Health and Well-being",
+            "description": "Ensure healthy lives and promote well-being for all at all ages",
+            "keywords": [
+                "health",
+                "well-being",
+                "diseases",
+                "healthcare",
+                "mortality",
+                "medical",
+                "vaccines",
+                "medicine"
+            ],
+            "targets": [
+                {
+                    "code": "3.1",
+                    "description": "Reduce the global maternal mortality ratio"
+                },
+                {
+                    "code": "3.2",
+                    "description": "End preventable deaths of newborns and children under 5 years of age"
+                },
+                {
+                    "code": "3.3",
+                    "description": "End the epidemics of AIDS, tuberculosis, malaria and neglected tropical diseases"
+                },
+                {
+                    "code": "3.4",
+                    "description": "Reduce premature mortality from non-communicable diseases"
+                },
+                {
+                    "code": "3.5",
+                    "description": "Strengthen the prevention and treatment of substance abuse"
+                }
+            ]
+        },
+        {
+            "number": "04",
+            "name": "Quality Education",
+            "description": "Ensure inclusive and equitable quality education and promote lifelong learning opportunities for all",
+            "keywords": [
+                "education",
+                "learning",
+                "teaching",
+                "school",
+                "literacy",
+                "skills",
+                "training",
+                "students"
+            ],
+            "targets": [
+                {
+                    "code": "4.1",
+                    "description": "Ensure all girls and boys complete free, equitable and quality primary and secondary education"
+                },
+                {
+                    "code": "4.2",
+                    "description": "Ensure all girls and boys have access to quality early childhood development"
+                },
+                {
+                    "code": "4.3",
+                    "description": "Ensure equal access for all women and men to affordable and quality technical, vocational and tertiary education"
+                },
+                {
+                    "code": "4.4",
+                    "description": "Increase the number of youth and adults who have relevant skills for employment"
+                },
+                {
+                    "code": "4.5",
+                    "description": "Eliminate gender disparities in education"
+                }
+            ]
+        },
+        {
+            "number": "05",
+            "name": "Gender Equality",
+            "description": "Achieve gender equality and empower all women and girls",
+            "keywords": [
+                "gender equality",
+                "women",
+                "girls",
+                "discrimination",
+                "empowerment",
+                "feminism",
+                "gender gap"
+            ],
+            "targets": [
+                {
+                    "code": "5.1",
+                    "description": "End all forms of discrimination against all women and girls everywhere"
+                },
+                {
+                    "code": "5.2",
+                    "description": "Eliminate all forms of violence against all women and girls"
+                },
+                {
+                    "code": "5.3",
+                    "description": "Eliminate all harmful practices, such as child, early and forced marriage"
+                },
+                {
+                    "code": "5.4",
+                    "description": "Recognize and value unpaid care and domestic work"
+                },
+                {
+                    "code": "5.5",
+                    "description": "Ensure women's full and effective participation and equal opportunities for leadership"
+                }
+            ]
+        },
+        {
+            "number": "06",
+            "name": "Clean Water and Sanitation",
+            "description": "Ensure availability and sustainable management of water and sanitation for all",
+            "keywords": [
+                "water",
+                "sanitation",
+                "hygiene",
+                "sewage",
+                "drinking water",
+                "wastewater",
+                "water resources"
+            ],
+            "targets": [
+                {
+                    "code": "6.1",
+                    "description": "Achieve universal and equitable access to safe and affordable drinking water for all"
+                },
+                {
+                    "code": "6.2",
+                    "description": "Achieve access to adequate and equitable sanitation and hygiene for all"
+                },
+                {
+                    "code": "6.3",
+                    "description": "Improve water quality by reducing pollution"
+                },
+                {
+                    "code": "6.4",
+                    "description": "Increase water-use efficiency and ensure freshwater supplies"
+                },
+                {
+                    "code": "6.5",
+                    "description": "Implement integrated water resources management at all levels"
+                }
+            ]
+        },
+        {
+            "number": "07",
+            "name": "Affordable and Clean Energy",
+            "description": "Ensure access to affordable, reliable, sustainable and modern energy for all",
+            "keywords": [
+                "energy",
+                "renewable energy",
+                "clean energy",
+                "electricity",
+                "fossil fuels",
+                "solar",
+                "wind power"
+            ],
+            "targets": [
+                {
+                    "code": "7.1",
+                    "description": "Ensure universal access to affordable, reliable and modern energy services"
+                },
+                {
+                    "code": "7.2",
+                    "description": "Increase the share of renewable energy in the global energy mix"
+                },
+                {
+                    "code": "7.3",
+                    "description": "Double the global rate of improvement in energy efficiency"
+                },
+                {
+                    "code": "7.a",
+                    "description": "Enhance international cooperation to facilitate access to clean energy research and technology"
+                },
+                {
+                    "code": "7.b",
+                    "description": "Expand infrastructure and upgrade technology for supplying modern and sustainable energy services"
+                }
+            ]
+        },
+        {
+            "number": "08",
+            "name": "Decent Work and Economic Growth",
+            "description": "Promote sustained, inclusive and sustainable economic growth, full and productive employment and decent work for all",
+            "keywords": [
+                "economic growth",
+                "employment",
+                "decent work",
+                "labor rights",
+                "job creation",
+                "productivity",
+                "unemployment"
+            ],
+            "targets": [
+                {
+                    "code": "8.1",
+                    "description": "Sustain per capita economic growth in accordance with national circumstances"
+                },
+                {
+                    "code": "8.2",
+                    "description": "Achieve higher levels of economic productivity through diversification and innovation"
+                },
+                {
+                    "code": "8.3",
+                    "description": "Promote development-oriented policies that support productive activities and decent job creation"
+                },
+                {
+                    "code": "8.4",
+                    "description": "Improve global resource efficiency in consumption and production"
+                },
+                {
+                    "code": "8.5",
+                    "description": "Achieve full and productive employment and decent work for all women and men"
+                }
+            ]
+        },
+        {
+            "number": "09",
+            "name": "Industry, Innovation and Infrastructure",
+            "description": "Build resilient infrastructure, promote inclusive and sustainable industrialization and foster innovation",
+            "keywords": [
+                "infrastructure",
+                "industrialization",
+                "innovation",
+                "research",
+                "technology",
+                "manufacturing",
+                "industry"
+            ],
+            "targets": [
+                {
+                    "code": "9.1",
+                    "description": "Develop quality, reliable, sustainable and resilient infrastructure"
+                },
+                {
+                    "code": "9.2",
+                    "description": "Promote inclusive and sustainable industrialization"
+                },
+                {
+                    "code": "9.3",
+                    "description": "Increase the access of small-scale enterprises to financial services"
+                },
+                {
+                    "code": "9.4",
+                    "description": "Upgrade infrastructure and retrofit industries to make them sustainable"
+                },
+                {
+                    "code": "9.5",
+                    "description": "Enhance scientific research and upgrade technological capabilities"
+                }
+            ]
+        },
+        {
+            "number": "10",
+            "name": "Reduced Inequalities",
+            "description": "Reduce inequality within and among countries",
+            "keywords": [
+                "inequality",
+                "income inequality",
+                "social inclusion",
+                "discrimination",
+                "equal opportunity",
+                "equity",
+                "social protection"
+            ],
+            "targets": [
+                {
+                    "code": "10.1",
+                    "description": "Achieve and sustain income growth of the bottom 40 per cent of the population"
+                },
+                {
+                    "code": "10.2",
+                    "description": "Empower and promote the social, economic and political inclusion of all"
+                },
+                {
+                    "code": "10.3",
+                    "description": "Ensure equal opportunity and reduce inequalities of outcome"
+                },
+                {
+                    "code": "10.4",
+                    "description": "Adopt policies, especially fiscal, wage and social protection policies, to achieve greater equality"
+                },
+                {
+                    "code": "10.5",
+                    "description": "Improve the regulation and monitoring of global financial markets and institutions"
+                }
+            ]
+        },
+        {
+            "number": "11",
+            "name": "Sustainable Cities and Communities",
+            "description": "Make cities and human settlements inclusive, safe, resilient and sustainable",
+            "keywords": [
+                "sustainable cities",
+                "urban development",
+                "housing",
+                "transportation",
+                "public spaces",
+                "urban planning",
+                "slums"
+            ],
+            "targets": [
+                {
+                    "code": "11.1",
+                    "description": "Ensure access for all to adequate, safe and affordable housing and basic services"
+                },
+                {
+                    "code": "11.2",
+                    "description": "Provide access to safe, affordable, accessible and sustainable transport systems for all"
+                },
+                {
+                    "code": "11.3",
+                    "description": "Enhance inclusive and sustainable urbanization and capacity for participatory planning"
+                },
+                {
+                    "code": "11.4",
+                    "description": "Strengthen efforts to protect and safeguard the world's cultural and natural heritage"
+                },
+                {
+                    "code": "11.5",
+                    "description": "Reduce the number of deaths and people affected by disasters"
+                }
+            ]
+        },
+        {
+            "number": "12",
+            "name": "Responsible Consumption and Production",
+            "description": "Ensure sustainable consumption and production patterns",
+            "keywords": [
+                "sustainable consumption",
+                "sustainable production",
+                "waste reduction",
+                "recycling",
+                "natural resources",
+                "supply chain",
+                "life cycle"
+            ],
+            "targets": [
+                {
+                    "code": "12.1",
+                    "description": "Implement the 10-Year Framework of Programmes on Sustainable Consumption and Production Patterns"
+                },
+                {
+                    "code": "12.2",
+                    "description": "Achieve the sustainable management and efficient use of natural resources"
+                },
+                {
+                    "code": "12.3",
+                    "description": "Halve per capita global food waste at the retail and consumer levels"
+                },
+                {
+                    "code": "12.4",
+                    "description": "Achieve the environmentally sound management of chemicals and all wastes"
+                },
+                {
+                    "code": "12.5",
+                    "description": "Substantially reduce waste generation through prevention, reduction, recycling and reuse"
+                }
+            ]
+        },
+        {
+            "number": "13",
+            "name": "Climate Action",
+            "description": "Take urgent action to combat climate change and its impacts",
+            "keywords": [
+                "climate change",
+                "global warming",
+                "greenhouse gas",
+                "carbon emissions",
+                "climate action",
+                "climate resilience",
+                "paris agreement"
+            ],
+            "targets": [
+                {
+                    "code": "13.1",
+                    "description": "Strengthen resilience and adaptive capacity to climate-related hazards"
+                },
+                {
+                    "code": "13.2",
+                    "description": "Integrate climate change measures into national policies, strategies and planning"
+                },
+                {
+                    "code": "13.3",
+                    "description": "Improve education, awareness-raising on climate change mitigation and adaptation"
+                },
+                {
+                    "code": "13.a",
+                    "description": "Implement the commitment to the United Nations Framework Convention on Climate Change"
+                },
+                {
+                    "code": "13.b",
+                    "description": "Promote mechanisms for raising capacity for climate planning and management"
+                }
+            ]
+        },
+        {
+            "number": "14",
+            "name": "Life Below Water",
+            "description": "Conserve and sustainably use the oceans, seas and marine resources for sustainable development",
+            "keywords": [
+                "oceans",
+                "marine resources",
+                "marine conservation",
+                "overfishing",
+                "marine pollution",
+                "coastal ecosystems",
+                "sustainable fishing"
+            ],
+            "targets": [
+                {
+                    "code": "14.1",
+                    "description": "Prevent and significantly reduce marine pollution of all kinds"
+                },
+                {
+                    "code": "14.2",
+                    "description": "Sustainably manage and protect marine and coastal ecosystems"
+                },
+                {
+                    "code": "14.3",
+                    "description": "Minimize and address the impacts of ocean acidification"
+                },
+                {
+                    "code": "14.4",
+                    "description": "Effectively regulate harvesting and end overfishing"
+                },
+                {
+                    "code": "14.5",
+                    "description": "Conserve at least 10 per cent of coastal and marine areas"
+                }
+            ]
+        },
+        {
+            "number": "15",
+            "name": "Life on Land",
+            "description": "Protect, restore and promote sustainable use of terrestrial ecosystems, sustainably manage forests, combat desertification, and halt and reverse land degradation and halt biodiversity loss",
+            "keywords": [
+                "biodiversity",
+                "forests",
+                "desertification",
+                "land degradation",
+                "ecosystems",
+                "wildlife",
+                "conservation"
+            ],
+            "targets": [
+                {
+                    "code": "15.1",
+                    "description": "Ensure the conservation, restoration and sustainable use of terrestrial and inland freshwater ecosystems"
+                },
+                {
+                    "code": "15.2",
+                    "description": "Promote the implementation of sustainable management of all types of forests"
+                },
+                {
+                    "code": "15.3",
+                    "description": "Combat desertification, restore degraded land and soil"
+                },
+                {
+                    "code": "15.4",
+                    "description": "Ensure the conservation of mountain ecosystems"
+                },
+                {
+                    "code": "15.5",
+                    "description": "Take urgent action to reduce the degradation of natural habitats and halt the loss of biodiversity"
+                }
+            ]
+        },
+        {
+            "number": "16",
+            "name": "Peace, Justice and Strong Institutions",
+            "description": "Promote peaceful and inclusive societies for sustainable development, provide access to justice for all and build effective, accountable and inclusive institutions at all levels",
+            "keywords": [
+                "peace",
+                "justice",
+                "institutions",
+                "governance",
+                "rule of law",
+                "human rights",
+                "transparency",
+                "accountability"
+            ],
+            "targets": [
+                {
+                    "code": "16.1",
+                    "description": "Significantly reduce all forms of violence and related death rates everywhere"
+                },
+                {
+                    "code": "16.2",
+                    "description": "End abuse, exploitation, trafficking and all forms of violence against children"
+                },
+                {
+                    "code": "16.3",
+                    "description": "Promote the rule of law and ensure equal access to justice for all"
+                },
+                {
+                    "code": "16.4",
+                    "description": "Reduce illicit financial and arms flows, combat all forms of organized crime"
+                },
+                {
+                    "code": "16.5",
+                    "description": "Substantially reduce corruption and bribery in all their forms"
+                }
+            ]
+        },
+        {
+            "number": "17",
+            "name": "Partnerships for the Goals",
+            "description": "Strengthen the means of implementation and revitalize the global partnership for sustainable development",
+            "keywords": [
+                "partnership",
+                "international cooperation",
+                "development aid",
+                "technology transfer",
+                "capacity building",
+                "trade",
+                "multi-stakeholder"
+            ],
+            "targets": [
+                {
+                    "code": "17.1",
+                    "description": "Strengthen domestic resource mobilization to improve domestic capacity for tax collection"
+                },
+                {
+                    "code": "17.2",
+                    "description": "Developed countries to implement fully their ODA commitments"
+                },
+                {
+                    "code": "17.3",
+                    "description": "Mobilize additional financial resources for developing countries"
+                },
+                {
+                    "code": "17.4",
+                    "description": "Assist developing countries in attaining long-term debt sustainability"
+                },
+                {
+                    "code": "17.5",
+                    "description": "Adopt and implement investment promotion regimes for least developed countries"
+                }
+            ]
+        }
+    ]
+}
