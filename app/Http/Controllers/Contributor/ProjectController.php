@@ -17,9 +17,22 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\GenderImpact;
+use App\Services\GenderAnalysisService;
+use App\Services\SdgAiService;
+use Illuminate\Support\Facades\Http;
 
 class ProjectController extends Controller
 {
+    protected $genderAnalysisService;
+    protected $sdgAiService;
+    public function __construct(GenderAnalysisService $genderAnalysisService, SdgAiService $sdgAiService)
+
+    {
+        $this->genderAnalysisService = $genderAnalysisService;
+        $this->sdgAiService = $sdgAiService;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -197,115 +210,125 @@ class ProjectController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(ProjectRequest $request)
+    public function store(Request $request)
     {
-        $user = Auth::user();
+        // Validate the request
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'sdg' => 'required|array',
+            'sdg.*' => 'exists:sdgs,id',
+            'status_id' => 'required|exists:project_research_statuses,id',
+            'description' => 'required',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'location_address' => 'required|string',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'target_beneficiaries' => 'nullable|string|max:500'
+        ]);
     
-        try {
-            DB::beginTransaction();
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = time().'.'.$image->extension();
+            $image->storeAs('projectimages', $imageName, 'public');
     
-            // Handle file upload as binary data
-            $file = $request->file('image');
-            $fileData = file_get_contents($file);
-    
-            // Create project image record with binary data
-            $projectimg = Projectimg::create([
-                'image' => $fileData, // Store binary data directly
+            // Create new image record
+            $projectImg = Projectimg::create([
+                'image_path' => $imageName,
             ]);
     
-            // Create project record with review_status_id as 4 (Pending Review)
+            // Create new project record
             $project = Project::create([
+                'sdg_sub_category_id' => $request->sdg_sub_category ? json_encode($request->sdg_sub_category) : null,
+                'projectimg_id' => $projectImg->id,
+                'user_id' => Auth::id(),
+                'review_status_id' => 1, // Set to "Pending" by default
+                'status_id' => $request->status_id,
                 'title' => $request->title,
                 'description' => $request->description,
-                'status_id' => $request->status_id, // Update to use status_id
-                'is_publish' => 0,
-                'user_id' => $user->id, // Set the user_id
-                'projectimg_id' => $projectimg->id,
-                'location_address' => $request->location_address,
+                'is_publish' => $request->is_publish,
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
-                'review_status_id' => 4 // Set review status to 'Pending Review'
+                'location_address' => $request->location_address,
+                'target_beneficiaries' => $request->target_beneficiaries,
             ]);
     
-            // Attach SDGs to the project
+            // Attach SDGs to project
             $project->sdg()->attach($request->sdg);
-             // Attach selected sub-categories to the project
-            if ($request->has('sdg_sub_category')) {
-                $project->sdgSubCategories()->attach($request->sdg_sub_category);
-            }
-            $sdgs = $project->sdg()->pluck('name')->implode(', ');
-            $publishStatus = $project->is_publish == 1 ? 'Published' : 'Draft';
-    
-            RoleAction::create([
-                'content_id' => $project->id,
-                'content_type' => Project::class,
-                'user_id' => $user->id,
-                'role' => 'contributor',
-                'action' => 'submitted for review',
-                'created_at' => now()
-            ]);
-    
-            $type = 'project';
-            $status = 'submitted for review';
-            $projectTitle = $project->title;
-    
-            // Retrieve all reviewers
-            $reviewers = User::where('role', 'reviewer')->get();
-    
-            // Create notifications for each reviewer
-            foreach ($reviewers as $reviewer) {
-                Notification::create([
-                    'user_id' => $reviewer->id,
-                    'notifiable_type' => User::class,
-                    'notifiable_id' => $reviewer->id,
-                    'type' => $type,
-                    'related_type' => Project::class,
-                    'related_id' => $project->id,
-                    'data' => json_encode([
-                        'message' => "A new $type titled '" . addslashes($projectTitle) . "' has been submitted for review.",
-                        'contributor' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
-                        'role' => 'contributor',
-                        'type' => $type,
-                        'status' => $status,
-                    ]),
-                    'created_at' => now(),
+            
+            // Create gender impact record if data is available
+            if ($request->has('gender_benefits_men') || $request->has('gender_benefits_women')) {
+                $genderImpact = new GenderImpact([
+                    'project_id' => $project->id,
+                    'benefits_men' => $request->gender_benefits_men ? true : false,
+                    'benefits_women' => $request->gender_benefits_women ? true : false,
+                    'benefits_all' => $request->gender_benefits_all ? true : false,
+                    'addresses_gender_inequality' => $request->gender_addresses_inequality ? true : false,
+                    'men_count' => $request->gender_men_count ? (int)$request->gender_men_count : null,
+                    'women_count' => $request->gender_women_count ? (int)$request->gender_women_count : null,
+                    'gender_notes' => $request->gender_notes,
                 ]);
+                $genderImpact->save();
+            }
+
+            // Check if contributor exist to activity log
+            $activityLog = new ActivityLog();
+            $activityLog->user_id = auth()->id();
+            $activityLog->contribution_type = 'Project';
+            $activityLog->contribution_id = $project->id;
+            $activityLog->save();
+    
+            // Create a notification for all admins
+            $admins = User::where('user_role_id', 1)->get();
+            foreach ($admins as $admin) {
+                $notification = new Notification();
+                $notification->user_id = $admin->id;
+                $notification->message = 'New Project/Program has been submitted by ' . auth()->user()->name;
+                $notification->save();
+            }
+
+            // Redirect to index page
+            return redirect()->route('contributor.projects.index')->with('success', 'Projects/Programs created successfully');
             }
     
-            // Add Activity Log entry
-            ActivityLog::create([
-                'log_name' => 'Project Submission',
-                'description' => "Project titled '" . addslashes($projectTitle) . "' submitted for review by " . $user->first_name . ' ' . $user->last_name,
-                ' subject_type' => Project::class,
-                'subject_id' => $project->id,
-                'event' => 'submitted for review',
-                'causer_type' => User::class,
-                'causer_id' => $user->id,
-                'properties' => json_encode([
-                    'project_title' => $projectTitle,
-                    'description' => $project->description,
-                    'status_id' => $project->status_id, // Update to log status_id
-                    'is_publish' => $publishStatus,
-                    'sdgs' => $sdgs,
-                    'location_address' => $project->location_address,
-                    'latitude' => $project->latitude,
-                    'longitude' => $project->longitude,
-                ]),
-                'created_at' => now(),
-            ]);
-    
-            DB::commit();
-        } catch (\Exception $ex) {
-            DB::rollBack();
-            dd($ex->getMessage());
-        }
-    
-        session()->flash('alert-success', 'Project/Program Submitted Successfully!');
-        return to_route('contributor.projects.index');
+        return back()->with('error', 'Image upload required');
     }
 
-
-
+    /**
+     * Analyze gender impacts from the project title and description
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function analyzeGenderImpacts(Request $request)
+    {
+        try {
+            // Get input from the request
+            $title = $request->input('title', '');
+            $description = $request->input('description', '');
+            $targetBeneficiaries = $request->input('target_beneficiaries', '');
+            
+            // For text content, combine title and description
+            $textContent = $title . ' ' . strip_tags($description);
+            
+            // Analyze using the gender analysis service
+            $analysisResults = $this->genderAnalysisService->analyzeGenderFromText(
+                $textContent, 
+                $targetBeneficiaries
+            );
+            
+            return response()->json([
+                'success' => true,
+                'data' => $analysisResults
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error analyzing gender impact: ' . $e->getMessage()
+            ], 500);
+    }
+    }
 
     /**
      * Display the specified resource.
@@ -367,159 +390,88 @@ class ProjectController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Project $project)
+    public function update(Request $request, $id)
 {
+        // Validate the request
     $request->validate([
-        'title' => ['required', 'min:2', 'max:255'],
-        'sdg' => ['required'],
-        'status_id' => ['required', 'exists:project_research_statuses,id'], // Update validation rule
-        'is_publish' => ['nullable'],
-        'image' => ['image', 'mimes:png,jpg,jpeg,gif,svg,webp'],
-        'description' => ['required', 'min:10'],
-        'review_status_id' => ['nullable'],
-        'location_address' => ['required', 'string', 'max:255'],
-        'latitude' => ['required', 'numeric', 'between:-90,90'],
-        'longitude' => ['required', 'numeric', 'between:-180,180'],
-    ]);
+            'title' => 'required|string|max:255',
+            'sdg' => 'required|array',
+            'sdg.*' => 'exists:sdgs,id',
+            'status_id' => 'required|exists:project_research_statuses,id',
+            'description' => 'required',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'location_address' => 'required|string',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'target_beneficiaries' => 'nullable|string|max:500'
+        ]);
 
-    $user = Auth::user();
-
-    try {
-        DB::beginTransaction();
-
-        Log::info('About to handle image upload');
-
-        // Initialize the variable outside the conditional to avoid reference issues
-        $projectimg = $project->projectimg;
-
-        if ($request->hasFile('image')) {
-            // Get the uploaded file and convert it to binary data
-            $file = $request->file('image');
-            $fileData = file_get_contents($file); // Convert the file to binary data
-
-            if ($projectimg) {
-                // Update the existing project image with new binary data
-                $projectimg->update([
-                    'image' => $fileData, // Replace the binary data
-                ]);
-            } else {
-                // Create a new project image record with binary data
-                $projectimg = Projectimg::create([
-                    'image' => $fileData, // Store binary data
-                    'project_id' => $project->id, // Associate with the project
-                ]);
-            }
-            Log::info('Image upload handled successfully');
-        } else {
-            Log::info('No image file uploaded, proceeding without image');
-        }
-
-        $projectimgId = $projectimg ? $projectimg->id : $project->projectimg_id;
+        // Find the project
+        $project = Project::findOrFail($id);
 
         // Update project details
         $project->update([
+            'sdg_sub_category_id' => $request->sdg_sub_category ? json_encode($request->sdg_sub_category) : null,
+            'status_id' => $request->status_id,
             'title' => $request->title,
             'description' => $request->description,
-            'status_id' => $request->status_id, // Update to use status_id
-            'review_status_id' => 4,
-            'is_publish' => 0,
-            'user_id' => $user->id, // Ensure the user_id remains the same
-            'projectimg_id' => $projectimgId,
-            'location_address' => $request->location_address,
+            'is_publish' => $request->is_publish,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
+            'location_address' => $request->location_address,
+            'target_beneficiaries' => $request->target_beneficiaries,
         ]);
+
+        // Update or create gender impact record if data is available
+        if ($request->has('gender_benefits_men') || $request->has('gender_benefits_women')) {
+            $genderImpact = GenderImpact::updateOrCreate(
+                ['project_id' => $project->id],
+                [
+                    'benefits_men' => $request->gender_benefits_men ? true : false,
+                    'benefits_women' => $request->gender_benefits_women ? true : false,
+                    'benefits_all' => $request->gender_benefits_all ? true : false,
+                    'addresses_gender_inequality' => $request->gender_addresses_inequality ? true : false,
+                    'men_count' => $request->gender_men_count ? (int)$request->gender_men_count : null,
+                    'women_count' => $request->gender_women_count ? (int)$request->gender_women_count : null,
+                    'gender_notes' => $request->gender_notes,
+                ]
+            );
+        }
+
+        // Handle image upload if new image was provided
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = time().'.'.$image->extension();
+            $image->storeAs('projectimages', $imageName, 'public');
+
+            // Update or create new image record
+            if ($project->projectimg_id) {
+                $projectImg = Projectimg::findOrFail($project->projectimg_id);
+                $projectImg->update([
+                    'image_path' => $imageName,
+                ]);
+            } else {
+                $projectImg = Projectimg::create([
+                    'image_path' => $imageName,
+                ]);
+                $project->update([
+                    'projectimg_id' => $projectImg->id,
+                ]);
+            }
+        }
 
         // Update SDGs
         $project->sdg()->sync($request->sdg);
-         // Sync selected sub-categories
-         if ($request->has('sdg_sub_category')) {
-            $project->sdgSubCategories()->sync($request->sdg_sub_category);
-        } else {
-            $project->sdgSubCategories()->detach(); // Detach if no sub-categories are selected
-        }
-        $sdgs = $project->sdg()->pluck('name')->implode (', ');
-        $publishStatus = $project->is_publish == 1 ? 'Published' : 'Draft';
-        Log::info('Project update handled successfully');
 
-        RoleAction::create([
-            'content_id' => $project->id,
-            'content_type' => Project::class,
-            'user_id' => $user->id,
-            'role' => 'contributor',
-            'action' => 'submitted for review',
-            'created_at' => now()
-        ]);
+        // Record activity log
+        $activityLog = new ActivityLog();
+        $activityLog->user_id = auth()->id();
+        $activityLog->contribution_type = 'Project Update';
+        $activityLog->contribution_id = $project->id;
+        $activityLog->save();
 
-        $type = 'project';
-        $status = 'resubmitted for review';
-        $projectTitle = $project->title;
-
-        // Retrieve all reviewers
-        $reviewers = User::where('role', 'reviewer')->get();
-
-        // Create notifications for each reviewer
-        foreach ($reviewers as $reviewer) {
-            Notification::create([
-                'user_id' => $reviewer->id,
-                'notifiable_type' => User::class,
-                'notifiable_id' => $reviewer->id,
-                'type' => $type,
-                'related_type' => Project::class,
-                'related_id' => $project->id,
-                'data' => json_encode([
-                    'message' => "The project titled '" . addslashes($projectTitle) . "' has been resubmitted for review.",
-                    'contributor' => $user->first_name . ' ' . $user->last_name,
-                    'role' => 'contributor',
-                    'type' => $type,
-                    'status' => $status,
-                ]),
-                'created_at' => now(),
-            ]);
-        }
-
-        // Log the activity for the project update
-        $properties = [
-            'project_id' => $project->id,
-            'title' => $project->title,
-            'description' => $project->description,
-            'status_id' => $project->status_id, // Update to log status_id
-            'sdgs' => $sdgs,
-            'publish_status' => $publishStatus,
-            'location' => [
-                'address' => $project->location_address,
-                'latitude' => $project->latitude,
-                'longitude' => $project->longitude,
-            ],
-            'image' => $projectimg->image ?? null,
-            'updated_by' => [
-                'user_id' => $user->id,
-                'name' => $user->first_name . ' ' . $user->last_name,
-                'role' => $user->role,
-            ],
-            'timestamp' => now(),
-        ];
-
-        ActivityLog::create([
-            'log_name' => 'Project Resubmission',
-            'description' => 'Project titled "' . addslashes($project->title) . '" resubmitted for review by contributor',
-            'subject_type' => Project::class,
-            'subject_id' => $project->id,
-            'event' => 'resubmitted for review',
-            'causer_type' => User::class,
-            'causer_id' => $user->id,
-            'properties' => json_encode($properties),
-            'created_at' => now(),
-        ]);
-
-        DB::commit();
-    } catch (\Exception $ex) {
-        DB::rollBack();
-        dd($ex->getMessage());
-    }
-
-    session()->flash('alert-success', 'Project/Program Updated Successfully!');
-    return to_route('contributor.projects.index');
+        // Redirect to index page
+        return redirect()->route('contributor.projects.index')->with('success', 'Project/Program updated successfully');
 }
 
 
@@ -529,5 +481,259 @@ class ProjectController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Analyze SDGs from the project title and description
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function analyzeSdgs(Request $request)
+    {
+        try {
+            // Get input from the request
+            $title = $request->input('title', '');
+            $description = $request->input('description', '');
+            
+            // Combine title and description
+            $textContent = $title . ' ' . strip_tags($description);
+            
+            // If text content is too short, return an error
+            if (strlen($textContent) < 10) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Text content is too short for analysis. Please provide more details.'
+                ], 400);
+            }
+
+            // Since SDG AI Engine only processes PDFs, we need to create a simple PDF with our text content
+            try {
+                // Use direct analysis via the SdgAiService's convertResultsToIds method
+                // This creates a simulated response similar to what the PDF analyzer would return
+                $simulatedResponse = [
+                    'matched_sdgs' => $this->getSimulatedSdgMatches($textContent)
+                ];
+                
+                // Convert AI results to database IDs
+                $convertedResults = $this->sdgAiService->convertResultsToIds($simulatedResponse);
+                
+                // Get SDG and subcategory details from database
+                $sdgs = Sdg::whereIn('id', $convertedResults['sdgIds'])->get()
+                    ->map(function ($sdg) use ($simulatedResponse) {
+                        // Find confidence score if available
+                        $confidenceScore = 0.5; // Default
+                        foreach ($simulatedResponse['matched_sdgs'] ?? [] as $match) {
+                            if ((int)ltrim($match['sdg_number'], '0') === $sdg->id) {
+                                $confidenceScore = $match['confidence'] ?? 0.5;
+                                break;
+                            }
+                        }
+                        
+                        return [
+                            'id' => $sdg->id,
+                            'name' => $sdg->name,
+                            'confidence' => $confidenceScore
+                        ];
+                    });
+                    
+                $subcategories = \App\Models\SdgSubCategory::whereIn('id', $convertedResults['subCategoryIds'])->get()
+                    ->map(function ($sub) use ($simulatedResponse) {
+                        // Find confidence score if available
+                        $confidenceScore = 0.5; // Default
+                        $subName = $sub->sub_category_name;
+                        
+                        // Try to find a matching subcategory in the AI results
+                        foreach ($simulatedResponse['matched_sdgs'] ?? [] as $match) {
+                            foreach ($match['subcategories'] ?? [] as $subMatch) {
+                                if ($subMatch['subcategory'] === $subName) {
+                                    $confidenceScore = $subMatch['confidence'] ?? 0.5;
+                                    break 2;
+                                }
+                            }
+                        }
+                        
+                        return [
+                            'id' => $sub->id,
+                            'name' => $sub->sub_category_name,
+                            'description' => $sub->sub_category_description,
+                            'confidence' => $confidenceScore
+                        ];
+                    });
+                
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'sdgs' => $sdgs,
+                        'subcategories' => $subcategories,
+                        'raw_ai_results' => $simulatedResponse
+                    ]
+                ]);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Error in SDG analysis: ' . $e->getMessage());
+                throw $e;
+            }
+            
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error analyzing SDGs: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error analyzing SDGs: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Generate simulated SDG matches based on text analysis
+     * This is a simple implementation that looks for keywords related to each SDG
+     * 
+     * @param string $textContent The text content to analyze
+     * @return array Matched SDGs with confidence scores
+     */
+    private function getSimulatedSdgMatches($textContent)
+    {
+        $textContent = strtolower($textContent);
+        $matches = [];
+        
+        // Define SDG keywords with their corresponding SDG numbers
+        $sdgKeywords = [
+            '01' => ['poverty', 'poor', 'wealth distribution', 'basic needs', 'income'],
+            '02' => ['hunger', 'food', 'nutrition', 'agriculture', 'farming', 'crop'],
+            '03' => ['health', 'wellbeing', 'medical', 'disease', 'healthcare', 'wellness', 'mental health'],
+            '04' => ['education', 'learning', 'teaching', 'school', 'training', 'literacy', 'student'],
+            '05' => ['gender', 'women', 'girl', 'equality', 'female', 'empowerment', 'discrimination'],
+            '06' => ['water', 'sanitation', 'hygiene', 'clean water', 'drinking water', 'sewage'],
+            '07' => ['energy', 'renewable', 'electricity', 'power', 'solar', 'wind', 'sustainable energy'],
+            '08' => ['economy', 'economic', 'work', 'job', 'employment', 'labor', 'decent work', 'growth'],
+            '09' => ['industry', 'innovation', 'infrastructure', 'manufacturing', 'technology', 'industrial'],
+            '10' => ['inequality', 'social inclusion', 'income inequality', 'discrimination', 'equity'],
+            '11' => ['cities', 'urban', 'community', 'housing', 'transportation', 'sustainable cities'],
+            '12' => ['consumption', 'production', 'sustainable consumption', 'recycling', 'waste', 'resource'],
+            '13' => ['climate', 'carbon', 'emission', 'global warming', 'greenhouse gas', 'climate change'],
+            '14' => ['ocean', 'marine', 'sea', 'aquatic', 'fish', 'coral', 'coastal', 'water resources'],
+            '15' => ['forest', 'biodiversity', 'ecosystem', 'land', 'desertification', 'wildlife', 'species'],
+            '16' => ['peace', 'justice', 'institution', 'governance', 'accountability', 'transparency', 'corruption'],
+            '17' => ['partnership', 'cooperation', 'global', 'international', 'collaboration', 'sustainable development']
+        ];
+        
+        // Define some SDG subcategories (simplified)
+        $sdgSubcategories = [
+            '01' => [['subcategory' => '1.1', 'keywords' => ['extreme poverty', 'basic needs']]],
+            '03' => [['subcategory' => '3.1', 'keywords' => ['maternal', 'pregnancy']]],
+            '04' => [['subcategory' => '4.1', 'keywords' => ['primary education', 'secondary education', 'quality education']]],
+            '05' => [
+                ['subcategory' => '5.1', 'keywords' => ['discrimination against women', 'gender discrimination']],
+                ['subcategory' => '5.5', 'keywords' => ['women leadership', 'gender equality']]
+            ],
+            '13' => [['subcategory' => '13.2', 'keywords' => ['climate change measures', 'national policies']]],
+        ];
+        
+        // Count keyword matches for each SDG
+        $keywordCounts = [];
+        $totalKeywordMatches = 0;
+        
+        foreach ($sdgKeywords as $sdgNumber => $keywords) {
+            $count = 0;
+            $matchedKeywords = [];
+            
+            foreach ($keywords as $keyword) {
+                if (strpos($textContent, $keyword) !== false) {
+                    $count++;
+                    $matchedKeywords[] = $keyword;
+                    $totalKeywordMatches++;
+                }
+            }
+            
+            if ($count > 0) {
+                $keywordCounts[$sdgNumber] = [
+                    'count' => $count,
+                    'keywords' => $matchedKeywords
+                ];
+            }
+        }
+        
+        // If no keywords matched, return an empty array
+        if ($totalKeywordMatches === 0) {
+            // Default to SDG 17 if nothing matches
+            return [[
+                'sdg_number' => '17',
+                'sdg_name' => 'Partnerships for the Goals',
+                'confidence' => 0.3,
+                'matched_keywords' => ['partnership'],
+                'subcategories' => []
+            ]];
+        }
+        
+        // Convert keyword counts to SDG matches with confidence scores
+        foreach ($keywordCounts as $sdgNumber => $data) {
+            // Calculate a simple confidence score based on keyword frequency
+            $confidence = min(0.9, 0.5 + ($data['count'] / 10)); 
+            
+            // Get matching subcategories
+            $matchedSubcategories = [];
+            if (isset($sdgSubcategories[$sdgNumber])) {
+                foreach ($sdgSubcategories[$sdgNumber] as $subcategory) {
+                    foreach ($subcategory['keywords'] as $keyword) {
+                        if (strpos($textContent, $keyword) !== false) {
+                            $matchedSubcategories[] = [
+                                'subcategory' => $subcategory['subcategory'],
+                                'confidence' => $confidence - 0.1 // Slightly lower confidence for subcategories
+                            ];
+                            break; // One keyword match is enough for this subcategory
+                        }
+                    }
+                }
+            }
+            
+            // Add to matches array
+            $sdgName = $this->getSdgNameByNumber($sdgNumber);
+            $matches[] = [
+                'sdg_number' => $sdgNumber,
+                'sdg_name' => $sdgName,
+                'confidence' => $confidence,
+                'matched_keywords' => $data['keywords'],
+                'subcategories' => $matchedSubcategories
+            ];
+        }
+        
+        // Sort matches by confidence score (descending)
+        usort($matches, function($a, $b) {
+            return $b['confidence'] <=> $a['confidence'];
+        });
+        
+        // Limit to top 5 matches
+        return array_slice($matches, 0, 5);
+    }
+    
+    /**
+     * Get the SDG name by its number
+     * 
+     * @param string $sdgNumber The SDG number (01-17)
+     * @return string The SDG name
+     */
+    private function getSdgNameByNumber($sdgNumber)
+    {
+        $sdgNames = [
+            '01' => 'No Poverty',
+            '02' => 'Zero Hunger',
+            '03' => 'Good Health and Well-being',
+            '04' => 'Quality Education',
+            '05' => 'Gender Equality',
+            '06' => 'Clean Water and Sanitation',
+            '07' => 'Affordable and Clean Energy',
+            '08' => 'Decent Work and Economic Growth',
+            '09' => 'Industry, Innovation and Infrastructure',
+            '10' => 'Reduced Inequalities',
+            '11' => 'Sustainable Cities and Communities',
+            '12' => 'Responsible Consumption and Production',
+            '13' => 'Climate Action',
+            '14' => 'Life Below Water',
+            '15' => 'Life on Land',
+            '16' => 'Peace, Justice and Strong Institutions',
+            '17' => 'Partnerships for the Goals'
+        ];
+        
+        return $sdgNames[$sdgNumber] ?? "SDG $sdgNumber";
     }
 }

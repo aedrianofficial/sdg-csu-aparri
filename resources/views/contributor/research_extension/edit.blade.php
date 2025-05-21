@@ -78,6 +78,59 @@
                                     @endforeach
                                 </div>
 
+                                <!-- Target Beneficiaries Field -->
+                                <div class="mb-3">
+                                    <label for="target_beneficiaries" class="form-label">Target Beneficiaries</label>
+                                    <textarea class="form-control" id="target_beneficiaries" name="target_beneficiaries" 
+                                        rows="3" placeholder="Describe the target beneficiaries of your research (e.g., women, men, children, elderly, etc.)">{{ old('target_beneficiaries', $research->target_beneficiaries) }}</textarea>
+                                    <div class="form-text text-muted">
+                                        <i class="fas fa-info-circle"></i> Specify who will benefit from this research. This information helps classify gender impact.
+                                    </div>
+                                </div>
+
+                                <!-- Gender Impact Analysis Results Area -->
+                                <div id="gender-analysis-results" class="mb-3 d-none">
+                                    <div class="card border-success">
+                                        <div class="card-header bg-success text-white">
+                                            <i class="fas fa-venus-mars me-2"></i>Gender Impact Analysis
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-3" id="gender-loading-indicator">
+                                                <div class="spinner-border text-success me-3" role="status"></div>
+                                                <p class="mb-0 fs-5">Analyzing gender impact...</p>
+                                            </div>
+                                            <div id="gender-analysis-content" class="d-none">
+                                                
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <div class="card mb-3">
+                                                            <div class="card-body">
+                                                                <h6 class="card-subtitle mb-2 text-muted">Beneficiaries</h6>
+                                                                <div id="gender-beneficiaries">
+                                                                    <!-- Will be populated by JS -->
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="card mb-3">
+                                                            <div class="card-body">
+                                                                <h6 class="card-subtitle mb-2 text-muted">Gender Equality Focus</h6>
+                                                                <div id="gender-equality-focus">
+                                                                    <!-- Will be populated by JS -->
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div id="gender-notes" class="alert alert-info">
+                                                    <!-- Will be populated by JS -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- AI Detection Results Area - Improved Design -->
                                 <div id="ai-detection-results" class="mb-3 d-none">
                                     <div class="card border-primary">
@@ -316,13 +369,212 @@
             quill.on('text-change', function() {
                 var htmlContent = quill.root.innerHTML;
                 document.getElementById('description').value = htmlContent;
+                
+                // Run gender analysis when content changes (debounced)
+                clearTimeout(window.genderAnalysisTimer);
+                window.genderAnalysisTimer = setTimeout(function() {
+                    analyzeGenderImpact();
+                }, 1000);
             });
+
+            // Also trigger gender analysis when target beneficiaries changes
+            $('#target_beneficiaries').on('input', function() {
+                clearTimeout(window.genderAnalysisTimer);
+                window.genderAnalysisTimer = setTimeout(function() {
+                    analyzeGenderImpact();
+                }, 1000);
+            });
+            
+            // When title changes
+            $('#title').on('input', function() {
+                clearTimeout(window.genderAnalysisTimer);
+                window.genderAnalysisTimer = setTimeout(function() {
+                    analyzeGenderImpact();
+                }, 1000);
+            });
+            
+            // Function to analyze gender impact from uploaded file or text
+            function analyzeGenderImpact() {
+                var title = $('#title').val();
+                var description = $('#description').val();
+                var targetBeneficiaries = $('#target_beneficiaries').val();
+                
+                // File-based analysis if we have a file
+                if ($('#file')[0].files && $('#file')[0].files[0]) {
+                    var file = $('#file')[0].files[0];
+                    
+                    // Show the gender analysis panel
+                    $('#gender-analysis-results').removeClass('d-none');
+                    $('#gender-loading-indicator').removeClass('d-none');
+                    $('#gender-analysis-content').addClass('d-none');
+                    
+                    // Create FormData for file upload
+                    var formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('target_beneficiaries', targetBeneficiaries);
+                    formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+                    
+                    // Make AJAX request
+                    $.ajax({
+                        url: '{{ route('contributor.research.analyze-gender') }}',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(response) {
+                            displayGenderAnalysisResults(response);
+                        },
+                        error: function(xhr) {
+                            handleGenderAnalysisError();
+                        }
+                    });
+                } 
+                // Text-based analysis if we don't have a file but have text
+                else if (title.trim() !== '' || description.trim() !== '' || targetBeneficiaries.trim() !== '') {
+                    // Show the gender analysis panel
+                    $('#gender-analysis-results').removeClass('d-none');
+                    $('#gender-loading-indicator').removeClass('d-none');
+                    $('#gender-analysis-content').addClass('d-none');
+                    
+                    // Use text analysis method
+                    $.ajax({
+                        url: '{{ route('contributor.research.analyze-gender') }}',
+                        type: 'POST',
+                        data: {
+                            title: title,
+                            description: description,
+                            target_beneficiaries: targetBeneficiaries,
+                            _token: $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(response) {
+                            displayGenderAnalysisResults(response);
+                        },
+                        error: function(xhr) {
+                            handleGenderAnalysisError();
+                        }
+                    });
+                }
+            }
+            
+            // Handle successful gender analysis results
+            function displayGenderAnalysisResults(response) {
+                if (response.success) {
+                    // Hide loading indicator and show content
+                    $('#gender-loading-indicator').addClass('d-none');
+                    $('#gender-analysis-content').removeClass('d-none');
+                    
+                    // Display gender analysis results
+                    displayGenderResults(response.data);
+                } else {
+                    // Show error message
+                    $('#gender-loading-indicator').addClass('d-none');
+                    $('#gender-analysis-content').removeClass('d-none');
+                    $('#gender-notes').html(
+                        '<div class="alert alert-danger">Error analyzing gender impact: ' +
+                        response.message + '</div>'
+                    );
+                }
+            }
+            
+            // Handle gender analysis errors
+            function handleGenderAnalysisError() {
+                // Hide loading indicator and show error
+                $('#gender-loading-indicator').addClass('d-none');
+                $('#gender-analysis-content').removeClass('d-none');
+                $('#gender-notes').html(
+                    '<div class="alert alert-warning">' +
+                    '<h5><i class="fas fa-exclamation-triangle me-2"></i>Gender Analysis Error</h5>' +
+                    '<p>There was a problem analyzing gender impact. Please fill in the Target Beneficiaries field manually.</p>' +
+                    '</div>'
+                );
+            }
+            
+            // Display gender analysis results
+            function displayGenderResults(data) {
+                // Beneficiaries section
+                var beneficiariesHtml = '<ul class="list-group">';
+                
+                if (data.benefits_women) {
+                    beneficiariesHtml += '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Benefits Women/Girls';
+                    if (data.women_count !== null) {
+                        beneficiariesHtml += ' <span class="badge bg-info">' + data.women_count + ' mentioned</span>';
+                    }
+                    beneficiariesHtml += '</li>';
+                } else {
+                    beneficiariesHtml += '<li class="list-group-item list-group-item-light"><i class="fas fa-times-circle me-2"></i> Does Not Specifically Target Women/Girls</li>';
+                }
+                
+                if (data.benefits_men) {
+                    beneficiariesHtml += '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Benefits Men/Boys';
+                    if (data.men_count !== null) {
+                        beneficiariesHtml += ' <span class="badge bg-info">' + data.men_count + ' mentioned</span>';
+                    }
+                    beneficiariesHtml += '</li>';
+                } else {
+                    beneficiariesHtml += '<li class="list-group-item list-group-item-light"><i class="fas fa-times-circle me-2"></i> Does Not Specifically Target Men/Boys</li>';
+                }
+                
+                if (data.benefits_all) {
+                    beneficiariesHtml += '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Benefits All Genders</li>';
+                }
+                
+                beneficiariesHtml += '</ul>';
+                
+                $('#gender-beneficiaries').html(beneficiariesHtml);
+                
+                // Gender equality focus
+                var equalityHtml = '<ul class="list-group">';
+                
+                if (data.addresses_gender_inequality) {
+                    equalityHtml += '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Addresses Gender Inequality</li>';
+                } else {
+                    equalityHtml += '<li class="list-group-item list-group-item-light"><i class="fas fa-info-circle me-2"></i> No Explicit Focus on Gender Inequality</li>';
+                }
+                
+                equalityHtml += '</ul>';
+                
+                $('#gender-equality-focus').html(equalityHtml);
+                
+                // Gender notes
+                if (data.gender_notes) {
+                    $('#gender-notes').html('<i class="fas fa-info-circle me-2"></i> ' + data.gender_notes);
+                } else {
+                    $('#gender-notes').html('<i class="fas fa-info-circle me-2"></i> No additional gender impact notes available.');
+                }
+                
+                // Create hidden inputs to store the gender impact data
+                var hiddenInputs = '';
+                hiddenInputs += '<input type="hidden" name="gender_benefits_men" value="' + (data.benefits_men ? '1' : '0') + '">';
+                hiddenInputs += '<input type="hidden" name="gender_benefits_women" value="' + (data.benefits_women ? '1' : '0') + '">';
+                hiddenInputs += '<input type="hidden" name="gender_benefits_all" value="' + (data.benefits_all ? '1' : '0') + '">';
+                hiddenInputs += '<input type="hidden" name="gender_addresses_inequality" value="' + (data.addresses_gender_inequality ? '1' : '0') + '">';
+                
+                if (data.men_count !== null) {
+                    hiddenInputs += '<input type="hidden" name="gender_men_count" value="' + data.men_count + '">';
+                }
+                
+                if (data.women_count !== null) {
+                    hiddenInputs += '<input type="hidden" name="gender_women_count" value="' + data.women_count + '">';
+                }
+                
+                hiddenInputs += '<input type="hidden" name="gender_notes" value="' + (data.gender_notes || '') + '">';
+                
+                $('#gender-notes').append(hiddenInputs);
+            }
 
             // Ensure the form captures the Quill content when submitted
             const form = document.querySelector('form');
             form.addEventListener('submit', function() {
                 document.getElementById('description').value = quill.root.innerHTML;
             });
+            
+            // Run initial gender analysis using existing content
+            if ($('#title').val() || oldValue || $('#target_beneficiaries').val()) {
+                analyzeGenderImpact();
+            }
         });
     </script>
 

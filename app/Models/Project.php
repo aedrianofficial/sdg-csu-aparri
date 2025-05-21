@@ -24,6 +24,7 @@ class Project extends Model
         'latitude',
         'longitude',
         'location_address',
+        'target_beneficiaries',
     ];
 
     // Relationship to Projectimg
@@ -76,5 +77,11 @@ class Project extends Model
     public function feedbacks()
     {
         return $this->belongsToMany(Feedback::class, 'feedback_project', 'project_id', 'feedback_id');
+    }
+
+    // Relationship to GenderImpact
+    public function genderImpact()
+    {
+        return $this->hasOne(GenderImpact::class);
     }
 }

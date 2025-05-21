@@ -739,4 +739,217 @@ class ProjectController extends Controller
     {
         //
     }
+    
+    /**
+     * Analyze a project for gender impact
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function analyzeGender(Request $request)
+    {
+        // Log the request data for debugging
+        Log::info('Gender analysis request received', [
+            'has_title' => $request->has('title'), 
+            'has_description' => $request->has('description'),
+            'has_target_beneficiaries' => $request->has('target_beneficiaries')
+        ]);
+    
+        try {
+            // Get the input data directly and sanitize it
+            $title = $request->input('title', '');
+            $description = $request->input('description', '');
+            $targetBeneficiaries = $request->input('target_beneficiaries', '');
+            
+            // Strip HTML tags from description if needed
+            $cleanDescription = strip_tags($description);
+            
+            // Create a combined text for analysis
+            $textToAnalyze = $title . "\n" . $cleanDescription;
+            
+            // Analyze gender impact using the GenderAnalysisService
+            $genderAnalysisService = new \App\Services\GenderAnalysisService();
+            $analysisResults = $genderAnalysisService->analyzeGenderFromText(
+                $textToAnalyze, 
+                $targetBeneficiaries
+            );
+            
+            // Return the results as JSON
+            return response()->json([
+                'success' => true,
+                'data' => $analysisResults
+            ]);
+        } catch (\Exception $e) {
+            // Log the error
+            Log::error('Gender analysis error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Return error response
+            return response()->json([
+                'success' => false,
+                'message' => 'Error analyzing gender impact: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Analyze a project for SDG relevance
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function analyzeSdgs(Request $request)
+    {
+        // Log the request data for debugging
+        Log::info('SDG analysis request received', [
+            'has_title' => $request->has('title'), 
+            'has_description' => $request->has('description')
+        ]);
+
+        try {
+            // Get input data directly
+            $title = $request->input('title', '');
+            $description = $request->input('description', '');
+            
+            // Strip HTML tags from description
+            $cleanDescription = strip_tags($description);
+            
+            // Combine them into a simple text document
+            $content = $title . "\n\n" . $cleanDescription;
+            
+            // Create a temporary file with the content
+            $tempFilePath = tempnam(sys_get_temp_dir(), 'sdg_analysis_');
+            $tempFilePath .= '.txt';  // Append .txt extension for mime type detection
+            
+            // Write content to file
+            if (!file_put_contents($tempFilePath, $content)) {
+                throw new \Exception("Failed to create temporary file for analysis");
+            }
+            
+            try {
+                // Create an uploaded file instance from the temporary file
+                $uploadedFile = new \Illuminate\Http\UploadedFile(
+                    $tempFilePath,
+                    'project_analysis.txt',
+                    'text/plain',
+                    null,
+                    true // Test mode for UploadedFile
+                );
+                
+                // Get the AI service
+                $sdgAiService = new \App\Services\SdgAiService();
+                
+                // Analyze the content
+                $aiResults = $sdgAiService->analyzeResearchFile($uploadedFile);
+                
+                // Delete the temporary file
+                @unlink($tempFilePath);
+                
+                // If analysis failed, return an error
+                if ($aiResults === null) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'AI analysis failed. Please try again or select SDGs manually.'
+                    ], 500);
+                }
+                
+                // Get IDs from the results
+                $resultIds = $sdgAiService->convertResultsToIds($aiResults);
+                
+                // If no SDGs were detected, return a message
+                if (empty($resultIds['sdgIds'])) {
+                    return response()->json([
+                        'success' => true,
+                        'data' => [
+                            'sdgs' => [],
+                            'subcategories' => [],
+                            'message' => 'No SDGs were detected. Please select SDGs manually.'
+                        ]
+                    ]);
+                }
+                
+                // Fetch SDGs from the database
+                $sdgs = \App\Models\Sdg::whereIn('id', $resultIds['sdgIds'])->get()->map(function($sdg) use ($aiResults) {
+                    // Find the confidence score from AI results
+                    $confidence = 0.5; // Default confidence
+                    
+                    if (isset($aiResults['matched_sdgs']) && is_array($aiResults['matched_sdgs'])) {
+                        foreach ($aiResults['matched_sdgs'] as $matched) {
+                            $matchedId = (int)ltrim($matched['sdg_number'], '0');
+                            if ($matchedId === $sdg->id) {
+                                $confidence = $matched['confidence'] ?? 0.5;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    return [
+                        'id' => $sdg->id,
+                        'name' => $sdg->name,
+                        'confidence' => $confidence
+                    ];
+                })->sortByDesc('confidence')->values()->toArray();
+                
+                // Fetch subcategories from the database
+                $subcategories = [];
+                
+                if (!empty($resultIds['subCategoryIds'])) {
+                    $subcategories = \App\Models\SdgSubCategory::whereIn('id', $resultIds['subCategoryIds'])->get()->map(function($sub) use ($aiResults) {
+                        // Try to find confidence from AI results
+                        $confidence = 0.5; // Default confidence
+                        
+                        if (isset($aiResults['matched_sdgs']) && is_array($aiResults['matched_sdgs'])) {
+                            $sdgNumber = str_pad($sub->sdg_id, 2, '0', STR_PAD_LEFT);
+                            
+                            foreach ($aiResults['matched_sdgs'] as $matched) {
+                                if ($matched['sdg_number'] === $sdgNumber && isset($matched['subcategories'])) {
+                                    foreach ($matched['subcategories'] as $matchedSub) {
+                                        if (isset($matchedSub['subcategory']) && 
+                                            (strpos($sub->sub_category_name, $matchedSub['subcategory']) !== false ||
+                                            strpos($matchedSub['subcategory'], $sub->sub_category_name) !== false)) {
+                                            $confidence = $matchedSub['confidence'] ?? 0.5;
+                                            break 2;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        return [
+                            'id' => $sub->id,
+                            'name' => $sub->sub_category_name,
+                            'description' => $sub->sub_category_description,
+                            'confidence' => $confidence
+                        ];
+                    })->toArray();
+                }
+                
+                // Return the results
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'sdgs' => $sdgs,
+                        'subcategories' => $subcategories
+                    ]
+                ]);
+            } finally {
+                // Make sure we delete the temporary file if it exists
+                if (file_exists($tempFilePath)) {
+                    @unlink($tempFilePath);
+                }
+            }
+        } catch (\Exception $e) {
+            // Log the error
+            Log::error('SDG analysis error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Return error response
+            return response()->json([
+                'success' => false,
+                'message' => 'Error analyzing SDGs: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

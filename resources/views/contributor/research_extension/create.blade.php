@@ -74,6 +74,59 @@
                                     </div>
                                 </div>
 
+                                <!-- Target Beneficiaries Field -->
+                                <div class="mb-3">
+                                    <label for="target_beneficiaries" class="form-label">Target Beneficiaries</label>
+                                    <textarea class="form-control" id="target_beneficiaries" name="target_beneficiaries" 
+                                        rows="3" placeholder="Describe the target beneficiaries of your research (e.g., women, men, children, elderly, etc.)">{{ old('target_beneficiaries') }}</textarea>
+                                    <div class="form-text text-muted">
+                                        <i class="fas fa-info-circle"></i> Specify who will benefit from this research. This information helps classify gender impact.
+                                    </div>
+                                </div>
+
+                                <!-- Gender Impact Analysis Results Area -->
+                                <div id="gender-analysis-results" class="mb-3 d-none">
+                                    <div class="card border-success">
+                                        <div class="card-header bg-success text-white">
+                                            <i class="fas fa-venus-mars me-2"></i>Gender Impact Analysis
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-3" id="gender-loading-indicator">
+                                                <div class="spinner-border text-success me-3" role="status"></div>
+                                                <p class="mb-0 fs-5">Analyzing gender impact...</p>
+                                            </div>
+                                            <div id="gender-analysis-content" class="d-none">
+                                                
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <div class="card mb-3">
+                                                            <div class="card-body">
+                                                                <h6 class="card-subtitle mb-2 text-muted">Beneficiaries</h6>
+                                                                <div id="gender-beneficiaries">
+                                                                    <!-- Will be populated by JS -->
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="card mb-3">
+                                                            <div class="card-body">
+                                                                <h6 class="card-subtitle mb-2 text-muted">Gender Equality Focus</h6>
+                                                                <div id="gender-equality-focus">
+                                                                    <!-- Will be populated by JS -->
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div id="gender-notes" class="alert alert-info">
+                                                    <!-- Will be populated by JS -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- Add manual fallback button at the top -->
                                 <div class="mb-3" id="manual-selection-fallback">
                                     <button type="button" class="btn btn-outline-primary" id="show-manual-selection-top">
@@ -313,71 +366,21 @@
             // Initialize Select2 for SDGs and Research Status
             $('#sdg').select2();
 
-            // Add event handler for the manual selection fallback button at the top
-            $('#show-manual-selection-top').on('click', function() {
-                // Hide the AI detection panel
-                $('#ai-detection-results').addClass('d-none');
-
-                // Store AI-detected subcategory IDs before switching to manual mode
-                var aiDetectedSubcategoryIds = [];
-                $('.ai-detected-subcategory-input').each(function() {
-                    aiDetectedSubcategoryIds.push($(this).val());
-                });
-                window.aiDetectedSubcategoryIds = aiDetectedSubcategoryIds;
-
-                // Show the manual selection options
-                $('#manual-sdg-selection').removeClass('d-none');
-                $('#sub-categories').removeClass('d-none');
-
-                // Change button text
-                $(this).html('<i class="fas fa-check-circle"></i> Manual Selection Mode Active');
-                $(this).addClass('btn-success').removeClass('btn-outline-primary');
-                $(this).prop('disabled', true);
-                
-                // Trigger the change event to load subcategories with AI selections pre-checked
-                $('#sdg').trigger('change');
-            });
-
-            // Toggle manual selection visibility
-            $('#show-manual-selection').on('click', function() {
-                var isHidden = $('#manual-sdg-selection').hasClass('d-none');
-
-                // Toggle visibility of both sections
-                $('#manual-sdg-selection').toggleClass('d-none');
-                $('#sub-categories').toggleClass('d-none');
-
-                if (!isHidden) {
-                    // Going back to AI selection
-                    $(this).html('<i class="fas fa-edit"></i> Modify AI Selection');
-                } else {
-                    // Showing manual selection
-                    $(this).html('<i class="fas fa-robot"></i> Return to AI Selection');
-                    
-                    // Now that manual selection is visible, load the subcategories first
-                    var selectedSdgs = $('#sdg').val();
-                    if (selectedSdgs && selectedSdgs.length > 0) {
-                        // Store AI-detected subcategory IDs before triggering change
-                        var aiDetectedSubcategoryIds = [];
-                        $('.ai-detected-subcategory-input').each(function() {
-                            aiDetectedSubcategoryIds.push($(this).val());
-                        });
-                        
-                        // Set a global variable to preserve the AI selections during AJAX load
-                        window.aiDetectedSubcategoryIds = aiDetectedSubcategoryIds;
-                        
-                        // Trigger change to load subcategories
-                        $('#sdg').trigger('change');
-                    }
-                }
-            });
-
-            // Handle file upload for AI detection
+            // Handle file upload for both SDG detection and gender analysis
             $('#file').on('change', function() {
                 if (this.files && this.files[0]) {
-                    // Show the AI detection panel
+                    var file = this.files[0];
+                    var targetBeneficiaries = $('#target_beneficiaries').val();
+                    
+                    // Show the AI detection panel for SDGs
                     $('#ai-detection-results').removeClass('d-none');
                     $('#ai-loading-indicator').removeClass('d-none');
                     $('#ai-detection-content').addClass('d-none');
+
+                    // Also show the gender analysis panel
+                    $('#gender-analysis-results').removeClass('d-none');
+                    $('#gender-loading-indicator').removeClass('d-none');
+                    $('#gender-analysis-content').addClass('d-none');
 
                     // Hide the manual selection options when file is uploaded
                     $('#manual-sdg-selection').addClass('d-none');
@@ -385,10 +388,10 @@
 
                     // Create FormData object to send file to backend
                     var formData = new FormData();
-                    formData.append('file', this.files[0]);
+                    formData.append('file', file);
                     formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
 
-                    // Make AJAX request to backend endpoint
+                    // Make AJAX request to backend endpoint for SDG analysis
                     $.ajax({
                         url: '/api/sdg-ai/analyze',
                         type: 'POST',
@@ -441,18 +444,21 @@
                                 $('#show-manual-selection-error').on('click', function() {
                                     // Store any AI-detected subcategory IDs that might be available
                                     var aiDetectedSubcategoryIds = [];
-                                    $('.ai-detected-subcategory-input').each(function() {
-                                        aiDetectedSubcategoryIds.push($(this).val());
-                                    });
-                                    window.aiDetectedSubcategoryIds = aiDetectedSubcategoryIds;
-                                    
+                                    $('.ai-detected-subcategory-input').each(
+                                        function() {
+                                            aiDetectedSubcategoryIds.push($(this)
+                                                .val());
+                                        });
+                                    window.aiDetectedSubcategoryIds =
+                                        aiDetectedSubcategoryIds;
+
                                     // Show manual selection sections
                                     $('#manual-sdg-selection').removeClass('d-none');
                                     $('#sub-categories').removeClass('d-none');
                                     $('#show-manual-selection').html(
                                         '<i class="fas fa-robot"></i> Return to AI Selection'
                                     );
-                                    
+
                                     // Trigger change to load subcategories with AI selections pre-checked
                                     var selectedSdgs = $('#sdg').val();
                                     if (selectedSdgs && selectedSdgs.length > 0) {
@@ -475,18 +481,21 @@
                                 $('#show-manual-selection-error').on('click', function() {
                                     // Store any AI-detected subcategory IDs that might be available
                                     var aiDetectedSubcategoryIds = [];
-                                    $('.ai-detected-subcategory-input').each(function() {
-                                        aiDetectedSubcategoryIds.push($(this).val());
-                                    });
-                                    window.aiDetectedSubcategoryIds = aiDetectedSubcategoryIds;
-                                    
+                                    $('.ai-detected-subcategory-input').each(
+                                        function() {
+                                            aiDetectedSubcategoryIds.push($(this)
+                                                .val());
+                                        });
+                                    window.aiDetectedSubcategoryIds =
+                                        aiDetectedSubcategoryIds;
+
                                     // Show manual selection sections
                                     $('#manual-sdg-selection').removeClass('d-none');
                                     $('#sub-categories').removeClass('d-none');
                                     $('#show-manual-selection').html(
                                         '<i class="fas fa-robot"></i> Return to AI Selection'
                                     );
-                                    
+
                                     // Trigger change to load subcategories with AI selections pre-checked
                                     var selectedSdgs = $('#sdg').val();
                                     if (selectedSdgs && selectedSdgs.length > 0) {
@@ -496,6 +505,241 @@
                             }
                         }
                     });
+                    
+                    // Make a separate AJAX request for gender analysis
+                    var genderFormData = new FormData();
+                    genderFormData.append('file', file);
+                    genderFormData.append('target_beneficiaries', targetBeneficiaries);
+                    genderFormData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+                    
+                    $.ajax({
+                        url: '{{ route('contributor.research.analyze-gender') }}',
+                        type: 'POST',
+                        data: genderFormData,
+                        processData: false,
+                        contentType: false,
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                // Hide loading indicator and show content
+                                $('#gender-loading-indicator').addClass('d-none');
+                                $('#gender-analysis-content').removeClass('d-none');
+                                
+                                // Display gender analysis results
+                                displayGenderResults(response.data);
+                            } else {
+                                // Show error message
+                                $('#gender-loading-indicator').addClass('d-none');
+                                $('#gender-analysis-content').removeClass('d-none');
+                                $('#gender-notes').html(
+                                    '<div class="alert alert-danger">Error analyzing gender impact: ' +
+                                    response.message + '</div>'
+                                );
+                            }
+                        },
+                        error: function(xhr) {
+                            // Hide loading indicator and show error
+                            $('#gender-loading-indicator').addClass('d-none');
+                            $('#gender-analysis-content').removeClass('d-none');
+                            $('#gender-notes').html(
+                                '<div class="alert alert-warning">' +
+                                '<h5><i class="fas fa-exclamation-triangle me-2"></i>Gender Analysis Error</h5>' +
+                                '<p>There was a problem analyzing gender impact. Please fill in the Target Beneficiaries field manually.</p>' +
+                                '</div>'
+                            );
+                        }
+                    });
+                }
+            });
+            
+            // Display gender analysis results
+            function displayGenderResults(data) {
+                // Beneficiaries section
+                var beneficiariesHtml = '<ul class="list-group">';
+                
+                if (data.benefits_women) {
+                    beneficiariesHtml += '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Benefits Women/Girls';
+                    if (data.women_count !== null) {
+                        beneficiariesHtml += ' <span class="badge bg-info">' + data.women_count + ' mentioned</span>';
+                    }
+                    beneficiariesHtml += '</li>';
+                } else {
+                    beneficiariesHtml += '<li class="list-group-item list-group-item-light"><i class="fas fa-times-circle me-2"></i> Does Not Specifically Target Women/Girls</li>';
+                }
+                
+                if (data.benefits_men) {
+                    beneficiariesHtml += '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Benefits Men/Boys';
+                    if (data.men_count !== null) {
+                        beneficiariesHtml += ' <span class="badge bg-info">' + data.men_count + ' mentioned</span>';
+                    }
+                    beneficiariesHtml += '</li>';
+                } else {
+                    beneficiariesHtml += '<li class="list-group-item list-group-item-light"><i class="fas fa-times-circle me-2"></i> Does Not Specifically Target Men/Boys</li>';
+                }
+                
+                if (data.benefits_all) {
+                    beneficiariesHtml += '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Benefits All Genders</li>';
+                }
+                
+                beneficiariesHtml += '</ul>';
+                
+                $('#gender-beneficiaries').html(beneficiariesHtml);
+                
+                // Gender equality focus
+                var equalityHtml = '<ul class="list-group">';
+                
+                if (data.addresses_gender_inequality) {
+                    equalityHtml += '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Addresses Gender Inequality</li>';
+                } else {
+                    equalityHtml += '<li class="list-group-item list-group-item-light"><i class="fas fa-info-circle me-2"></i> No Explicit Focus on Gender Inequality</li>';
+                }
+                
+                equalityHtml += '</ul>';
+                
+                $('#gender-equality-focus').html(equalityHtml);
+                
+                // Gender notes
+                if (data.gender_notes) {
+                    $('#gender-notes').html('<i class="fas fa-info-circle me-2"></i> ' + data.gender_notes);
+                } else {
+                    $('#gender-notes').html('<i class="fas fa-info-circle me-2"></i> No additional gender impact notes available.');
+                }
+                
+                // Create hidden inputs to store the gender impact data
+                var hiddenInputs = '';
+                hiddenInputs += '<input type="hidden" name="gender_benefits_men" value="' + (data.benefits_men ? '1' : '0') + '">';
+                hiddenInputs += '<input type="hidden" name="gender_benefits_women" value="' + (data.benefits_women ? '1' : '0') + '">';
+                hiddenInputs += '<input type="hidden" name="gender_benefits_all" value="' + (data.benefits_all ? '1' : '0') + '">';
+                hiddenInputs += '<input type="hidden" name="gender_addresses_inequality" value="' + (data.addresses_gender_inequality ? '1' : '0') + '">';
+                
+                if (data.men_count !== null) {
+                    hiddenInputs += '<input type="hidden" name="gender_men_count" value="' + data.men_count + '">';
+                }
+                
+                if (data.women_count !== null) {
+                    hiddenInputs += '<input type="hidden" name="gender_women_count" value="' + data.women_count + '">';
+                }
+                
+                hiddenInputs += '<input type="hidden" name="gender_notes" value="' + (data.gender_notes || '') + '">';
+                
+                $('#gender-notes').append(hiddenInputs);
+            }
+
+            // Add event handler to update gender analysis when target beneficiaries changes
+            $('#target_beneficiaries').on('change', function() {
+                // If a file is already uploaded, re-analyze with the new beneficiaries text
+                if ($('#file')[0].files && $('#file')[0].files[0] && $('#gender-analysis-results').is(':visible')) {
+                    // Show loading
+                    $('#gender-loading-indicator').removeClass('d-none');
+                    $('#gender-analysis-content').addClass('d-none');
+                    
+                    var file = $('#file')[0].files[0];
+                    var targetBeneficiaries = $(this).val();
+                    
+                    var formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('target_beneficiaries', targetBeneficiaries);
+                    formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+                    
+                    $.ajax({
+                        url: '{{ route('contributor.research.analyze-gender') }}',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                // Hide loading indicator and show content
+                                $('#gender-loading-indicator').addClass('d-none');
+                                $('#gender-analysis-content').removeClass('d-none');
+                                
+                                // Display gender analysis results
+                                displayGenderResults(response.data);
+                            } else {
+                                // Show error message
+                                $('#gender-loading-indicator').addClass('d-none');
+                                $('#gender-analysis-content').removeClass('d-none');
+                                $('#gender-notes').html(
+                                    '<div class="alert alert-danger">Error analyzing gender impact: ' +
+                                    response.message + '</div>'
+                                );
+                            }
+                        },
+                        error: function(xhr) {
+                            // Hide loading indicator and show error
+                            $('#gender-loading-indicator').addClass('d-none');
+                            $('#gender-analysis-content').removeClass('d-none');
+                            $('#gender-notes').html(
+                                '<div class="alert alert-warning">' +
+                                '<h5><i class="fas fa-exclamation-triangle me-2"></i>Gender Analysis Error</h5>' +
+                                '<p>There was a problem analyzing gender impact. Please fill in the Target Beneficiaries field manually.</p>' +
+                                '</div>'
+                            );
+                        }
+                    });
+                }
+            });
+
+            // Add event handler for the manual selection fallback button at the top
+            $('#show-manual-selection-top').on('click', function() {
+                // Hide the AI detection panel
+                $('#ai-detection-results').addClass('d-none');
+
+                // Store AI-detected subcategory IDs before switching to manual mode
+                var aiDetectedSubcategoryIds = [];
+                $('.ai-detected-subcategory-input').each(function() {
+                    aiDetectedSubcategoryIds.push($(this).val());
+                });
+                window.aiDetectedSubcategoryIds = aiDetectedSubcategoryIds;
+
+                // Show the manual selection options
+                $('#manual-sdg-selection').removeClass('d-none');
+                $('#sub-categories').removeClass('d-none');
+
+                // Change button text
+                $(this).html('<i class="fas fa-check-circle"></i> Manual Selection Mode Active');
+                $(this).addClass('btn-success').removeClass('btn-outline-primary');
+                $(this).prop('disabled', true);
+
+                // Trigger the change event to load subcategories with AI selections pre-checked
+                $('#sdg').trigger('change');
+            });
+
+            // Toggle manual selection visibility
+            $('#show-manual-selection').on('click', function() {
+                var isHidden = $('#manual-sdg-selection').hasClass('d-none');
+
+                // Toggle visibility of both sections
+                $('#manual-sdg-selection').toggleClass('d-none');
+                $('#sub-categories').toggleClass('d-none');
+
+                if (!isHidden) {
+                    // Going back to AI selection
+                    $(this).html('<i class="fas fa-edit"></i> Modify AI Selection');
+                } else {
+                    // Showing manual selection
+                    $(this).html('<i class="fas fa-robot"></i> Return to AI Selection');
+
+                    // Now that manual selection is visible, load the subcategories first
+                    var selectedSdgs = $('#sdg').val();
+                    if (selectedSdgs && selectedSdgs.length > 0) {
+                        // Store AI-detected subcategory IDs before triggering change
+                        var aiDetectedSubcategoryIds = [];
+                        $('.ai-detected-subcategory-input').each(function() {
+                            aiDetectedSubcategoryIds.push($(this).val());
+                        });
+
+                        // Set a global variable to preserve the AI selections during AJAX load
+                        window.aiDetectedSubcategoryIds = aiDetectedSubcategoryIds;
+
+                        // Trigger change to load subcategories
+                        $('#sdg').trigger('change');
+                    }
                 }
             });
 
@@ -711,16 +955,18 @@
                                     data.forEach(function(subCategory) {
                                         // Check if this subcategory was previously selected
                                         var isChecked = '';
-                                        
+
                                         // First check previously checked boxes
-                                        if (checkedSubcategories.includes(subCategory.id.toString())) {
+                                        if (checkedSubcategories.includes(subCategory.id
+                                                .toString())) {
                                             isChecked = 'checked';
                                         }
-                                        
+
                                         // Then check if it was in the AI-detected subcategories
                                         // This prioritizes AI detection when coming from the AI panel
-                                        if (window.aiDetectedSubcategoryIds && 
-                                            window.aiDetectedSubcategoryIds.includes(subCategory.id.toString())) {
+                                        if (window.aiDetectedSubcategoryIds &&
+                                            window.aiDetectedSubcategoryIds.includes(
+                                                subCategory.id.toString())) {
                                             isChecked = 'checked';
                                         }
 
@@ -738,7 +984,7 @@
                                             '</div>'
                                         );
                                     });
-                                    
+
                                     // Clear the global variable after use
                                     window.aiDetectedSubcategoryIds = null;
                                 } else {

@@ -147,6 +147,16 @@
                                     </select>
                                 </div>
 
+                                <!-- Target Beneficiaries Field -->
+                                <div class="mb-3">
+                                    <label for="target_beneficiaries" class="form-label">Target Beneficiaries</label>
+                                    <textarea class="form-control" id="target_beneficiaries" name="target_beneficiaries" 
+                                        rows="3" placeholder="Describe the target beneficiaries of your project (e.g., women, men, children, elderly, etc.)">{{ old('target_beneficiaries', $project->target_beneficiaries) }}</textarea>
+                                    <div class="form-text text-muted">
+                                        <i class="fas fa-info-circle"></i> Specify who will benefit from this project. This information helps classify gender impact.
+                                    </div>
+                                </div>
+
                                 <!-- Image Upload Input -->
                                 <div class="mb-3">
                                     <label for="image" class="form-label">Image upload (Optional)</label>
@@ -166,6 +176,49 @@
                                 <div class="mb-3">
                                     <label for="description" class="form-label">Description</label>
                                     <textarea name="description" class="form-control" id="description" cols="30" rows="10" required>{{ old('description', $project->description) }}</textarea>
+                                </div>
+
+                                <!-- Gender Impact Analysis Results Area -->
+                                <div id="gender-analysis-results" class="mb-3 d-none">
+                                    <div class="card border-success">
+                                        <div class="card-header bg-success text-white">
+                                            <i class="fas fa-venus-mars me-2"></i>Gender Impact Analysis
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-3" id="gender-loading-indicator">
+                                                <div class="spinner-border text-success me-3" role="status"></div>
+                                                <p class="mb-0 fs-5">Analyzing gender impact...</p>
+                                            </div>
+                                            <div id="gender-analysis-content" class="d-none">
+                                                
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <div class="card mb-3">
+                                                            <div class="card-body">
+                                                                <h6 class="card-subtitle mb-2 text-muted">Beneficiaries</h6>
+                                                                <div id="gender-beneficiaries">
+                                                                    <!-- Will be populated by JS -->
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="card mb-3">
+                                                            <div class="card-body">
+                                                                <h6 class="card-subtitle mb-2 text-muted">Gender Equality Focus</h6>
+                                                                <div id="gender-equality-focus">
+                                                                    <!-- Will be populated by JS -->
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div id="gender-notes" class="alert alert-info">
+                                                    <!-- Will be populated by JS -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- Map and Search Bar -->
@@ -457,6 +510,148 @@
             $('#confirm-update').click(function() {
                 $('#project-form').submit();
             });
+
+            // Function to analyze gender impact
+            function analyzeGenderImpact() {
+                var title = $('#title').val();
+                var description = $('#description').val();
+                var targetBeneficiaries = $('#target_beneficiaries').val();
+                
+                // Check if we have content to analyze
+                if (title.trim() === '' && description.trim() === '' && targetBeneficiaries.trim() === '') {
+                    return;
+                }
+                
+                // Show the analysis panel and loading indicator
+                $('#gender-analysis-results').removeClass('d-none');
+                $('#gender-loading-indicator').removeClass('d-none');
+                $('#gender-analysis-content').addClass('d-none');
+                
+                // Make AJAX request to analyze gender impact
+                $.ajax({
+                    url: '{{ route('contributor.projects.analyze-gender') }}',
+                    type: 'POST',
+                    data: {
+                        title: title,
+                        description: description,
+                        target_beneficiaries: targetBeneficiaries,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Hide loading indicator and show content
+                            $('#gender-loading-indicator').addClass('d-none');
+                            $('#gender-analysis-content').removeClass('d-none');
+                            
+                            // Display gender analysis results
+                            displayGenderResults(response.data);
+                        } else {
+                            // Show error message
+                            $('#gender-loading-indicator').addClass('d-none');
+                            $('#gender-analysis-content').removeClass('d-none');
+                            $('#gender-notes').html(
+                                '<div class="alert alert-danger">Error analyzing gender impact: ' +
+                                response.message + '</div>'
+                            );
+                        }
+                    },
+                    error: function(xhr) {
+                        // Hide loading indicator and show error
+                        $('#gender-loading-indicator').addClass('d-none');
+                        $('#gender-analysis-content').removeClass('d-none');
+                        $('#gender-notes').html(
+                            '<div class="alert alert-warning">' +
+                            '<h5><i class="fas fa-exclamation-triangle me-2"></i>Gender Analysis Error</h5>' +
+                            '<p>There was a problem analyzing gender impact. Please fill in the Target Beneficiaries field manually.</p>' +
+                            '</div>'
+                        );
+                    }
+                });
+            }
+            
+            // Display gender analysis results
+            function displayGenderResults(data) {
+                // Beneficiaries section
+                var beneficiariesHtml = '<ul class="list-group">';
+                
+                if (data.benefits_women) {
+                    beneficiariesHtml += '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Benefits Women/Girls';
+                    if (data.women_count !== null) {
+                        beneficiariesHtml += ' <span class="badge bg-info">' + data.women_count + ' mentioned</span>';
+                    }
+                    beneficiariesHtml += '</li>';
+                } else {
+                    beneficiariesHtml += '<li class="list-group-item list-group-item-light"><i class="fas fa-times-circle me-2"></i> Does Not Specifically Target Women/Girls</li>';
+                }
+                
+                if (data.benefits_men) {
+                    beneficiariesHtml += '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Benefits Men/Boys';
+                    if (data.men_count !== null) {
+                        beneficiariesHtml += ' <span class="badge bg-info">' + data.men_count + ' mentioned</span>';
+                    }
+                    beneficiariesHtml += '</li>';
+                } else {
+                    beneficiariesHtml += '<li class="list-group-item list-group-item-light"><i class="fas fa-times-circle me-2"></i> Does Not Specifically Target Men/Boys</li>';
+                }
+                
+                if (data.benefits_all) {
+                    beneficiariesHtml += '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Benefits All Genders</li>';
+                }
+                
+                beneficiariesHtml += '</ul>';
+                
+                $('#gender-beneficiaries').html(beneficiariesHtml);
+                
+                // Gender equality focus
+                var equalityHtml = '<ul class="list-group">';
+                
+                if (data.addresses_gender_inequality) {
+                    equalityHtml += '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Addresses Gender Inequality</li>';
+                } else {
+                    equalityHtml += '<li class="list-group-item list-group-item-light"><i class="fas fa-info-circle me-2"></i> No Explicit Focus on Gender Inequality</li>';
+                }
+                
+                equalityHtml += '</ul>';
+                
+                $('#gender-equality-focus').html(equalityHtml);
+                
+                // Gender notes
+                if (data.gender_notes) {
+                    $('#gender-notes').html('<i class="fas fa-info-circle me-2"></i> ' + data.gender_notes);
+                } else {
+                    $('#gender-notes').html('<i class="fas fa-info-circle me-2"></i> No additional gender impact notes available.');
+                }
+                
+                // Create hidden inputs to store the gender impact data
+                var hiddenInputs = '';
+                hiddenInputs += '<input type="hidden" name="gender_benefits_men" value="' + (data.benefits_men ? '1' : '0') + '">';
+                hiddenInputs += '<input type="hidden" name="gender_benefits_women" value="' + (data.benefits_women ? '1' : '0') + '">';
+                hiddenInputs += '<input type="hidden" name="gender_benefits_all" value="' + (data.benefits_all ? '1' : '0') + '">';
+                hiddenInputs += '<input type="hidden" name="gender_addresses_inequality" value="' + (data.addresses_gender_inequality ? '1' : '0') + '">';
+                
+                if (data.men_count !== null) {
+                    hiddenInputs += '<input type="hidden" name="gender_men_count" value="' + data.men_count + '">';
+                }
+                
+                if (data.women_count !== null) {
+                    hiddenInputs += '<input type="hidden" name="gender_women_count" value="' + data.women_count + '">';
+                }
+                
+                hiddenInputs += '<input type="hidden" name="gender_notes" value="' + (data.gender_notes || '') + '">';
+                
+                $('#gender-notes').append(hiddenInputs);
+            }
+            
+            // Add event listeners for content changes
+            $('#title, #description, #target_beneficiaries').on('input', function() {
+                clearTimeout(window.genderAnalysisTimer);
+                window.genderAnalysisTimer = setTimeout(function() {
+                    analyzeGenderImpact();
+                }, 1000); // Debounce for 1 second
+            });
+            
+            // Run initial analysis
+            analyzeGenderImpact();
         });
     </script>
     <script>

@@ -22,6 +22,7 @@ class Research extends Model
         'description',
         'is_publish',
         'file_link',
+        'target_beneficiaries',
     ];
 
     // Relationship to Research Files
@@ -78,8 +79,16 @@ class Research extends Model
     {
         return $this->belongsToMany(Feedback::class, 'feedback_research', 'research_id', 'feedback_id');
     }
+
+    // Relationship to SDG
     public function sdg()
     {
         return $this->belongsToMany(Sdg::class, 'research_sdg', 'research_id', 'sdg_id');
+    }
+
+    // Relationship to GenderImpact
+    public function genderImpact()
+    {
+        return $this->hasOne(GenderImpact::class);
     }
 }

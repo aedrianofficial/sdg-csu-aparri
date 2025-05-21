@@ -746,4 +746,103 @@ class ResearchController extends Controller
     {
         //
     }
+    
+    /**
+     * Analyze a research for gender impact
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function analyzeGender(Request $request)
+    {
+        // Log the request data for debugging
+        Log::info('Gender analysis request received for research', [
+            'has_file' => $request->hasFile('file'), 
+            'has_target_beneficiaries' => $request->has('target_beneficiaries')
+        ]);
+    
+        try {
+            // Check if we have a file to analyze
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $targetBeneficiaries = $request->input('target_beneficiaries', '');
+                
+                // Analyze gender impact using the GenderAnalysisService
+                $genderAnalysisService = new \App\Services\GenderAnalysisService();
+                $analysisResults = $genderAnalysisService->analyzeGenderImpacts($file, $targetBeneficiaries);
+                
+                // Return the results as JSON
+                return response()->json([
+                    'success' => true,
+                    'data' => $analysisResults
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No file was provided for analysis'
+                ], 400);
+            }
+        } catch (\Exception $e) {
+            // Log the error
+            Log::error('Gender analysis error for research: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Return error response
+            return response()->json([
+                'success' => false,
+                'message' => 'Error analyzing gender impact: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Analyze text content for gender impact
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function analyzeGenderText(Request $request)
+    {
+        // Log the request data for debugging
+        Log::info('Gender text analysis request received for research', [
+            'has_title' => $request->has('title'), 
+            'has_description' => $request->has('description'),
+            'has_target_beneficiaries' => $request->has('target_beneficiaries')
+        ]);
+    
+        try {
+            // Get the input data directly
+            $title = $request->input('title', '');
+            $description = strip_tags($request->input('description', ''));
+            $targetBeneficiaries = $request->input('target_beneficiaries', '');
+            
+            // Create a combined text for analysis
+            $textToAnalyze = $title . "\n" . $description;
+            
+            // Analyze gender impact using the GenderAnalysisService
+            $genderAnalysisService = new \App\Services\GenderAnalysisService();
+            $analysisResults = $genderAnalysisService->analyzeGenderFromText(
+                $textToAnalyze, 
+                $targetBeneficiaries
+            );
+            
+            // Return the results as JSON
+            return response()->json([
+                'success' => true,
+                'data' => $analysisResults
+            ]);
+        } catch (\Exception $e) {
+            // Log the error
+            Log::error('Gender text analysis error for research: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Return error response
+            return response()->json([
+                'success' => false,
+                'message' => 'Error analyzing gender impact: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

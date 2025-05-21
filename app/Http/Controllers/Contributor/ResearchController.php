@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\Auth\Research\ResearchRequest;
 use App\Models\ActivityLog;
+use App\Models\GenderImpact;
 use App\Models\Notification;
 use App\Models\ProjectResearchStatus;
 use App\Models\Research;
@@ -16,6 +17,7 @@ use App\Models\RoleAction;
 use App\Models\Sdg;
 use App\Models\User;
 use App\Services\SdgAiService;
+use App\Services\GenderAnalysisService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -23,10 +25,12 @@ use Illuminate\Support\Facades\Log;
 class ResearchController extends Controller
 {
     protected $sdgAiService;
+    protected $genderAnalysisService;
 
-    public function __construct(SdgAiService $sdgAiService)
+    public function __construct(SdgAiService $sdgAiService, GenderAnalysisService $genderAnalysisService)
     {
         $this->sdgAiService = $sdgAiService;
+        $this->genderAnalysisService = $genderAnalysisService;
     }
 
     /**
@@ -271,11 +275,24 @@ class ResearchController extends Controller
             ? array_unique($request->sdg_sub_category) 
             : [];
         
+        // Initialize gender impact data
+        $genderImpactData = [
+            'benefits_men' => false,
+            'benefits_women' => false,
+            'benefits_all' => true, // Default to benefiting all if not specified
+            'addresses_gender_inequality' => false,
+            'men_count' => null,
+            'women_count' => null,
+            'gender_notes' => null,
+        ];
+        
         try {
             DB::beginTransaction();
             
             // AI-based SDG detection if a PDF file is uploaded
             $aiDetectionUsed = false;
+            $genderAnalysisUsed = false;
+            
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
                 $extension = strtolower($file->getClientOriginalExtension());
@@ -319,6 +336,40 @@ class ResearchController extends Controller
                             'user_id' => $user->id
                         ]);
                     }
+                    
+                    // Now perform gender impact analysis
+                    try {
+                        $genderResults = $this->genderAnalysisService->analyzeGenderImpacts(
+                            $file, 
+                            $request->target_beneficiaries
+                        );
+                        
+                        if ($genderResults) {
+                            $genderAnalysisUsed = true;
+                            $genderImpactData = [
+                                'benefits_men' => $genderResults['benefits_men'],
+                                'benefits_women' => $genderResults['benefits_women'],
+                                'benefits_all' => $genderResults['benefits_all'],
+                                'addresses_gender_inequality' => $genderResults['addresses_gender_inequality'],
+                                'men_count' => $genderResults['men_count'],
+                                'women_count' => $genderResults['women_count'],
+                                'gender_notes' => $genderResults['gender_notes'],
+                            ];
+                            
+                            Log::info('Gender analysis used for research submission', [
+                                'user_id' => $user->id,
+                                'benefits_women' => $genderResults['benefits_women'],
+                                'benefits_men' => $genderResults['benefits_men'],
+                                'addresses_inequality' => $genderResults['addresses_gender_inequality']
+                            ]);
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Gender analysis failed', [
+                            'file_name' => $file->getClientOriginalName(),
+                            'user_id' => $user->id,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
                 }
             }
 
@@ -331,8 +382,12 @@ class ResearchController extends Controller
                 'user_id' => $user->id, // Associate research with the current user
                 'researchcategory_id' => $request->researchcategory_id, // Research Category
                 'review_status_id'=> 4,
-                'file_link' => $request->file_link
+                'file_link' => $request->file_link,
+                'target_beneficiaries' => $request->target_beneficiaries
             ]);
+
+            // Create the GenderImpact record
+            $research->genderImpact()->create($genderImpactData);
 
             // Attach SDGs to the research
             $research->sdg()->attach($sdgIds);
@@ -413,6 +468,8 @@ class ResearchController extends Controller
                     'sdgs' => $sdgs,
                     'status' => $publishStatus,
                     'ai_detected' => $aiDetectionUsed,
+                    'gender_analysis' => $genderAnalysisUsed,
+                    'target_beneficiaries' => $request->target_beneficiaries,
                 ]),
                 'created_at' => now(),
             ]);
@@ -487,7 +544,8 @@ class ResearchController extends Controller
             'review_status_id' => ['nullable'],
             'file_link' => ['nullable', 'url'], // Validate file_link (URL validation)
             'is_publish' => ['nullable'],
-            'review_feedback' => ['nullable', 'string']
+            'review_feedback' => ['nullable', 'string'],
+            'target_beneficiaries' => ['nullable', 'string', 'max:500'],
         ]);
     
         $user = Auth::user();
@@ -497,15 +555,35 @@ class ResearchController extends Controller
         $sdgSubCategoryIds = $request->has('sdg_sub_category') 
             ? array_unique($request->sdg_sub_category) 
             : [];
+        
+        // Initialize gender impact data
+        $genderImpactData = [
+            'benefits_men' => false,
+            'benefits_women' => false,
+            'benefits_all' => true, // Default to benefiting all if not specified
+            'addresses_gender_inequality' => false,
+            'men_count' => null,
+            'women_count' => null,
+            'gender_notes' => null,
+        ];
     
         try {
             DB::beginTransaction();
             
             // AI-based SDG detection if a file is uploaded
+            $aiDetectionUsed = false;
+            $genderAnalysisUsed = false;
+            
             if ($request->hasFile('file')) {
-                $aiResults = $this->sdgAiService->analyzeResearchFile($request->file('file'));
+                $file = $request->file('file');
+                $extension = strtolower($file->getClientOriginalExtension());
+                
+                // For PDF files, perform AI analysis
+                if ($extension === 'pdf') {
+                    $aiResults = $this->sdgAiService->analyzeResearchFile($file);
                 
                 if ($aiResults) {
+                        $aiDetectionUsed = true;
                     $detectedIds = $this->sdgAiService->convertResultsToIds($aiResults);
                     
                     // Use AI-detected SDGs if available, otherwise use manual selection
@@ -517,6 +595,43 @@ class ResearchController extends Controller
                     if (!empty($detectedIds['subCategoryIds'])) {
                         // Ensure unique subcategory IDs
                         $sdgSubCategoryIds = array_unique($detectedIds['subCategoryIds']);
+                        }
+                    }
+                    
+                    // Perform gender impact analysis
+                    try {
+                        $genderResults = $this->genderAnalysisService->analyzeGenderImpacts(
+                            $file, 
+                            $request->target_beneficiaries
+                        );
+                        
+                        if ($genderResults) {
+                            $genderAnalysisUsed = true;
+                            $genderImpactData = [
+                                'benefits_men' => $genderResults['benefits_men'],
+                                'benefits_women' => $genderResults['benefits_women'],
+                                'benefits_all' => $genderResults['benefits_all'],
+                                'addresses_gender_inequality' => $genderResults['addresses_gender_inequality'],
+                                'men_count' => $genderResults['men_count'],
+                                'women_count' => $genderResults['women_count'],
+                                'gender_notes' => $genderResults['gender_notes'],
+                            ];
+                            
+                            Log::info('Gender analysis used for research update', [
+                                'user_id' => $user->id,
+                                'research_id' => $research->id,
+                                'benefits_women' => $genderResults['benefits_women'],
+                                'benefits_men' => $genderResults['benefits_men'],
+                                'addresses_inequality' => $genderResults['addresses_gender_inequality']
+                            ]);
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Gender analysis failed during update', [
+                            'file_name' => $file->getClientOriginalName(),
+                            'user_id' => $user->id,
+                            'research_id' => $research->id,
+                            'error' => $e->getMessage()
+                        ]);
                     }
                 }
             }
@@ -529,8 +644,16 @@ class ResearchController extends Controller
                 'user_id' => $user->id,
                 'review_status_id' => 4,
                 'is_publish' => 0,
-                'file_link' => $request->file_link // Store file link
+                'file_link' => $request->file_link, // Store file link
+                'target_beneficiaries' => $request->target_beneficiaries
             ]);
+            
+            // Update or create gender impact assessment
+            if ($research->genderImpact) {
+                $research->genderImpact->update($genderImpactData);
+            } else {
+                $research->genderImpact()->create($genderImpactData);
+            }
     
             // Update SDGs
             $research->sdg()->sync($sdgIds);
@@ -617,7 +740,9 @@ class ResearchController extends Controller
                     'role' => $user->role,
                 ],
                 'timestamp' => now(),
-                'ai_detected' => !empty($aiResults),
+                'ai_detected' => $aiDetectionUsed,
+                'gender_analysis' => $genderAnalysisUsed,
+                'target_beneficiaries' => $request->target_beneficiaries,
             ];
     
             ActivityLog::create([
@@ -649,5 +774,44 @@ class ResearchController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Analyze gender impacts from uploaded file
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function analyzeGenderImpacts(Request $request)
+    {
+        // Validate the request
+        $request->validate([
+            'file' => 'required|file|mimes:pdf,docx|max:10240', // Max 10MB file
+            'target_beneficiaries' => 'nullable|string|max:500',
+        ]);
+        
+        // Extract gender impacts from the file
+        try {
+            $file = $request->file('file');
+            $genderResults = $this->genderAnalysisService->analyzeGenderImpacts(
+                $file, 
+                $request->target_beneficiaries
+            );
+            
+            return response()->json([
+                'success' => true,
+                'data' => $genderResults
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to analyze gender impacts', [
+                'error' => $e->getMessage(),
+                'file' => $request->hasFile('file') ? $request->file('file')->getClientOriginalName() : 'none'
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error analyzing gender impacts: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

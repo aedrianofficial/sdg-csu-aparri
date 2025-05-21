@@ -206,6 +206,13 @@ Route::middleware(['auth', 'role:admin', NoCache::class])->group(function(){
     Route::get('auth/research/show/{id}',[ResearchController::class, 'show'])->name('research.show');
     Route::get('auth/research/show/need-changes/{id}',[ResearchController::class, 'need_changes'])->name('research.need_changes');
     Route::get('auth/research/show/rejected/{id}',[ResearchController::class, 'rejected'])->name('research.rejected');
+
+    // Gender Impact Analysis
+    Route::prefix('gender-impact')->name('gender-impact.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\GenderImpactController::class, 'index'])->name('index');
+        Route::get('/{type}/{id}', [App\Http\Controllers\Admin\GenderImpactController::class, 'show'])->name('show');
+        Route::post('/export', [App\Http\Controllers\Admin\GenderImpactController::class, 'export'])->name('export');
+    });
 });
 
 
@@ -329,7 +336,13 @@ Route::middleware(['auth', 'role:contributor', NoCache::class])->group(function(
     Route::get('contributor/research/rejected',[ContributorResearchController::class, 'rejected'])->name('contributor.research.rejected');
     Route::get('contributor/research/rejected/show/{id}',[ContributorResearchController::class, 'show_rejected'])->name('contributor.research.rejected.show');
 
-    
+    // Add this route to your existing routes
+    Route::post('/contributor/research/analyze-gender', [App\Http\Controllers\Contributor\ResearchController::class, 'analyzeGenderImpacts'])->name('contributor.research.analyze-gender');
+
+    // Add the route for project gender analysis
+    Route::post('/contributor/projects/analyze-gender', [ContributorProjectController::class, 'analyzeGenderImpacts'])->name('contributor.projects.analyze-gender');
+    Route::post('/contributor/projects/analyze-sdgs', [ContributorProjectController::class, 'analyzeSdgs'])->name('contributor.projects.analyze-sdgs');
+    Route::post('/contributor/research/analyze-gender', [ContributorResearchController::class, 'analyzeGenderImpacts'])->name('contributor.research.analyze-gender');
 });
 
     //reviewer
@@ -723,3 +736,11 @@ Route::middleware(NoCache::class)->group(function(){
 
 // routes/web.php
 });
+
+// Add routes for AI gender analysis and SDG detection
+Route::post('/projects/analyze-gender', [\App\Http\Controllers\Auth\ProjectController::class, 'analyzeGender'])->name('projects.analyze-gender');
+Route::post('/projects/analyze-sdgs', [\App\Http\Controllers\Auth\ProjectController::class, 'analyzeSdgs'])->name('projects.analyze-sdgs');
+
+// Add routes for research gender analysis
+Route::post('/research/analyze-gender', [\App\Http\Controllers\Auth\ResearchController::class, 'analyzeGender'])->name('research.analyze-gender');
+Route::post('/research/analyze-gender-text', [\App\Http\Controllers\Auth\ResearchController::class, 'analyzeGenderText'])->name('research.analyze-gender-text');
