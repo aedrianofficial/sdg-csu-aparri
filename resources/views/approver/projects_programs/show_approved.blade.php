@@ -110,6 +110,65 @@
                                             target="_blank">https://sustainabledevelopment.un.org/content/documents/11803Official-List-of-Proposed-SDG-Indicators.pdf</a>
                                     </p>
                                 </div>
+                                
+                                <!-- Gender Impact Analysis -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Gender Impact Analysis:</label>
+                                    @if($project->genderImpact)
+                                        <div class="card border-primary mb-3">
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <ul class="list-group mb-3">
+                                                            <li class="list-group-item {{ $project->genderImpact->benefits_women ? 'list-group-item-success' : 'list-group-item-light' }}">
+                                                                <i class="fas {{ $project->genderImpact->benefits_women ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' }} me-2"></i>
+                                                                Benefits Women/Girls
+                                                                @if($project->genderImpact->women_count)
+                                                                    <span class="badge bg-info ms-2">{{ $project->genderImpact->women_count }} mentioned</span>
+                                                                @endif
+                                                            </li>
+                                                            <li class="list-group-item {{ $project->genderImpact->benefits_men ? 'list-group-item-success' : 'list-group-item-light' }}">
+                                                                <i class="fas {{ $project->genderImpact->benefits_men ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' }} me-2"></i>
+                                                                Benefits Men/Boys
+                                                                @if($project->genderImpact->men_count)
+                                                                    <span class="badge bg-info ms-2">{{ $project->genderImpact->men_count }} mentioned</span>
+                                                                @endif
+                                                            </li>
+                                                            <li class="list-group-item {{ $project->genderImpact->benefits_all ? 'list-group-item-success' : 'list-group-item-light' }}">
+                                                                <i class="fas {{ $project->genderImpact->benefits_all ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' }} me-2"></i>
+                                                                Benefits All Genders
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="card h-100">
+                                                            <div class="card-body">
+                                                                <h6 class="card-subtitle mb-2 text-muted">Gender Equality Focus</h6>
+                                                                <p class="card-text">
+                                                                    <span class="badge {{ $project->genderImpact->addresses_gender_inequality ? 'bg-success' : 'bg-secondary' }} p-2">
+                                                                        <i class="fas {{ $project->genderImpact->addresses_gender_inequality ? 'fa-check' : 'fa-times' }} me-1"></i>
+                                                                        {{ $project->genderImpact->addresses_gender_inequality ? 'Addresses Gender Inequality' : 'No Explicit Focus on Gender Inequality' }}
+                                                                    </span>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                @if($project->genderImpact->gender_notes)
+                                                    <div class="alert alert-info mt-3">
+                                                        <i class="fas fa-info-circle me-2"></i>
+                                                        {{ $project->genderImpact->gender_notes }}
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="alert alert-secondary">
+                                            <i class="fas fa-info-circle me-2"></i>No gender impact analysis available for this project.
+                                        </div>
+                                    @endif
+                                </div>
+                                
                                 <div class="mb-3">
                                     <label for="">Image: </label>
                                     <div>
