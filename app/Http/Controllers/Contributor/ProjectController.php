@@ -484,9 +484,9 @@ class ProjectController extends Controller
     }
 
     /**
-     * Analyze SDGs from the project title and description
-     *
-     * @param \Illuminate\Http\Request $request
+     * Analyze a project for SDG relevance
+     * 
+     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function analyzeSdgs(Request $request)
@@ -495,6 +495,12 @@ class ProjectController extends Controller
             // Get input from the request
             $title = $request->input('title', '');
             $description = $request->input('description', '');
+            
+            // Log the request data for debugging
+            Log::info('Contributor SDG analysis request received', [
+                'title_length' => strlen($title),
+                'description_length' => strlen(strip_tags($description))
+            ]);
             
             // Combine title and description
             $textContent = $title . ' ' . strip_tags($description);
@@ -507,75 +513,128 @@ class ProjectController extends Controller
                 ], 400);
             }
 
-            // Since SDG AI Engine only processes PDFs, we need to create a simple PDF with our text content
-            try {
-                // Use direct analysis via the SdgAiService's convertResultsToIds method
-                // This creates a simulated response similar to what the PDF analyzer would return
-                $simulatedResponse = [
-                    'matched_sdgs' => $this->getSimulatedSdgMatches($textContent)
-                ];
+            // Use the SdgAiService to analyze the text
+            Log::info('Using SdgAiService to analyze text in contributor interface', [
+                'text_length' => strlen($textContent)
+            ]);
+            
+            $aiResults = $this->sdgAiService->analyzeText($textContent);
+            
+            if (!$aiResults) {
+                Log::warning('SdgAiService returned null results in contributor interface');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error analyzing project content. Please try again or select SDGs manually.'
+                ], 500);
+            }
+            
+            // Log the raw AI results for debugging
+            Log::info('Received AI results in contributor interface', [
+                'has_matched_sdgs' => isset($aiResults['matched_sdgs']),
+                'matched_sdgs_count' => isset($aiResults['matched_sdgs']) ? count($aiResults['matched_sdgs']) : 0,
+                'source' => $aiResults['metadata']['source'] ?? 'unknown'
+            ]);
+            
+            // Transform AI results to the expected format
+            $transformedResults = [
+                'sdgs' => [],
+                'subcategories' => []
+            ];
+            
+            // Convert the AI results to our application format (SDG IDs and subcategory IDs)
+            if (isset($aiResults['matched_sdgs']) && is_array($aiResults['matched_sdgs'])) {
+                $processedIds = $this->sdgAiService->convertResultsToIds($aiResults);
                 
-                // Convert AI results to database IDs
-                $convertedResults = $this->sdgAiService->convertResultsToIds($simulatedResponse);
+                // Ensure processedIds has the expected structure
+                if (!isset($processedIds['sdgIds']) || !isset($processedIds['subCategoryIds'])) {
+                    Log::warning('ProcessedIds does not have the expected structure in contributor interface', [
+                        'processedIds' => $processedIds
+                    ]);
+                    $sdgIds = [];
+                    $subCategoryIds = [];
+                } else {
+                    $sdgIds = $processedIds['sdgIds'];
+                    $subCategoryIds = $processedIds['subCategoryIds'];
+                    
+                    // Log the processed IDs
+                    Log::info('Processed AI results into IDs in contributor interface', [
+                        'sdg_ids' => $sdgIds,
+                        'subcategory_ids' => $subCategoryIds
+                    ]);
+                }
                 
-                // Get SDG and subcategory details from database
-                $sdgs = Sdg::whereIn('id', $convertedResults['sdgIds'])->get()
-                    ->map(function ($sdg) use ($simulatedResponse) {
-                        // Find confidence score if available
-                        $confidenceScore = 0.5; // Default
-                        foreach ($simulatedResponse['matched_sdgs'] ?? [] as $match) {
-                            if ((int)ltrim($match['sdg_number'], '0') === $sdg->id) {
-                                $confidenceScore = $match['confidence'] ?? 0.5;
+                // Get the SDG details for each ID
+                foreach ($sdgIds as $sdgId) {
+                    $sdg = \App\Models\Sdg::find($sdgId);
+                    if ($sdg) {
+                        // Find the original confidence from the AI results
+                        $confidence = 0.7; // Default confidence
+                        foreach ($aiResults['matched_sdgs'] as $match) {
+                            if ((int)ltrim($match['sdg_number'], '0') === $sdgId) {
+                                $confidence = $match['confidence'] ?? 0.7;
                                 break;
                             }
                         }
                         
-                        return [
+                        $transformedResults['sdgs'][] = [
                             'id' => $sdg->id,
                             'name' => $sdg->name,
-                            'confidence' => $confidenceScore
+                            'confidence' => $confidence
                         ];
-                    });
-                    
-                $subcategories = \App\Models\SdgSubCategory::whereIn('id', $convertedResults['subCategoryIds'])->get()
-                    ->map(function ($sub) use ($simulatedResponse) {
-                        // Find confidence score if available
-                        $confidenceScore = 0.5; // Default
-                        $subName = $sub->sub_category_name;
-                        
-                        // Try to find a matching subcategory in the AI results
-                        foreach ($simulatedResponse['matched_sdgs'] ?? [] as $match) {
-                            foreach ($match['subcategories'] ?? [] as $subMatch) {
-                                if ($subMatch['subcategory'] === $subName) {
-                                    $confidenceScore = $subMatch['confidence'] ?? 0.5;
-                                    break 2;
+                    }
+                }
+                
+                // Get the subcategory details for each ID
+                foreach ($subCategoryIds as $subCategoryId) {
+                    $subCategory = \App\Models\SdgSubCategory::find($subCategoryId);
+                    if ($subCategory) {
+                        // Find the original confidence from the AI results
+                        $confidence = 0.6; // Default confidence
+                        foreach ($aiResults['matched_sdgs'] as $match) {
+                            if (isset($match['subcategories']) && is_array($match['subcategories'])) {
+                                foreach ($match['subcategories'] as $sub) {
+                                    if (isset($sub['subcategory']) && $sub['subcategory'] === $subCategory->sub_category_name) {
+                                        $confidence = $sub['confidence'] ?? 0.6;
+                                        break 2;
+                                    }
                                 }
                             }
                         }
                         
-                        return [
-                            'id' => $sub->id,
-                            'name' => $sub->sub_category_name,
-                            'description' => $sub->sub_category_description,
-                            'confidence' => $confidenceScore
+                        $transformedResults['subcategories'][] = [
+                            'id' => $subCategory->id,
+                            'name' => $subCategory->sub_category_name,
+                            'description' => $subCategory->sub_category_description,
+                            'confidence' => $confidence
                         ];
-                    });
-                
+                    }
+                }
+            } else {
+                Log::warning('AI results did not contain matched_sdgs array in contributor interface');
+            }
+            
+            // Check if we got any results
+            if (empty($transformedResults['sdgs'])) {
+                Log::warning('No SDGs were found in the transformed results for contributor');
                 return response()->json([
                     'success' => true,
                     'data' => [
-                        'sdgs' => $sdgs,
-                        'subcategories' => $subcategories,
-                        'raw_ai_results' => $simulatedResponse
+                        'message' => 'No relevant SDGs were detected in your project content. Please select SDGs manually.'
                     ]
                 ]);
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('Error in SDG analysis: ' . $e->getMessage());
-                throw $e;
             }
             
+            return response()->json([
+                'success' => true,
+                'data' => $transformedResults
+            ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Error analyzing SDGs: ' . $e->getMessage());
+            Log::error('Error analyzing SDGs (contributor): ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'exception_class' => get_class($e),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ]);
             
             return response()->json([
                 'success' => false,
@@ -702,8 +761,8 @@ class ProjectController extends Controller
             return $b['confidence'] <=> $a['confidence'];
         });
         
-        // Limit to top 5 matches
-        return array_slice($matches, 0, 5);
+        // Limit to top 3 matches (changed from 5 to ensure consistency with Auth controller)
+        return array_slice($matches, 0, 3);
     }
     
     /**

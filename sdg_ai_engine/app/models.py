@@ -20,6 +20,7 @@ class Metadata(BaseModel):
     word_count: int = Field(..., description="Word count of the document")
     page_count: int = Field(..., description="Number of pages in the document")
     processing_time_ms: int = Field(..., description="Processing time in milliseconds")
+    source: str = Field("pdf-file", description="Source type of the document (pdf-file, text-file)")
     
 class AnalysisResponse(BaseModel):
     """Response model for document analysis"""

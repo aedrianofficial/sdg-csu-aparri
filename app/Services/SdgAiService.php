@@ -309,6 +309,11 @@ class SdgAiService
             return $b['confidence'] <=> $a['confidence'];
         });
         
+        // Limit to top 3 SDGs for consistency with AI engine results
+        if (count($results['matched_sdgs']) > 3) {
+            $results['matched_sdgs'] = array_slice($results['matched_sdgs'], 0, 3);
+        }
+        
         return $results;
     }
     
@@ -438,6 +443,11 @@ class SdgAiService
                         }
                     }
                 }
+                
+                // Limit to top 3 SDGs for consistency
+                if (count($sdgIds) >= 3 && !$hasForceMatch) {
+                    break;
+                }
             }
         }
 
@@ -476,6 +486,11 @@ class SdgAiService
                     $sdgIds = array_diff($sdgIds, [5]);
                     array_unshift($sdgIds, 5);
                 }
+            }
+            
+            // Still limit to top 3 SDGs after adding gender equality
+            if (count($sdgIds) > 3 && !$hasForceMatch) {
+                $sdgIds = array_slice($sdgIds, 0, 3);
             }
         }
 
@@ -550,5 +565,119 @@ class SdgAiService
             ->first();
             
         return $subCategory ? $subCategory->id : null;
+    }
+
+    /**
+     * Analyze text content to detect relevant SDGs and subcategories
+     *
+     * @param string $text The text content to analyze
+     * @return array|null Results from the AI engine or null if an error occurred
+     */
+    public function analyzeText($text)
+    {
+        try {
+            // Log the request
+            Log::info('Sending text to SDG AI Engine for analysis', [
+                'text_length' => strlen($text),
+                'endpoint' => $this->baseUrl . '/sdg/analyze-text'
+            ]);
+            
+            // Check if AI engine is responding
+            try {
+                $healthResponse = $this->client->request('GET', '/', [
+                    'timeout' => 2.0,
+                ]);
+                
+                if ($healthResponse->getStatusCode() != 200) {
+                    Log::warning('AI Engine health check failed with status code: ' . $healthResponse->getStatusCode());
+                    // If the engine is not responding, return mock results
+                    return $this->createMockResultFromText($text);
+                }
+            } catch (\Exception $e) {
+                Log::error('AI Engine health check failed: ' . $e->getMessage());
+                Log::info('Falling back to mock results since AI Engine is unavailable');
+                // If the engine is not responding, return mock results
+                return $this->createMockResultFromText($text);
+            }
+            
+            // Send the text to the AI engine
+            $response = $this->client->request('POST', '/sdg/analyze-text', [
+                'json' => [
+                    'text' => $text
+                ],
+                'timeout' => 30.0,
+            ]);
+            
+            $statusCode = $response->getStatusCode();
+            
+            // Log response status
+            Log::info('Received response from SDG AI Engine for text analysis', [
+                'status_code' => $statusCode
+            ]);
+            
+            if ($statusCode != 200) {
+                Log::error('AI Engine returned non-200 status code for text analysis', [
+                    'status_code' => $statusCode,
+                    'response' => $response->getBody()->getContents()
+                ]);
+                
+                Log::info('Falling back to mock results due to non-200 response');
+                // If the API call failed, return mock results
+                return $this->createMockResultFromText($text);
+            }
+
+            $result = json_decode($response->getBody()->getContents(), true);
+            
+            if (!$result || !is_array($result)) {
+                Log::error('AI Engine returned invalid JSON response for text analysis', [
+                    'raw_response' => $response->getBody()->getContents()
+                ]);
+                
+                Log::info('Falling back to mock results due to invalid JSON response');
+                // If the API response is invalid, return mock results
+                return $this->createMockResultFromText($text);
+            }
+            
+            // Check for error in the response
+            if (isset($result['error'])) {
+                Log::error('AI Engine reported an error processing the text', [
+                    'error' => $result['error'],
+                    'text_length' => strlen($text)
+                ]);
+                
+                Log::info('Falling back to mock results due to error in response');
+                // If the API reported an error, return mock results
+                return $this->createMockResultFromText($text);
+            }
+            
+            return $result;
+        } catch (ConnectException $e) {
+            Log::error('Connection error with SDG AI Engine during text analysis: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            Log::info('Falling back to mock results due to connection error');
+            // If there's a connection error, return mock results
+            return $this->createMockResultFromText($text);
+        } catch (RequestException $e) {
+            Log::error('HTTP request error with SDG AI Engine during text analysis: ' . $e->getMessage(), [
+                'status_code' => $e->getResponse() ? $e->getResponse()->getStatusCode() : 'unknown',
+                'response_body' => $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'none',
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            Log::info('Falling back to mock results due to HTTP request error');
+            // If there's a request error, return mock results
+            return $this->createMockResultFromText($text);
+        } catch (\Exception $e) {
+            Log::error('Error communicating with SDG AI Engine during text analysis: ' . $e->getMessage(), [
+                'exception_class' => get_class($e),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            Log::info('Falling back to mock results due to general error');
+            // If there's a general error, return mock results
+            return $this->createMockResultFromText($text);
+        }
     }
 } 

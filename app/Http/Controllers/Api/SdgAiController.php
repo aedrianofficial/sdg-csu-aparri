@@ -31,7 +31,12 @@ class SdgAiController extends Controller
             return response()->json(['status' => 'success'], 200, $headers);
         }
         
-        // Validate the request
+        // Check if this is a text analysis request
+        if ($request->has('text')) {
+            return $this->analyzeText($request);
+        }
+        
+        // Validate the request for file upload
         $request->validate([
             'file' => 'required|file|mimes:pdf|max:10240', // Max 10MB PDF file
         ]);
@@ -128,17 +133,17 @@ class SdgAiController extends Controller
                 if (strpos($errorMessage, 'Connection refused') !== false || 
                     strpos($errorMessage, 'Connection timed out') !== false ||
                     strpos($errorMessage, 'cURL error 28') !== false) {
-                                    // Add CORS headers
-                $corsHeaders = [
-                    'Access-Control-Allow-Origin' => '*',
-                    'Access-Control-Allow-Methods' => 'POST, OPTIONS',
-                    'Access-Control-Allow-Headers' => 'Content-Type, X-Auth-Token, Origin, Authorization',
-                ];
-                
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Could not connect to SDG AI service. Please make sure the AI engine is running (start_ai_engine.bat) and try again.'
-                ], 500, $corsHeaders);
+                    // Add CORS headers
+                    $corsHeaders = [
+                        'Access-Control-Allow-Origin' => '*',
+                        'Access-Control-Allow-Methods' => 'POST, OPTIONS',
+                        'Access-Control-Allow-Headers' => 'Content-Type, X-Auth-Token, Origin, Authorization',
+                    ];
+                    
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Could not connect to SDG AI service. Please make sure the AI engine is running (start_ai_engine.bat) and try again.'
+                    ], 500, $corsHeaders);
                 }
                 
                 // Add CORS headers
@@ -166,6 +171,91 @@ class SdgAiController extends Controller
             'success' => false,
             'message' => 'No file uploaded'
         ], 400, $corsHeaders);
+    }
+    
+    /**
+     * Analyze text input for SDG relevance
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function analyzeText(Request $request)
+    {
+        // Add CORS headers
+        $headers = [
+            'Access-Control-Allow-Origin' => '*',
+            'Access-Control-Allow-Methods' => 'POST, OPTIONS',
+            'Access-Control-Allow-Headers' => 'Content-Type, X-Auth-Token, Origin, Authorization',
+        ];
+        
+        // Validate the request
+        $request->validate([
+            'text' => 'required|string|min:10',
+        ]);
+        
+        $text = $request->input('text');
+        
+        try {
+            // Call the SDG AI Engine API's text analysis endpoint
+            $response = Http::timeout(60)
+                ->post('http://localhost:8003/sdg/analyze-text', [
+                    'text' => $text
+                ]);
+            
+            // Check if the request was successful
+            if ($response->successful()) {
+                $aiResults = $response->json();
+                
+                // Transform AI response to match the expected format in the frontend
+                $transformedResults = $this->transformAiResults($aiResults);
+                
+                return response()->json([
+                    'success' => true,
+                    'data' => $transformedResults
+                ], 200, $headers);
+            } else {
+                // Get the specific error message from the AI engine
+                $errorBody = $response->body();
+                $errorJson = json_decode($errorBody, true);
+                $errorMessage = isset($errorJson['detail']) ? $errorJson['detail'] : 'Unknown error from SDG AI service';
+                
+                // Log the error for debugging
+                Log::error('SDG AI Engine returned an error for text analysis', [
+                    'status' => $response->status(),
+                    'response' => $errorBody
+                ]);
+                
+                // Return a user-friendly message
+                $userMessage = $this->getUserFriendlyErrorMessage($errorMessage);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => $userMessage
+                ], 500, $headers);
+            }
+        } catch (\Exception $e) {
+            $errorMessage = $e->getMessage();
+            
+            Log::error('Failed to connect to SDG AI Engine for text analysis', [
+                'error' => $errorMessage,
+                'text_length' => strlen($text)
+            ]);
+            
+            // Check for specific connection errors
+            if (strpos($errorMessage, 'Connection refused') !== false || 
+                strpos($errorMessage, 'Connection timed out') !== false ||
+                strpos($errorMessage, 'cURL error 28') !== false) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Could not connect to SDG AI service. Please make sure the AI engine is running and try again.'
+                ], 500, $headers);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error analyzing text. Please try again or select SDGs manually. Details: ' . $this->sanitizeErrorMessage($errorMessage)
+            ], 500, $headers);
+        }
     }
     
     /**
@@ -252,6 +342,11 @@ class SdgAiController extends Controller
                 Log::warning("SDG not found in database", [
                     'sdg_number' => $sdgNumber
                 ]);
+            }
+            
+            // Limit to top 3 SDGs for consistency between research and projects
+            if (count($sdgs) >= 3) {
+                break;
             }
         }
         

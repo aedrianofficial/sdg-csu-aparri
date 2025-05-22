@@ -493,36 +493,50 @@
                 $('#manual-sdg-selection').addClass('d-none');
                 $('#sub-categories').addClass('d-none');
 
-                // Make AJAX request to analyze SDGs
+                // Combine title and description for analysis
+                var combinedText = title + "\n\n" + strip_tags(description);
+
+                // Make AJAX request using Laravel proxy
                 $.ajax({
-                    url: '{{ route('contributor.projects.analyze-sdgs') }}',
+                    url: '/sdg-proxy/analyze-text',
                     type: 'POST',
-                    data: {
-                        title: title,
-                        description: description,
-                        _token: $('meta[name="csrf-token"]').attr('content')
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        text: combinedText
+                    }),
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
-                    success: function(response) {
-                        if (response.success) {
+                    success: function(aiResponse) {
                             // Hide loading indicator and show content
                             $('#ai-loading-indicator').addClass('d-none');
                             $('#ai-detection-content').removeClass('d-none');
 
-                            displayAiResults(response.data);
-                        } else {
-                            // Show error message
-                            $('#ai-loading-indicator').addClass('d-none');
-                            $('#ai-detection-content').removeClass('d-none');
+                        // Process and transform the AI results to match our expected format
+                        if (!aiResponse || !aiResponse.matched_sdgs || aiResponse.matched_sdgs.length === 0) {
+                            // Handle case when no SDGs were detected
                             $('#detected-sdgs-list').html(
-                                '<div class="alert alert-danger">Error analyzing document: ' +
-                                response.message + '</div>'
+                                '<div class="alert alert-info">' +
+                                '<h5><i class="fas fa-info-circle me-2"></i>Analysis Results</h5>' +
+                                '<p>No relevant SDGs were detected in your project content. Please select SDGs manually.</p>' +
+                                '<button class="btn btn-primary mt-2" id="show-manual-selection-empty">Switch to Manual Selection</button>' +
+                                '</div>'
                             );
+                            
+                            // Add event handler for the manual selection button
+                            $('#show-manual-selection-empty').on('click', function() {
+                                switchToManualMode();
+                            });
+                            return;
                         }
+                        
+                        // Process the AI response into our application format
+                        var processedData = processAiResponse(aiResponse);
+                        displayAiResults(processedData);
                     },
-                    error: function(xhr) {
+                    error: function(xhr, status, error) {
                         console.log(
-                            "Error connecting to AI service: " + xhr.status + " - " +
-                            xhr.statusText
+                            "Error connecting to AI service: " + status + " - " + error
                         );
 
                         // Hide loading indicator and show content
@@ -530,12 +544,11 @@
                         $('#ai-detection-content').removeClass('d-none');
 
                         // Show a friendly error message to the user
-                        if (xhr.status === 0) {
-                            // Network error, server unreachable
                             $('#detected-sdgs-list').html(
                                 '<div class="alert alert-warning">' +
-                                '<h5><i class="fas fa-exclamation-triangle me-2"></i>AI Service Unavailable</h5>' +
-                                '<p>The AI detection service is currently unavailable. Please use manual selection.</p>' +
+                            '<h5><i class="fas fa-exclamation-triangle me-2"></i>Server Error</h5>' +
+                            '<p>There was a problem with the AI service. Please use manual selection instead.</p>' +
+                            '<p class="small text-muted">Error details: ' + status + ' ' + error + '</p>' +
                                 '<button class="btn btn-primary mt-2" id="show-manual-selection-error">Switch to Manual Selection</button>' +
                                 '</div>'
                             );
@@ -544,23 +557,97 @@
                             $('#show-manual-selection-error').on('click', function() {
                                 switchToManualMode();
                             });
-                        } else {
-                            // Other errors
-                            $('#detected-sdgs-list').html(
-                                '<div class="alert alert-warning">' +
-                                '<h5><i class="fas fa-exclamation-triangle me-2"></i>Analysis Error</h5>' +
-                                '<p>There was a problem analyzing your project. Please use manual selection.</p>' +
-                                '<button class="btn btn-primary mt-2" id="show-manual-selection-error">Switch to Manual Selection</button>' +
-                                '</div>'
-                            );
-
-                            // Add event handler for the manual selection button
-                            $('#show-manual-selection-error').on('click', function() {
-                                switchToManualMode();
-                            });
-                        }
                     }
                 });
+            }
+            
+            // Helper function to process AI response into our application format
+            function processAiResponse(aiResponse) {
+                var result = {
+                    sdgs: [],
+                    subcategories: []
+                };
+                
+                // Process SDGs (limit to top 3 by confidence)
+                if (aiResponse.matched_sdgs && aiResponse.matched_sdgs.length > 0) {
+                    // Sort by confidence (descending)
+                    aiResponse.matched_sdgs.sort(function(a, b) {
+                        return (b.confidence || 0) - (a.confidence || 0);
+                    });
+                    
+                    // Limit to top 3
+                    var topSdgs = aiResponse.matched_sdgs.slice(0, 3);
+                    
+                    // Map to our format
+                    topSdgs.forEach(function(sdg) {
+                        var sdgNumber = parseInt(sdg.sdg_number);
+                        result.sdgs.push({
+                            id: sdgNumber,
+                            name: sdg.sdg_name || ("SDG " + sdgNumber),
+                            confidence: sdg.confidence || 0.7
+                        });
+                        
+                        // Process subcategories if available
+                        if (sdg.subcategories && sdg.subcategories.length > 0) {
+                            sdg.subcategories.forEach(function(sub) {
+                                // Find the subcategory in our database
+                                findSubcategory(sdgNumber, sub.subcategory, function(subData) {
+                                    if (subData) {
+                                        result.subcategories.push({
+                                            id: subData.id,
+                                            name: subData.name,
+                                            description: subData.description,
+                                            confidence: sub.confidence || 0.6
+                                        });
+                                    }
+                                });
+                            });
+                        }
+                    });
+                }
+                
+                return result;
+            }
+            
+            // Helper function to find subcategory in our database
+            function findSubcategory(sdgId, subcategoryCode, callback) {
+                $.ajax({
+                    url: '{{ route('sdg.subcategories') }}',
+                    method: 'GET',
+                    data: {
+                        sdg_ids: [sdgId]
+                    },
+                    success: function(subcategories) {
+                        if (subcategories && subcategories.length > 0) {
+                            var found = null;
+                            subcategories.forEach(function(sub) {
+                                // Check for exact match or match with/without SDG prefix
+                                if (sub.sub_category_name === subcategoryCode || 
+                                    sdgId + '.' + sub.sub_category_name === subcategoryCode) {
+                                    found = {
+                                        id: sub.id,
+                                        name: sub.sub_category_name,
+                                        description: sub.sub_category_description
+                                    };
+                                    return false; // Break the loop
+                                }
+                            });
+                            callback(found);
+                        } else {
+                            callback(null);
+                        }
+                    },
+                    error: function() {
+                        callback(null);
+                    }
+                });
+            }
+            
+            // Helper function to strip HTML tags
+            function strip_tags(html) {
+                var tmp = document.createElement("DIV");
+                tmp.innerHTML = html;
+                return tmp.textContent || tmp.innerText || "";
             }
 
             // Function to switch to manual SDG selection mode

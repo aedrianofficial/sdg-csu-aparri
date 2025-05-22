@@ -18,10 +18,27 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
+use App\Services\SdgAiService;
+use App\Services\GenderAnalysisService;
 
 
 class ProjectController extends Controller
 {
+    protected $sdgAiService;
+    protected $genderAnalysisService;
+    
+    /**
+     * Constructor
+     *
+     * @param SdgAiService $sdgAiService
+     * @param GenderAnalysisService $genderAnalysisService
+     */
+    public function __construct(SdgAiService $sdgAiService, GenderAnalysisService $genderAnalysisService)
+    {
+        $this->sdgAiService = $sdgAiService;
+        $this->genderAnalysisService = $genderAnalysisService;
+    }
     /**
      * Display a listing of the resource.
      *
@@ -767,9 +784,8 @@ class ProjectController extends Controller
             // Create a combined text for analysis
             $textToAnalyze = $title . "\n" . $cleanDescription;
             
-            // Analyze gender impact using the GenderAnalysisService
-            $genderAnalysisService = new \App\Services\GenderAnalysisService();
-            $analysisResults = $genderAnalysisService->analyzeGenderFromText(
+            // Analyze gender impact using the injected GenderAnalysisService
+            $analysisResults = $this->genderAnalysisService->analyzeGenderFromText(
                 $textToAnalyze, 
                 $targetBeneficiaries
             );
@@ -804,7 +820,9 @@ class ProjectController extends Controller
         // Log the request data for debugging
         Log::info('SDG analysis request received', [
             'has_title' => $request->has('title'), 
-            'has_description' => $request->has('description')
+            'has_description' => $request->has('description'),
+            'title_length' => strlen($request->input('title', '')),
+            'description_length' => strlen(strip_tags($request->input('description', '')))
         ]);
 
         try {
@@ -818,131 +836,136 @@ class ProjectController extends Controller
             // Combine them into a simple text document
             $content = $title . "\n\n" . $cleanDescription;
             
-            // Create a temporary file with the content
-            $tempFilePath = tempnam(sys_get_temp_dir(), 'sdg_analysis_');
-            $tempFilePath .= '.txt';  // Append .txt extension for mime type detection
-            
-            // Write content to file
-            if (!file_put_contents($tempFilePath, $content)) {
-                throw new \Exception("Failed to create temporary file for analysis");
+            // Ensure we have enough content to analyze
+            if (strlen($content) < 10) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Please provide more text content for analysis. Your description is too short.'
+                ], 400);
             }
             
-            try {
-                // Create an uploaded file instance from the temporary file
-                $uploadedFile = new \Illuminate\Http\UploadedFile(
-                    $tempFilePath,
-                    'project_analysis.txt',
-                    'text/plain',
-                    null,
-                    true // Test mode for UploadedFile
-                );
-                
-                // Get the AI service
-                $sdgAiService = new \App\Services\SdgAiService();
-                
-                // Analyze the content
-                $aiResults = $sdgAiService->analyzeResearchFile($uploadedFile);
-                
-                // Delete the temporary file
-                @unlink($tempFilePath);
-                
-                // If analysis failed, return an error
-                if ($aiResults === null) {
+            // Use the injected SdgAiService to analyze the text directly
+            Log::info('Using SdgAiService to analyze text', [
+                'text_length' => strlen($content)
+            ]);
+            
+            $aiResults = $this->sdgAiService->analyzeText($content);
+            
+            if (!$aiResults) {
+                Log::warning('SdgAiService returned null results');
                     return response()->json([
                         'success' => false,
-                        'message' => 'AI analysis failed. Please try again or select SDGs manually.'
+                    'message' => 'Error analyzing project content. Please try again or select SDGs manually.'
                     ], 500);
                 }
                 
-                // Get IDs from the results
-                $resultIds = $sdgAiService->convertResultsToIds($aiResults);
-                
-                // If no SDGs were detected, return a message
-                if (empty($resultIds['sdgIds'])) {
-                    return response()->json([
-                        'success' => true,
-                        'data' => [
+            // Log the raw AI results for debugging
+            Log::info('Received AI results', [
+                'has_matched_sdgs' => isset($aiResults['matched_sdgs']),
+                'matched_sdgs_count' => isset($aiResults['matched_sdgs']) ? count($aiResults['matched_sdgs']) : 0,
+                'source' => $aiResults['metadata']['source'] ?? 'unknown'
+            ]);
+            
+            // Transform AI results to the expected format
+            $transformedResults = [
                             'sdgs' => [],
-                            'subcategories' => [],
-                            'message' => 'No SDGs were detected. Please select SDGs manually.'
-                        ]
+                'subcategories' => []
+            ];
+            
+            // Convert the AI results to our application format (SDG IDs and subcategory IDs)
+            if (isset($aiResults['matched_sdgs']) && is_array($aiResults['matched_sdgs'])) {
+                $processedIds = $this->sdgAiService->convertResultsToIds($aiResults);
+                
+                // Ensure processedIds has the expected structure
+                if (!isset($processedIds['sdgIds']) || !isset($processedIds['subCategoryIds'])) {
+                    Log::warning('ProcessedIds does not have the expected structure', [
+                        'processedIds' => $processedIds
+                    ]);
+                    $sdgIds = [];
+                    $subCategoryIds = [];
+                } else {
+                    $sdgIds = $processedIds['sdgIds'];
+                    $subCategoryIds = $processedIds['subCategoryIds'];
+                    
+                    // Log the processed IDs
+                    Log::info('Processed AI results into IDs', [
+                        'sdg_ids' => $sdgIds,
+                        'subcategory_ids' => $subCategoryIds
                     ]);
                 }
                 
-                // Fetch SDGs from the database
-                $sdgs = \App\Models\Sdg::whereIn('id', $resultIds['sdgIds'])->get()->map(function($sdg) use ($aiResults) {
-                    // Find the confidence score from AI results
-                    $confidence = 0.5; // Default confidence
-                    
-                    if (isset($aiResults['matched_sdgs']) && is_array($aiResults['matched_sdgs'])) {
-                        foreach ($aiResults['matched_sdgs'] as $matched) {
-                            $matchedId = (int)ltrim($matched['sdg_number'], '0');
-                            if ($matchedId === $sdg->id) {
-                                $confidence = $matched['confidence'] ?? 0.5;
+                // Get the SDG details for each ID
+                foreach ($sdgIds as $sdgId) {
+                    $sdg = \App\Models\Sdg::find($sdgId);
+                    if ($sdg) {
+                        // Find the original confidence from the AI results
+                        $confidence = 0.7; // Default confidence
+                        foreach ($aiResults['matched_sdgs'] as $match) {
+                            if ((int)ltrim($match['sdg_number'], '0') === $sdgId) {
+                                $confidence = $match['confidence'] ?? 0.7;
                                 break;
-                            }
                         }
                     }
                     
-                    return [
+                        $transformedResults['sdgs'][] = [
                         'id' => $sdg->id,
                         'name' => $sdg->name,
                         'confidence' => $confidence
                     ];
-                })->sortByDesc('confidence')->values()->toArray();
+                    }
+                }
                 
-                // Fetch subcategories from the database
-                $subcategories = [];
-                
-                if (!empty($resultIds['subCategoryIds'])) {
-                    $subcategories = \App\Models\SdgSubCategory::whereIn('id', $resultIds['subCategoryIds'])->get()->map(function($sub) use ($aiResults) {
-                        // Try to find confidence from AI results
-                        $confidence = 0.5; // Default confidence
-                        
-                        if (isset($aiResults['matched_sdgs']) && is_array($aiResults['matched_sdgs'])) {
-                            $sdgNumber = str_pad($sub->sdg_id, 2, '0', STR_PAD_LEFT);
-                            
-                            foreach ($aiResults['matched_sdgs'] as $matched) {
-                                if ($matched['sdg_number'] === $sdgNumber && isset($matched['subcategories'])) {
-                                    foreach ($matched['subcategories'] as $matchedSub) {
-                                        if (isset($matchedSub['subcategory']) && 
-                                            (strpos($sub->sub_category_name, $matchedSub['subcategory']) !== false ||
-                                            strpos($matchedSub['subcategory'], $sub->sub_category_name) !== false)) {
-                                            $confidence = $matchedSub['confidence'] ?? 0.5;
+                // Get the subcategory details for each ID
+                foreach ($subCategoryIds as $subCategoryId) {
+                    $subCategory = \App\Models\SdgSubCategory::find($subCategoryId);
+                    if ($subCategory) {
+                        // Find the original confidence from the AI results
+                        $confidence = 0.6; // Default confidence
+                        foreach ($aiResults['matched_sdgs'] as $match) {
+                            if (isset($match['subcategories']) && is_array($match['subcategories'])) {
+                                foreach ($match['subcategories'] as $sub) {
+                                    if (isset($sub['subcategory']) && $sub['subcategory'] === $subCategory->sub_category_name) {
+                                        $confidence = $sub['confidence'] ?? 0.6;
                                             break 2;
                                         }
-                                    }
                                 }
                             }
                         }
                         
-                        return [
-                            'id' => $sub->id,
-                            'name' => $sub->sub_category_name,
-                            'description' => $sub->sub_category_description,
+                        $transformedResults['subcategories'][] = [
+                            'id' => $subCategory->id,
+                            'name' => $subCategory->sub_category_name,
+                            'description' => $subCategory->sub_category_description,
                             'confidence' => $confidence
                         ];
-                    })->toArray();
+                    }
+                }
+            } else {
+                Log::warning('AI results did not contain matched_sdgs array');
                 }
                 
-                // Return the results
+            // Check if we got any results
+            if (empty($transformedResults['sdgs'])) {
+                Log::warning('No SDGs were found in the transformed results');
                 return response()->json([
                     'success' => true,
                     'data' => [
-                        'sdgs' => $sdgs,
-                        'subcategories' => $subcategories
+                        'message' => 'No relevant SDGs were detected in your project content. Please select SDGs manually.'
                     ]
                 ]);
-            } finally {
-                // Make sure we delete the temporary file if it exists
-                if (file_exists($tempFilePath)) {
-                    @unlink($tempFilePath);
-                }
             }
+            
+            return response()->json([
+                'success' => true,
+                'data' => $transformedResults
+            ]);
         } catch (\Exception $e) {
             // Log the error
             Log::error('SDG analysis error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'exception_class' => get_class($e),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
             ]);
             
             // Return error response
@@ -951,5 +974,124 @@ class ProjectController extends Controller
                 'message' => 'Error analyzing SDGs: ' . $e->getMessage()
             ], 500);
         }
+    }
+    
+    /**
+     * Fallback method for SDG analysis when API is unavailable
+     * 
+     * @param string $content
+     * @return \Illuminate\Http\JsonResponse
+     */
+    private function fallbackSdgAnalysis($content)
+    {
+        // Define SDG keywords with their corresponding SDG numbers
+        $sdgKeywords = [
+            '01' => ['poverty', 'poor', 'wealth distribution', 'basic needs', 'income'],
+            '02' => ['hunger', 'food', 'nutrition', 'agriculture', 'farming', 'crop'],
+            '03' => ['health', 'wellbeing', 'medical', 'disease', 'healthcare', 'wellness', 'mental health'],
+            '04' => ['education', 'learning', 'teaching', 'school', 'training', 'literacy', 'student'],
+            '05' => ['gender', 'women', 'girl', 'equality', 'female', 'empowerment', 'discrimination'],
+            '06' => ['water', 'sanitation', 'hygiene', 'clean water', 'drinking water', 'sewage'],
+            '07' => ['energy', 'renewable', 'electricity', 'power', 'solar', 'wind', 'sustainable energy'],
+            '08' => ['economy', 'economic', 'work', 'job', 'employment', 'labor', 'decent work', 'growth'],
+            '09' => ['industry', 'innovation', 'infrastructure', 'manufacturing', 'technology', 'industrial'],
+            '10' => ['inequality', 'social inclusion', 'income inequality', 'discrimination', 'equity'],
+            '11' => ['cities', 'urban', 'community', 'housing', 'transportation', 'sustainable cities'],
+            '12' => ['consumption', 'production', 'sustainable consumption', 'recycling', 'waste', 'resource'],
+            '13' => ['climate', 'carbon', 'emission', 'global warming', 'greenhouse gas', 'climate change'],
+            '14' => ['ocean', 'marine', 'sea', 'aquatic', 'fish', 'coral', 'coastal', 'water resources'],
+            '15' => ['forest', 'biodiversity', 'ecosystem', 'land', 'desertification', 'wildlife', 'species'],
+            '16' => ['peace', 'justice', 'institution', 'governance', 'accountability', 'transparency', 'corruption'],
+            '17' => ['partnership', 'cooperation', 'global', 'international', 'collaboration', 'sustainable development']
+        ];
+        
+        $content = strtolower($content);
+        $matchedSdgs = [];
+        
+        // Find matching SDGs based on keywords
+        foreach ($sdgKeywords as $sdgNumber => $keywords) {
+            $count = 0;
+            $matches = [];
+            
+            foreach ($keywords as $keyword) {
+                $keywordCount = substr_count($content, $keyword);
+                if ($keywordCount > 0) {
+                    $count += $keywordCount;
+                    $matches[] = $keyword;
+                }
+            }
+            
+            if ($count > 0) {
+                // Calculate confidence based on number of matches
+                $confidence = min(1.0, $count / 10); // Cap at 1.0
+                
+                $matchedSdgs[] = [
+                    'sdg_number' => $sdgNumber,
+                    'confidence' => $confidence,
+                    'matched_keywords' => $matches
+                ];
+            }
+        }
+        
+        // Sort by confidence score (descending)
+        usort($matchedSdgs, function($a, $b) {
+            return $b['confidence'] <=> $a['confidence'];
+        });
+        
+        // Limit to top 3 matches
+        $matchedSdgs = array_slice($matchedSdgs, 0, 3);
+        
+        if (empty($matchedSdgs)) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'sdgs' => [],
+                    'subcategories' => [],
+                    'message' => 'No SDGs were detected. Please select SDGs manually.'
+                ]
+            ]);
+        }
+        
+        // Format results
+        $sdgs = [];
+        foreach ($matchedSdgs as $match) {
+            $sdgId = (int)ltrim($match['sdg_number'], '0');
+            $sdg = \App\Models\Sdg::find($sdgId);
+            
+            if ($sdg) {
+                $sdgs[] = [
+                    'id' => $sdg->id,
+                    'name' => $sdg->name,
+                    'confidence' => $match['confidence']
+                ];
+            }
+        }
+        
+        // Get subcategories for the matched SDGs
+        $subcategories = [];
+        foreach ($matchedSdgs as $match) {
+            $sdgId = (int)ltrim($match['sdg_number'], '0');
+            $subCats = \App\Models\SdgSubCategory::where('sdg_id', $sdgId)
+                ->limit(2) // Limit to 2 subcategories per SDG
+                ->get();
+                
+            foreach ($subCats as $sub) {
+                $subcategories[] = [
+                    'id' => $sub->id,
+                    'name' => $sub->sub_category_name,
+                    'description' => $sub->sub_category_description,
+                    'confidence' => $match['confidence'] * 0.9 // Slightly lower confidence for subcategories
+                ];
+            }
+        }
+        
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'sdgs' => $sdgs,
+                'subcategories' => $subcategories,
+                'fallback' => true
+            ]
+        ]);
     }
 }

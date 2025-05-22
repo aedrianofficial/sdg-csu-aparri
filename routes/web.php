@@ -744,3 +744,20 @@ Route::post('/projects/analyze-sdgs', [\App\Http\Controllers\Auth\ProjectControl
 // Add routes for research gender analysis
 Route::post('/research/analyze-gender', [\App\Http\Controllers\Auth\ResearchController::class, 'analyzeGender'])->name('research.analyze-gender');
 Route::post('/research/analyze-gender-text', [\App\Http\Controllers\Auth\ResearchController::class, 'analyzeGenderText'])->name('research.analyze-gender-text');
+
+// Add proxy route for FastAPI SDG analysis
+Route::post('/sdg-proxy/analyze-text', function (\Illuminate\Http\Request $request) {
+    try {
+        $client = new \GuzzleHttp\Client();
+        $response = $client->post('http://localhost:8003/sdg/analyze-text', [
+            'json' => ['text' => $request->input('text')],
+            'timeout' => 30.0,
+        ]);
+        
+        return response($response->getBody(), $response->getStatusCode())
+            ->header('Content-Type', 'application/json');
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('Error proxying to FastAPI: ' . $e->getMessage());
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+});

@@ -53,105 +53,72 @@ class SdgAnalyzer:
         for sdg in self.sdg_data['sdgs']:
             if sdg['number'] == '01':  # No Poverty
                 sdg['keywords'].extend([
-                    "poverty eradication", "extreme poverty", "poverty alleviation", 
-                    "poverty reduction", "income poverty", "basic needs", "financial inclusion",
-                    "social safety nets", "livelihood", "subsistence", "destitution"
+                    'poverty', 'poor', 'wealth distribution', 'basic needs', 'income'
                 ])
+                
             elif sdg['number'] == '02':  # Zero Hunger
                 sdg['keywords'].extend([
-                    "food insecurity", "malnutrition", "food access", "food availability",
-                    "sustainable food", "food systems", "food sovereignty", "food scarcity",
-                    "undernutrition", "food production", "agricultural productivity"
+                    'hunger', 'food', 'nutrition', 'agriculture', 'farming', 'crop'
                 ])
             elif sdg['number'] == '03':  # Good Health and Well-being
                 sdg['keywords'].extend([
-                    "well-being", "wellbeing", "well being", "public health", "healthcare access",
-                    "disease prevention", "mental health", "maternal health", "child health",
-                    "pandemic", "epidemic", "health services", "universal health coverage"
+                   'health', 'wellbeing', 'medical', 'disease', 'healthcare', 'wellness', 'mental health'
                 ])
             elif sdg['number'] == '04':  # Education
                 sdg['keywords'].extend([
-                    "equal access", "education equality", "gender disparity", "inclusive education", 
-                    "quality education", "educational opportunities", "literacy", "lifelong learning",
-                    "educational attainment", "access to education", "school enrollment"
+                   'education', 'learning', 'teaching', 'school', 'training', 'literacy', 'student'
                 ])
             elif sdg['number'] == '05':  # Gender Equality
                 sdg['keywords'].extend([
-                    "women's rights", "equal rights", "gender discrimination", "gender-based violence",
-                    "gender parity", "gender bias", "women empowerment", "equal pay", 
-                    "gender mainstreaming", "women in leadership", "gender equality"
+                   'gender', 'women', 'girl', 'equality', 'female', 'empowerment'
                 ])
             elif sdg['number'] == '06':  # Clean Water and Sanitation
                 sdg['keywords'].extend([
-                    "water access", "clean water", "safe drinking water", "water quality",
-                    "water scarcity", "water stress", "water security", "water management",
-                    "sanitation facilities", "hygiene practices", "water pollution"
+                  'water', 'sanitation', 'hygiene', 'clean water', 'drinking water', 'sewage'
                 ])
             elif sdg['number'] == '07':  # Affordable and Clean Energy
                 sdg['keywords'].extend([
-                    "energy access", "energy poverty", "affordable energy", "clean energy access",
-                    "renewable sources", "sustainable energy", "energy efficiency", 
-                    "energy security", "green energy", "low-carbon energy"
+                 'energy', 'renewable', 'electricity', 'power', 'solar', 'wind', 'sustainable energy'
                 ])
             elif sdg['number'] == '08':  # Decent Work and Economic Growth
                 sdg['keywords'].extend([
-                    "inclusive growth", "sustainable growth", "decent jobs", "employment generation",
-                    "job creation", "fair wages", "labor rights", "economic development",
-                    "productive employment", "economic opportunity", "economic inclusion"
+                   'economy', 'economic', 'work', 'job', 'employment', 'labor', 'decent work', 'growth'
                 ])
             elif sdg['number'] == '09':  # Industry, Innovation and Infrastructure
                 sdg['keywords'].extend([
-                    "industrial development", "sustainable industrialization", "infrastructure development",
-                    "technological capacity", "industrial diversification", "infrastructure gap",
-                    "digital divide", "research development", "innovative solutions"
+                    'industry', 'innovation', 'infrastructure', 'manufacturing', 'technology', 'industrial'
                 ])
             elif sdg['number'] == '10':  # Reduced Inequalities
                 sdg['keywords'].extend([
-                    "equal rights", "equality of opportunity", "reduce disparities", 
-                    "social equity", "inclusive growth", "economic inclusion", "income inequality",
-                    "wealth distribution", "social inclusion", "marginalized groups"
+                    'inequality', 'social inclusion', 'income inequality', 'discrimination', 'equity'
                 ])
             elif sdg['number'] == '11':  # Sustainable Cities and Communities
                 sdg['keywords'].extend([
-                    "urban planning", "resilient cities", "inclusive cities", "sustainable urbanization",
-                    "urban sustainability", "human settlements", "affordable housing", 
-                    "public spaces", "urban mobility", "urban infrastructure"
+                   'cities', 'urban', 'community', 'housing', 'transportation', 'sustainable cities'
                 ])
             elif sdg['number'] == '12':  # Responsible Consumption and Production
                 sdg['keywords'].extend([
-                    "sustainable production", "sustainable consumption", "resource efficiency",
-                    "circular economy", "waste reduction", "sustainable supply chains",
-                    "eco-friendly", "green products", "sustainable practices", "responsible use"
+                   'consumption', 'production', 'sustainable consumption', 'recycling', 'waste', 'resource'
                 ])
             elif sdg['number'] == '13':  # Climate Action
                 sdg['keywords'].extend([
-                    "climate justice", "climate resilience", "climate adaptation", "climate mitigation",
-                    "low carbon", "carbon footprint", "greenhouse gases", "climate policy",
-                    "global warming", "climate risk", "climate emergency"
+                   'climate', 'carbon', 'emission', 'global warming', 'greenhouse gas', 'climate change'
                 ])
             elif sdg['number'] == '14':  # Life Below Water
                 sdg['keywords'].extend([
-                    "ocean conservation", "marine protection", "sustainable fisheries", "blue economy",
-                    "ocean health", "marine biodiversity", "ocean pollution", "coastal ecosystems",
-                    "ocean acidification", "marine resources"
+                    'ocean', 'marine', 'sea', 'aquatic', 'fish', 'coral', 'coastal', 'water resources'
                 ])
             elif sdg['number'] == '15':  # Life on Land
                 sdg['keywords'].extend([
-                    "biodiversity conservation", "ecosystem restoration", "deforestation prevention",
-                    "land restoration", "wildlife protection", "forest management", "land degradation",
-                    "soil conservation", "natural habitats", "terrestrial ecosystems"
+                   'forest', 'biodiversity', 'ecosystem', 'land', 'desertification', 'wildlife', 'species'
                 ])
             elif sdg['number'] == '16':  # Peace, Justice and Strong Institutions
                 sdg['keywords'].extend([
-                    "rule of law", "good governance", "institutional capacity", "accountability",
-                    "transparency", "conflict resolution", "access to justice", "anti-corruption",
-                    "human rights", "inclusive institutions", "effective governance"
+                    'peace', 'justice', 'institution', 'governance', 'accountability', 'transparency', 'corruption'
                 ])
             elif sdg['number'] == '17':  # Partnerships for the Goals
                 sdg['keywords'].extend([
-                    "global partnership", "development cooperation", "multi-stakeholder partnerships",
-                    "international cooperation", "policy coherence", "capacity building",
-                    "development assistance", "technology transfer", "sustainable development financing"
+                    'partnership', 'cooperation', 'global', 'international', 'collaboration', 'sustainable development'
                 ])
     
     def _load_sdg_data(self) -> Dict:
@@ -435,12 +402,13 @@ class SdgAnalyzer:
         self.tfidf_vectorizer = TfidfVectorizer(max_features=5000)
         self.sdg_tfidf_matrix = self.tfidf_vectorizer.fit_transform(sdg_corpus)
     
-    def analyze_document(self, pdf_path: str) -> AnalysisResponse:
+    def analyze_document(self, pdf_path: str, is_text: bool = False) -> AnalysisResponse:
         """
-        Analyze a PDF document to detect relevant SDGs and targets
+        Analyze a document to detect relevant SDGs and targets
         
         Args:
-            pdf_path: Path to the PDF file
+            pdf_path: Path to the document file (PDF or text)
+            is_text: Whether the file is a text file instead of PDF
             
         Returns:
             AnalysisResponse: Analysis results
@@ -448,8 +416,18 @@ class SdgAnalyzer:
         start_time = time.time()
         
         try:
-            # Extract text from PDF
-            text, page_count = self._extract_text_from_pdf(pdf_path)
+            # Extract text from file based on type
+            if is_text:
+                # For text files, read directly
+                try:
+                    with open(pdf_path, 'r', encoding='utf-8') as file:
+                        text = file.read()
+                    page_count = 1  # Text files are treated as single page
+                except Exception as e:
+                    raise ValueError(f"Could not read text file: {str(e)}")
+            else:
+                # For PDFs, use the existing extraction method
+                text, page_count = self._extract_text_from_pdf(pdf_path)
             
             # Check if text is an error message (from extraction failures)
             if page_count == 0 or (isinstance(text, str) and text.startswith("Could not extract") or text.startswith("Empty PDF")):
@@ -513,7 +491,8 @@ class SdgAnalyzer:
             metadata = Metadata(
                 word_count=word_count,
                 page_count=page_count,
-                processing_time_ms=processing_time_ms
+                processing_time_ms=processing_time_ms,
+                source="text-file" if is_text else "pdf-file"
             )
             
             # Create a sample of the extracted text for debugging
@@ -535,7 +514,8 @@ class SdgAnalyzer:
             metadata = Metadata(
                 word_count=0,
                 page_count=0,
-                processing_time_ms=processing_time_ms
+                processing_time_ms=processing_time_ms,
+                source="text-file" if is_text else "pdf-file"
             )
             
             # Add error information in the response 
