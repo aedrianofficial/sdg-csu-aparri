@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\SdgAiController;
+use App\Http\Controllers\Api\GenderAiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,5 +20,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// SDG AI Engine API route
-Route::post('/sdg-ai/analyze', [SdgAiController::class, 'analyze'])->name('api.sdg-ai.analyze'); 
+// SDG AI Engine API routes
+Route::post('/sdg-ai/analyze', [SdgAiController::class, 'analyze'])->name('api.sdg-ai.analyze');
+
+// Gender AI Engine API routes
+Route::post('/gender-ai/analyze-text', [GenderAiController::class, 'analyze'])->name('api.gender-ai.analyze');
+Route::post('/gender-ai/analyze-file', [GenderAiController::class, 'analyzeFile'])->name('api.gender-ai.analyze-file'); 

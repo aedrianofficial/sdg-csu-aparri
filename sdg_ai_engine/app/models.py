@@ -26,4 +26,43 @@ class AnalysisResponse(BaseModel):
     """Response model for document analysis"""
     matched_sdgs: List[MatchedSDG] = Field(default_factory=list, description="List of matched SDGs")
     metadata: Metadata = Field(..., description="Document metadata")
-    raw_text_sample: str = Field("", description="Sample of extracted text (for debugging)") 
+    raw_text_sample: str = Field("", description="Sample of extracted text (for debugging)")
+
+class GenderAnalysisResponse(BaseModel):
+    """Response model for gender analysis endpoints"""
+    benefits_men: bool = Field(
+        default=False, 
+        description="Whether the content benefits men/boys"
+    )
+    benefits_women: bool = Field(
+        default=False, 
+        description="Whether the content benefits women/girls"
+    )
+    benefits_all: bool = Field(
+        default=False, 
+        description="Whether the content benefits all genders"
+    )
+    addresses_gender_inequality: bool = Field(
+        default=False, 
+        description="Whether the content addresses gender inequality issues"
+    )
+    men_count: Optional[int] = Field(
+        default=None, 
+        description="Estimated count of men mentioned in the content"
+    )
+    women_count: Optional[int] = Field(
+        default=None, 
+        description="Estimated count of women mentioned in the content"
+    )
+    gender_notes: str = Field(
+        default="", 
+        description="Additional notes about gender impact"
+    )
+    confidence_score: float = Field(
+        default=0.5, 
+        description="Confidence level of the gender analysis"
+    )
+    key_terms: Optional[Dict[str, List[str]]] = Field(
+        default=None, 
+        description="Key gender-related terms found in the document"
+    ) 

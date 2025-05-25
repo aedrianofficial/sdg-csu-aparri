@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\Project\ProjectRequest;
 use App\Models\ActivityLog;
 use App\Models\Feedback;
+use App\Models\GenderImpact;
 use App\Models\Notification;
 use App\Models\Project;
 use App\Models\Projectimg;
@@ -218,8 +219,7 @@ class ProjectController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     */
-    public function store(ProjectRequest $request)
+     */ public function store(ProjectRequest $request)
     {
         $user = Auth::user();
         $submitType = $request->submit_type; // Capture the button clicked value ('publish' or 'review')
@@ -245,21 +245,43 @@ class ProjectController extends Controller
                 'title' => $request->title,
                 'description' => $request->description,
                 'is_publish' => $isPublish,
-                'user_id' => $user->id, // Set the user_id
+                'user_id' => $user->id,
                 'projectimg_id' => $projectimg->id,
                 'location_address' => $request->location_address,
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
-                'review_status_id' => $reviewStatusId, // Set review status based on the action
-                'status_id' => $request->status_id // Save the selected status_id
+                'review_status_id' => $reviewStatusId,
+                'status_id' => $request->status_id
             ]);
 
             // Attach SDGs to the project
             $project->sdg()->attach($request->sdg);
             $sdgs = $project->sdg()->pluck('name')->implode(', ');
-            // Attach selected sub-categories to the project
+
+            // Handle subcategories - remove duplicates and attach
             if ($request->has('sdg_sub_category')) {
-                $project->sdgSubCategories()->attach($request->sdg_sub_category);
+                try {
+                    $uniqueSubCategories = array_unique($request->sdg_sub_category);
+                    $project->sdgSubCategories()->attach($uniqueSubCategories);
+                } catch (\Exception $e) {
+                    Log::error('Error attaching subcategories: ' . $e->getMessage());
+                    // Continue execution even if subcategory attachment fails
+                }
+            }
+
+            // Create gender impact record if data is available
+            if ($request->has('gender_benefits_men') || $request->has('gender_benefits_women')) {
+                $genderImpact = new GenderImpact([
+                    'project_id' => $project->id,
+                    'benefits_men' => $request->gender_benefits_men ? true : false,
+                    'benefits_women' => $request->gender_benefits_women ? true : false,
+                    'benefits_all' => $request->gender_benefits_all ? true : false,
+                    'addresses_gender_inequality' => $request->gender_addresses_inequality ? true : false,
+                    'men_count' => $request->gender_men_count ? (int)$request->gender_men_count : null,
+                    'women_count' => $request->gender_women_count ? (int)$request->gender_women_count : null,
+                    'gender_notes' => $request->gender_notes,
+                ]);
+                $genderImpact->save();
             }
             // Log the activity in the role_actions table
             if ($submitType === 'publish') {
@@ -351,6 +373,7 @@ class ProjectController extends Controller
         session()->flash('alert-success', 'Project/Program Submitted Successfully!');
         return to_route('projects.index');
     }
+    
     
     
 
@@ -490,13 +513,20 @@ class ProjectController extends Controller
     
             Log::info('Project update handled successfully');
     
+            // Sync SDGs
             $project->sdg()->sync($request->sdg);
-            // Sync selected sub-categories
-         // Sync selected sub-categories
+            
+            // Handle subcategories - remove duplicates and sync
             if ($request->has('sdg_sub_category')) {
-                $project->sdgSubCategories()->sync($request->sdg_sub_category);
+                try {
+                    $uniqueSubCategories = array_unique($request->sdg_sub_category);
+                    $project->sdgSubCategories()->sync($uniqueSubCategories);
+                } catch (\Exception $e) {
+                    Log::error('Error syncing subcategories: ' . $e->getMessage());
+                    // Continue execution even if subcategory sync fails
+                }
             } else {
-                $project->sdgSubCategories()->detach(); // Detach if no sub-categories are selected
+                $project->sdgSubCategories()->detach();
             }
             $sdgs = $project->sdg()->pluck('name')->implode(', ');
             $publishStatus = $project->is_publish == 1 ? 'Published' : 'Draft';

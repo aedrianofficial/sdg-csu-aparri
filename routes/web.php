@@ -93,6 +93,10 @@ Route::get('/sdg/subcategories', [SdgController::class, 'getSubcategories'])->na
 Route::post('/api/sdg-ai/analyze', [App\Http\Controllers\Api\SdgAiController::class, 'analyze'])->name('api.sdg-ai.analyze');
 Route::get('/test', [App\Http\Controllers\Api\SdgAiController::class, 'test'])->name('api.sdg-ai.test');
 
+// Gender AI Engine API routes
+Route::post('/api/gender-ai/analyze-text', [App\Http\Controllers\Api\GenderAiController::class, 'analyze'])->name('api.gender-ai.analyze');
+Route::post('/api/gender-ai/analyze-file', [App\Http\Controllers\Api\GenderAiController::class, 'analyzeFile'])->name('api.gender-ai.analyze-file');
+
 Route::get('/test-timezone', function () {
     return now(); // Should return the current time in Asia/Manila
 });

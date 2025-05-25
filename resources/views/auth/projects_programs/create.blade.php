@@ -217,7 +217,7 @@
                                 <div class="mb-3" id="manual-sdg-selection">
                                     <label for="sdg" class="form-label">Sustainable Development Goals (Click to
                                         select SDGs)</label>
-                                    <select name="sdg[]" id="sdg" class="form-select" required multiple>
+                                    <select name="sdg[]" id="sdg" class="form-select" required multiple data-placeholder="Select relevant SDGs...">
                                         @if (count($sdgs) > 0)
                                             @foreach ($sdgs as $sdg)
                                                 <option @selected(old('sdg') == $sdg->id) value="{{ $sdg->id }}">
@@ -290,47 +290,38 @@
                                 <input type="hidden" name="submit_type" id="submit_type">
 
                                 <!-- "Submit for Review" Confirmation Modal -->
-                                <div class="modal fade" id="submitReviewModal" tabindex="-1"
-                                    aria-labelledby="submitReviewModalLabel" aria-hidden="true">
+                                <div class="modal fade" id="submitReviewModal" tabindex="-1" aria-labelledby="submitReviewModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="submitReviewModalLabel">Confirm Submission
-                                                </h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                    aria-label="Close"></button>
+                                                <h5 class="modal-title" id="submitReviewModalLabel">Submit for Review</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
-                                                Are you sure you want to submit this project/program for review?
+                                                Are you sure you want to submit this project for review?
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary"
-                                                    data-bs-dismiss="modal">Cancel</button>
-                                                <button type="button" id="confirmSubmitReview"
-                                                    class="btn btn-primary">Submit for Review</button>
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="button" id="confirmSubmitReview" class="btn btn-primary">Submit for Review</button>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- "Publish Immediately" Confirmation Modal -->
-                                <div class="modal fade" id="publishModal" tabindex="-1"
-                                    aria-labelledby="publishModalLabel" aria-hidden="true">
+                                <div class="modal fade" id="publishModal" tabindex="-1" aria-labelledby="publishModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="publishModalLabel">Confirm Publish</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                    aria-label="Close"></button>
+                                                <h5 class="modal-title" id="publishModalLabel">Publish Project</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
-                                                Are you sure you want to publish this project/program immediately?
+                                                Are you sure you want to publish this project immediately?
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary"
-                                                    data-bs-dismiss="modal">Cancel</button>
-                                                <button type="button" id="confirmPublish"
-                                                    class="btn btn-success">Publish</button>
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="button" id="confirmPublish" class="btn btn-success">Publish</button>
                                             </div>
                                         </div>
                                     </div>
@@ -465,47 +456,39 @@
                 $('#gender-loading-indicator').removeClass('d-none');
                 $('#gender-analysis-content').addClass('d-none');
 
-                // Make AJAX request to analyze gender impact
+                // Make AJAX request to analyze gender impact using the new AI Engine endpoint
                 $.ajax({
-                    url: '{{ route('projects.analyze-gender') }}',
+                    url: '/api/gender-ai/analyze-text',
                     type: 'POST',
                     data: {
-                        title: title,
-                        description: description,
+                        text: description,
                         target_beneficiaries: targetBeneficiaries,
                         _token: $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function(response) {
-                        if (response.success) {
-                            // Hide loading indicator and show content
-                            $('#gender-loading-indicator').addClass('d-none');
-                            $('#gender-analysis-content').removeClass('d-none');
+                        // Hide loading indicator
+                        $('#gender-loading-indicator').addClass('d-none');
+                        $('#gender-analysis-content').removeClass('d-none');
 
-                            // Display gender analysis results
+                        if (response.success) {
                             displayGenderResults(response.data);
                         } else {
-                            // Show error message
-                            $('#gender-loading-indicator').addClass('d-none');
-                            $('#gender-analysis-content').removeClass('d-none');
                             $('#gender-notes').html(
-                                '<div class="alert alert-danger">' +
-                                '<h5><i class="fas fa-exclamation-triangle me-2"></i>Analysis Error</h5>' +
-                                '<p>' + (response.message || 'Error analyzing gender impact') + '</p>' +
-                                '</div>'
+                                '<div class="alert alert-danger">Error analyzing gender impact: ' +
+                                response.message + '</div>'
                             );
                         }
                     },
                     error: function(xhr) {
-                        console.log("Gender analysis error: " + xhr.status + " - " + xhr.statusText);
-                        
-                        // Hide loading indicator and show error
+                        // Hide loading indicator
                         $('#gender-loading-indicator').addClass('d-none');
                         $('#gender-analysis-content').removeClass('d-none');
+                        
                         $('#gender-notes').html(
                             '<div class="alert alert-warning">' +
                             '<h5><i class="fas fa-exclamation-triangle me-2"></i>Gender Analysis Error</h5>' +
-                            '<p>There was a problem analyzing gender impact. The service may be unavailable or your content may need more information.</p>' +
-                            '<p class="small text-muted">Error details: ' + xhr.status + ' ' + xhr.statusText + '</p>' +
+                            '<p>There was a problem analyzing gender impact. The AI service may be unavailable.</p>' +
+                            '<p>Please fill in the Target Beneficiaries field manually.</p>' +
                             '</div>'
                         );
                     }
@@ -627,16 +610,48 @@
                         
                         // Process subcategories if available
                         if (sdg.subcategories && sdg.subcategories.length > 0) {
+                            // Sort subcategories by confidence
+                            sdg.subcategories.sort(function(a, b) {
+                                return (b.confidence || 0) - (a.confidence || 0);
+                            });
+                            
+                            // Process top subcategories
                             sdg.subcategories.forEach(function(sub) {
-                                // Find the subcategory in our database
-                                findSubcategory(sdgNumber, sub.subcategory, function(subData) {
-                                    if (subData) {
-                                        result.subcategories.push({
-                                            id: subData.id,
-                                            name: subData.name,
-                                            description: subData.description,
-                                            confidence: sub.confidence || 0.6
-                                        });
+                                // Extract target number from subcategory (e.g., "11.5" -> "5")
+                                var targetNumber = sub.subcategory.split('.')[1];
+                                
+                                // Find matching subcategory in database
+                                $.ajax({
+                                    url: '{{ route('sdg.subcategories') }}',
+                                    method: 'GET',
+                                    data: {
+                                        sdg_ids: [sdgNumber]
+                                    },
+                                    async: false, // Make this synchronous to ensure all subcategories are processed
+                                    success: function(subcategories) {
+                                        if (subcategories && subcategories.length > 0) {
+                                            subcategories.forEach(function(dbSub) {
+                                                // Check if the subcategory name/number matches
+                                                if (dbSub.sub_category_name === targetNumber || 
+                                                    dbSub.sub_category_name === sub.subcategory ||
+                                                    sdgNumber + '.' + dbSub.sub_category_name === sub.subcategory) {
+                                                    
+                                                    // Add to results if not already added
+                                                    var alreadyAdded = result.subcategories.some(function(existing) {
+                                                        return existing.id === dbSub.id;
+                                                    });
+                                                    
+                                                    if (!alreadyAdded) {
+                                                        result.subcategories.push({
+                                                            id: dbSub.id,
+                                                            name: dbSub.sub_category_name,
+                                                            description: dbSub.sub_category_description,
+                                                            confidence: sub.confidence || 0.6
+                                                        });
+                                                    }
+                                                }
+                                            });
+                                        }
                                     }
                                 });
                             });
@@ -645,40 +660,6 @@
                 }
                 
                 return result;
-            }
-            
-            // Helper function to find subcategory in our database
-            function findSubcategory(sdgId, subcategoryCode, callback) {
-                $.ajax({
-                    url: '{{ route('sdg.subcategories') }}',
-                    method: 'GET',
-                    data: {
-                        sdg_ids: [sdgId]
-                    },
-                    success: function(subcategories) {
-                        if (subcategories && subcategories.length > 0) {
-                            var found = null;
-                            subcategories.forEach(function(sub) {
-                                // Check for exact match or match with/without SDG prefix
-                                if (sub.sub_category_name === subcategoryCode || 
-                                    sdgId + '.' + sub.sub_category_name === subcategoryCode) {
-                                    found = {
-                                        id: sub.id,
-                                        name: sub.sub_category_name,
-                                        description: sub.sub_category_description
-                                    };
-                                    return false; // Break the loop
-                                }
-                            });
-                            callback(found);
-                        } else {
-                            callback(null);
-                        }
-                    },
-                    error: function() {
-                        callback(null);
-                    }
-                });
             }
             
             // Helper function to strip HTML tags

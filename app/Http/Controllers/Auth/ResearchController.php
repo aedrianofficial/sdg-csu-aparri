@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\Research\ResearchRequest;
 use App\Models\ActivityLog;
 use App\Models\Feedback;
+use App\Models\GenderImpact;
 use App\Models\Notification;
 use App\Models\ProjectResearchStatus;
 use App\Models\Research;
@@ -267,7 +268,19 @@ class ResearchController extends Controller
             'review_status_id' => $submitType === 'publish' ? 3 : 4,
             'file_link' => $request->file_link
         ]);
-
+ if ($request->has('gender_benefits_men') || $request->has('gender_benefits_women')) {
+                $genderImpact = new GenderImpact([
+                    'research_id' => $research->id,
+                    'benefits_men' => $request->gender_benefits_men ? true : false,
+                    'benefits_women' => $request->gender_benefits_women ? true : false,
+                    'benefits_all' => $request->gender_benefits_all ? true : false,
+                    'addresses_gender_inequality' => $request->gender_addresses_inequality ? true : false,
+                    'men_count' => $request->gender_men_count ? (int)$request->gender_men_count : null,
+                    'women_count' => $request->gender_women_count ? (int)$request->gender_women_count : null,
+                    'gender_notes' => $request->gender_notes,
+                ]);
+                $genderImpact->save();
+            }
         // Attach SDGs to the research
         $research->sdg()->attach($request->sdg);
         $sdgs = $research->sdg()->pluck('name')->implode(', ');

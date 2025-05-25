@@ -2,8 +2,9 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import sys
-from .models import AnalysisResponse
+from .models import AnalysisResponse, GenderAnalysisResponse
 from .sdg_analyzer import SdgAnalyzer
+from .gender_analyzer import GenderAnalyzer
 import PyPDF2
 import time
 
@@ -25,6 +26,9 @@ app.add_middleware(
 
 # Initialize the SDG analyzer
 sdg_analyzer = SdgAnalyzer()
+
+# Initialize the Gender analyzer
+gender_analyzer = GenderAnalyzer()
 
 @app.get("/")
 async def read_root():
@@ -219,4 +223,187 @@ async def analyze_text_content(request: dict):
         raise HTTPException(
             status_code=500,
             detail=error_message
-        ) 
+        )
+
+@app.post("/gender/analyze", response_model=GenderAnalysisResponse)
+async def analyze_gender_document(file: UploadFile = File(...), target_beneficiaries: str = ""):
+    """
+    Analyze a PDF document to assess gender impacts and equality focus
+    """
+    # Check if file is PDF
+    if not file.filename.lower().endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported")
+    
+    # Check file content type for additional validation
+    if not file.content_type or 'application/pdf' not in file.content_type.lower():
+        print(f"Warning: File has non-PDF content type: {file.content_type}", file=sys.stderr)
+    
+    # Generate a unique temp file path to avoid conflicts
+    temp_file_path = f"temp_{int(time.time())}_{file.filename.replace(' ', '_')}"
+    
+    try:
+        # Save file temporarily
+        with open(temp_file_path, "wb") as f:
+            try:
+                # Read content in chunks to handle large files
+                content = await file.read()
+                if not content:
+                    raise HTTPException(status_code=400, detail="Uploaded file is empty")
+                f.write(content)
+            except Exception as e:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Failed to read uploaded file: {str(e)}"
+                )
+        
+        # Check if file was written successfully
+        if not os.path.exists(temp_file_path) or os.path.getsize(temp_file_path) == 0:
+            raise HTTPException(
+                status_code=500, 
+                detail="Failed to save uploaded file"
+            )
+        
+        try:
+            # Analyze the document using our Gender analyzer
+            results = gender_analyzer.analyze_document(temp_file_path, target_beneficiaries)
+            
+            # Validate results before returning
+            if not isinstance(results, GenderAnalysisResponse):
+                raise ValueError("Invalid analysis results format")
+            
+            # Remove temporary file
+            if os.path.exists(temp_file_path):
+                try:
+                    os.remove(temp_file_path)
+                except Exception as e:
+                    print(f"Warning: Failed to delete temp file {temp_file_path}: {str(e)}", file=sys.stderr)
+            
+            return results
+        
+        except (PyPDF2.errors.PdfReadError, PyPDF2.errors.EmptyFileError) as pdf_err:
+            # Handle specific PDF-related errors
+            error_message = f"Error reading PDF file: {str(pdf_err)}"
+            print(error_message, file=sys.stderr)
+            if os.path.exists(temp_file_path):
+                try:
+                    os.remove(temp_file_path)
+                except:
+                    pass
+            raise HTTPException(status_code=400, detail=error_message)
+            
+        except ValueError as val_err:
+            # Handle validation errors from our analyzer
+            error_message = str(val_err)
+            print(f"Validation error: {error_message}", file=sys.stderr)
+            if os.path.exists(temp_file_path):
+                try:
+                    os.remove(temp_file_path)
+                except:
+                    pass
+            raise HTTPException(status_code=400, detail=error_message)
+            
+        except Exception as e:
+            # Handle other analysis errors
+            error_message = f"Error analyzing document: {str(e)}"
+            print(error_message, file=sys.stderr)
+            if os.path.exists(temp_file_path):
+                try:
+                    os.remove(temp_file_path)
+                except:
+                    pass
+            raise HTTPException(status_code=500, detail=error_message)
+    
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    
+    except Exception as e:
+        # Clean up temp file if it exists
+        if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
+            try:
+                os.remove(temp_file_path)
+            except:
+                pass
+        
+        # Log the error
+        error_message = f"Error processing uploaded file: {str(e)}"
+        print(error_message, file=sys.stderr)
+        
+        # Return error response
+        raise HTTPException(
+            status_code=500,
+            detail=error_message
+        )
+
+@app.post("/gender/analyze-text", response_model=GenderAnalysisResponse)
+async def analyze_gender_text(request: dict):
+    """
+    Analyze text content to assess gender impacts and equality focus
+    """
+    # Validate input
+    if not request.get("text"):
+        raise HTTPException(status_code=400, detail="Text content is required")
+    
+    text_content = request.get("text")
+    target_beneficiaries = request.get("target_beneficiaries", "")
+    
+    # Generate a unique temp file path to avoid conflicts
+    temp_file_path = f"temp_text_{int(time.time())}.txt"
+    
+    try:
+        # Save text to a temporary file
+        with open(temp_file_path, "w", encoding="utf-8") as f:
+            f.write(text_content)
+        
+        # Check if file was written successfully
+        if not os.path.exists(temp_file_path) or os.path.getsize(temp_file_path) == 0:
+            raise HTTPException(
+                status_code=500, 
+                detail="Failed to save text content for analysis"
+            )
+        
+        try:
+            # Analyze the text using our Gender analyzer
+            results = gender_analyzer.analyze_document(temp_file_path, target_beneficiaries, is_text=True)
+            
+            # Remove temporary file
+            if os.path.exists(temp_file_path):
+                try:
+                    os.remove(temp_file_path)
+                except Exception as e:
+                    print(f"Warning: Failed to delete temp file {temp_file_path}: {str(e)}", file=sys.stderr)
+            
+            return results
+            
+        except Exception as e:
+            # Handle analysis errors
+            error_message = f"Error analyzing text content: {str(e)}"
+            print(error_message, file=sys.stderr)
+            if os.path.exists(temp_file_path):
+                try:
+                    os.remove(temp_file_path)
+                except:
+                    pass
+            raise HTTPException(status_code=500, detail=error_message)
+    
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    
+    except Exception as e:
+        # Clean up temp file if it exists
+        if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
+            try:
+                os.remove(temp_file_path)
+            except:
+                pass
+        
+        # Log the error
+        error_message = f"Error processing text content: {str(e)}"
+        print(error_message, file=sys.stderr)
+        
+        # Return error response
+        raise HTTPException(
+            status_code=500,
+            detail=error_message
+        )

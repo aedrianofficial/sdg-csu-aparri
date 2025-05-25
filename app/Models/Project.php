@@ -13,7 +13,6 @@ class Project extends Model
     public const Draft = 0;
 
     protected $fillable = [
-        'sdg_sub_category_id',
         'projectimg_id',
         'user_id',
         'review_status_id',

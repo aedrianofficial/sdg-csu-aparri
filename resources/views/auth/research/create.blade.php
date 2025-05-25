@@ -71,10 +71,11 @@
                                 <!-- Target Beneficiaries Field -->
                                 <div class="mb-3">
                                     <label for="target_beneficiaries" class="form-label">Target Beneficiaries</label>
-                                    <textarea class="form-control" id="target_beneficiaries" name="target_beneficiaries" 
-                                        rows="3" placeholder="Describe the target beneficiaries of your research (e.g., women, men, children, elderly, etc.)">{{ old('target_beneficiaries') }}</textarea>
+                                    <textarea class="form-control" id="target_beneficiaries" name="target_beneficiaries" rows="3"
+                                        placeholder="Describe the target beneficiaries of your research (e.g., women, men, children, elderly, etc.)">{{ old('target_beneficiaries') }}</textarea>
                                     <div class="form-text text-muted">
-                                        <i class="fas fa-info-circle"></i> Specify who will benefit from this research. This information helps classify gender impact.
+                                        <i class="fas fa-info-circle"></i> Specify who will benefit from this research. This
+                                        information helps classify gender impact.
                                     </div>
                                 </div>
 
@@ -90,7 +91,7 @@
                                                 <p class="mb-0 fs-5">Analyzing gender impact...</p>
                                             </div>
                                             <div id="gender-analysis-content" class="d-none">
-                                                
+
                                                 <div class="row mb-3">
                                                     <div class="col-md-6">
                                                         <div class="card mb-3">
@@ -105,7 +106,8 @@
                                                     <div class="col-md-6">
                                                         <div class="card mb-3">
                                                             <div class="card-body">
-                                                                <h6 class="card-subtitle mb-2 text-muted">Gender Equality Focus</h6>
+                                                                <h6 class="card-subtitle mb-2 text-muted">Gender Equality
+                                                                    Focus</h6>
                                                                 <div id="gender-equality-focus">
                                                                     <!-- Will be populated by JS -->
                                                                 </div>
@@ -120,23 +122,24 @@
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Add manual fallback button -->
                                 <div class="mb-3" id="manual-selection-fallback">
                                     <button type="button" class="btn btn-outline-primary" id="show-manual-selection-top">
                                         <i class="fas fa-edit"></i> Use Manual SDG Selection Instead
                                     </button>
                                     <div class="form-text text-muted mt-1">
-                                        <i class="fas fa-info-circle"></i> If you prefer, you can select SDGs manually without using AI analysis.
+                                        <i class="fas fa-info-circle"></i> If you prefer, you can select SDGs manually
+                                        without using AI analysis.
                                     </div>
                                 </div>
-                                
+
                                 <!-- Sustainable Development Goals (SDG) -->
                                 <div class="mb-3" id="manual-sdg-selection">
                                     <label for="sdg" class="form-label">Sustainable Development Goals (Click to select
                                         SDGs)</label>
                                     <select name="sdg[]" id="sdg" class="form-select select2-multiple"
-                                        multiple="multiple" required>
+                                        multiple="multiple" required data-placeholder="Select relevant SDGs...">
                                         @foreach ($sdgs as $sdg)
                                             <option @selected(old('sdg') == $sdg->id) value="{{ $sdg->id }}">
                                                 {{ $sdg->name }}
@@ -157,25 +160,28 @@
                                                 <p class="mb-0 fs-5">Analyzing research for SDG relevance...</p>
                                             </div>
                                             <div id="ai-detection-content" class="d-none">
-                                                <h5 class="card-title">The AI has analyzed your research and detected the following:</h5>
+                                                <h5 class="card-title">The AI has analyzed your research and detected the
+                                                    following:</h5>
                                                 <h6 class="mt-3 mb-2">Detected Sustainable Development Goals:</h6>
                                                 <div id="detected-sdgs-list" class="mb-3"></div>
                                                 <h6 class="mt-4 mb-2">Detected SDG Targets:</h6>
                                                 <div id="detected-subcategories-list"></div>
                                                 <div id="selected-subcategories-container" class="d-none"></div>
                                                 <div class="mt-4">
-                                                    <button type="button" class="btn btn-sm btn-outline-primary" id="show-manual-selection">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                                        id="show-manual-selection">
                                                         <i class="fas fa-edit"></i> Modify AI Selection
                                                     </button>
                                                     <p class="form-text text-muted mt-2">
-                                                        <i class="fas fa-info-circle"></i> AI-detected targets will be submitted. Click the button above to manually adjust if needed.
+                                                        <i class="fas fa-info-circle"></i> AI-detected targets will be
+                                                        submitted. Click the button above to manually adjust if needed.
                                                     </p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- File Upload -->
                                 <div class="mb-3">
                                     <label for="file_link" class="form-label">Note: (If you have the full version of the
@@ -231,8 +237,7 @@
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="submitReviewModalLabel">Confirm Submission
-                                                </h5>
+                                                <h5 class="modal-title" id="submitReviewModalLabel">Submit for Review</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                     aria-label="Close"></button>
                                             </div>
@@ -255,7 +260,7 @@
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="publishModalLabel">Confirm Publish</h5>
+                                                <h5 class="modal-title" id="publishModalLabel">Publish Research</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                     aria-label="Close"></button>
                                             </div>
@@ -366,29 +371,29 @@
             // Initialize flags for AI analysis
             window.genderAnalysisTimer = null;
             window.sdgAnalysisTimer = null;
-            
+
             // Handle file upload change for both gender analysis and SDG detection
             $('#file').on('change', function() {
                 if (this.files && this.files[0]) {
                     var file = this.files[0];
-                    
+
                     // Get target beneficiaries text
                     var targetBeneficiaries = $('#target_beneficiaries').val();
-                    
+
                     // Show the gender analysis panel
                     $('#gender-analysis-results').removeClass('d-none');
                     $('#gender-loading-indicator').removeClass('d-none');
                     $('#gender-analysis-content').addClass('d-none');
-                    
+
                     // Create FormData object for gender analysis
                     var formData = new FormData();
                     formData.append('file', file);
                     formData.append('target_beneficiaries', targetBeneficiaries);
                     formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
-                    
-                    // Analyze gender impact
+
+                    // Analyze gender impact using the new AI Engine endpoint
                     $.ajax({
-                        url: '{{ route('research.analyze-gender') }}',
+                        url: '/api/gender-ai/analyze-file',
                         type: 'POST',
                         data: formData,
                         processData: false,
@@ -401,7 +406,7 @@
                                 // Hide loading indicator and show content
                                 $('#gender-loading-indicator').addClass('d-none');
                                 $('#gender-analysis-content').removeClass('d-none');
-                                
+
                                 // Display gender analysis results
                                 displayGenderResults(response.data);
                             } else {
@@ -409,41 +414,28 @@
                                 $('#gender-loading-indicator').addClass('d-none');
                                 $('#gender-analysis-content').removeClass('d-none');
                                 $('#gender-notes').html(
-                                    '<div class="alert alert-danger">' +
-                                    '<h5><i class="fas fa-exclamation-triangle me-2"></i>Analysis Error</h5>' +
-                                    '<p>' + (response.message || 'Error analyzing gender impact') + '</p>' +
-                                    '</div>'
+                                    '<div class="alert alert-danger">Error analyzing gender impact: ' +
+                                    response.message + '</div>'
                                 );
                             }
                         },
                         error: function(xhr) {
-                            console.log("Gender analysis error: " + xhr.status + " - " + xhr.statusText);
-                            
-                            // Hide loading indicator and show error
-                            $('#gender-loading-indicator').addClass('d-none');
-                            $('#gender-analysis-content').removeClass('d-none');
-                            $('#gender-notes').html(
-                                '<div class="alert alert-warning">' +
-                                '<h5><i class="fas fa-exclamation-triangle me-2"></i>Gender Analysis Error</h5>' +
-                                '<p>There was a problem analyzing gender impact. The service may be unavailable or your content may need more information.</p>' +
-                                '<p class="small text-muted">Error details: ' + xhr.status + ' ' + xhr.statusText + '</p>' +
-                                '</div>'
-                            );
+                            displayGenderAnalysisError();
                         }
                     });
-                    
+
                     // Start the SDG analysis
                     analyzeForSdgs(file);
                 }
             });
-            
+
             // Update gender analysis when target beneficiaries field changes
             $('#target_beneficiaries').on('input', function() {
                 var file = $('#file')[0].files && $('#file')[0].files[0];
                 var targetBeneficiaries = $(this).val();
                 var title = $('#title').val();
                 var description = $('#description').val();
-                
+
                 // If we have content to analyze
                 if ((file || (title && description)) && targetBeneficiaries) {
                     clearTimeout(window.genderAnalysisTimer);
@@ -452,92 +444,82 @@
                         $('#gender-analysis-results').removeClass('d-none');
                         $('#gender-loading-indicator').removeClass('d-none');
                         $('#gender-analysis-content').addClass('d-none');
-                        
+
                         if (file) {
                             // Analyze with file upload
                             var formData = new FormData();
                             formData.append('file', file);
                             formData.append('target_beneficiaries', targetBeneficiaries);
                             formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
-                            
+
                             $.ajax({
-                                url: '{{ route('research.analyze-gender') }}',
+                                url: '/api/gender-ai/analyze-file',
                                 type: 'POST',
                                 data: formData,
                                 processData: false,
                                 contentType: false,
                                 headers: {
-                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr(
+                                        'content')
                                 },
                                 success: function(response) {
                                     if (response.success) {
                                         // Hide loading indicator and show content
-                                        $('#gender-loading-indicator').addClass('d-none');
-                                        $('#gender-analysis-content').removeClass('d-none');
+                                        $('#gender-loading-indicator').addClass(
+                                            'd-none');
+                                        $('#gender-analysis-content').removeClass(
+                                            'd-none');
                                         displayGenderResults(response.data);
                                     } else {
                                         // Show error message
-                                        $('#gender-loading-indicator').addClass('d-none');
-                                        $('#gender-analysis-content').removeClass('d-none');
+                                        $('#gender-loading-indicator').addClass(
+                                            'd-none');
+                                        $('#gender-analysis-content').removeClass(
+                                            'd-none');
                                         $('#gender-notes').html(
-                                            '<div class="alert alert-danger">' +
-                                            '<h5><i class="fas fa-exclamation-triangle me-2"></i>Analysis Error</h5>' +
-                                            '<p>' + (response.message || 'Error analyzing gender impact') + '</p>' +
-                                            '</div>'
+                                            '<div class="alert alert-danger">Error analyzing gender impact: ' +
+                                            response.message + '</div>'
                                         );
                                     }
                                 },
                                 error: function(xhr) {
-                                    // Hide loading indicator and show error
-                                    $('#gender-loading-indicator').addClass('d-none');
-                                    $('#gender-analysis-content').removeClass('d-none');
-                                    $('#gender-notes').html(
-                                        '<div class="alert alert-warning">' +
-                                        '<h5><i class="fas fa-exclamation-triangle me-2"></i>Gender Analysis Error</h5>' +
-                                        '<p>There was a problem analyzing gender impact.</p>' +
-                                        '<p class="small text-muted">Error details: ' + xhr.status + ' ' + xhr.statusText + '</p>' +
-                                        '</div>'
-                                    );
+                                    displayGenderAnalysisError();
                                 }
                             });
                         } else if (title && description) {
                             // Analyze with just text
                             $.ajax({
-                                url: '{{ route('research.analyze-gender-text') }}',
+                                url: '/api/gender-ai/analyze-text',
                                 type: 'POST',
                                 data: {
-                                    title: title,
-                                    description: description, 
+                                    text: title,
                                     target_beneficiaries: targetBeneficiaries,
                                     _token: $('meta[name="csrf-token"]').attr('content')
                                 },
                                 success: function(response) {
+                                    // Hide loading indicator
+                                    $('#gender-loading-indicator').addClass('d-none');
+                                    $('#gender-analysis-content').removeClass('d-none');
+
                                     if (response.success) {
-                                        // Hide loading indicator and show content
-                                        $('#gender-loading-indicator').addClass('d-none');
-                                        $('#gender-analysis-content').removeClass('d-none');
                                         displayGenderResults(response.data);
                                     } else {
-                                        // Show error message
-                                        $('#gender-loading-indicator').addClass('d-none');
-                                        $('#gender-analysis-content').removeClass('d-none');
                                         $('#gender-notes').html(
-                                            '<div class="alert alert-danger">' +
-                                            '<h5><i class="fas fa-exclamation-triangle me-2"></i>Analysis Error</h5>' +
-                                            '<p>' + (response.message || 'Error analyzing gender impact') + '</p>' +
-                                            '</div>'
+                                            '<div class="alert alert-danger">Error analyzing gender impact: ' +
+                                            response.message + '</div>'
                                         );
                                     }
                                 },
                                 error: function(xhr) {
-                                    // Hide loading indicator and show error
+                                    // Hide loading indicator
                                     $('#gender-loading-indicator').addClass('d-none');
                                     $('#gender-analysis-content').removeClass('d-none');
+                                    
                                     $('#gender-notes').html(
                                         '<div class="alert alert-warning">' +
                                         '<h5><i class="fas fa-exclamation-triangle me-2"></i>Gender Analysis Error</h5>' +
-                                        '<p>There was a problem analyzing gender impact.</p>' +
-                                        '<p class="small text-muted">Error details: ' + xhr.status + ' ' + xhr.statusText + '</p>' +
+                                        '<p>There was a problem analyzing gender impact. The AI service may be unavailable.</p>' +
+                                        '<p>Please fill in the Target Beneficiaries field manually.</p>' +
                                         '</div>'
                                     );
                                 }
@@ -546,96 +528,111 @@
                     }, 1000);
                 }
             });
-            
+
             // Display gender analysis results
             function displayGenderResults(data) {
                 // Beneficiaries section
                 var beneficiariesHtml = '<ul class="list-group">';
-                
+
                 if (data.benefits_women) {
-                    beneficiariesHtml += '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Benefits Women/Girls';
+                    beneficiariesHtml +=
+                        '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Benefits Women/Girls';
                     if (data.women_count !== null) {
-                        beneficiariesHtml += ' <span class="badge bg-info">' + data.women_count + ' mentioned</span>';
+                        beneficiariesHtml += ' <span class="badge bg-info">' + data.women_count +
+                            ' mentioned</span>';
                     }
                     beneficiariesHtml += '</li>';
                 } else {
-                    beneficiariesHtml += '<li class="list-group-item list-group-item-light"><i class="fas fa-times-circle me-2"></i> Does Not Specifically Target Women/Girls</li>';
+                    beneficiariesHtml +=
+                        '<li class="list-group-item list-group-item-light"><i class="fas fa-times-circle me-2"></i> Does Not Specifically Target Women/Girls</li>';
                 }
-                
+
                 if (data.benefits_men) {
-                    beneficiariesHtml += '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Benefits Men/Boys';
+                    beneficiariesHtml +=
+                        '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Benefits Men/Boys';
                     if (data.men_count !== null) {
                         beneficiariesHtml += ' <span class="badge bg-info">' + data.men_count + ' mentioned</span>';
                     }
                     beneficiariesHtml += '</li>';
                 } else {
-                    beneficiariesHtml += '<li class="list-group-item list-group-item-light"><i class="fas fa-times-circle me-2"></i> Does Not Specifically Target Men/Boys</li>';
+                    beneficiariesHtml +=
+                        '<li class="list-group-item list-group-item-light"><i class="fas fa-times-circle me-2"></i> Does Not Specifically Target Men/Boys</li>';
                 }
-                
+
                 if (data.benefits_all) {
-                    beneficiariesHtml += '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Benefits All Genders</li>';
+                    beneficiariesHtml +=
+                        '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Benefits All Genders</li>';
                 }
-                
+
                 beneficiariesHtml += '</ul>';
-                
+
                 $('#gender-beneficiaries').html(beneficiariesHtml);
-                
+
                 // Gender equality focus
                 var equalityHtml = '<ul class="list-group">';
-                
+
                 if (data.addresses_gender_inequality) {
-                    equalityHtml += '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Addresses Gender Inequality</li>';
+                    equalityHtml +=
+                        '<li class="list-group-item list-group-item-success"><i class="fas fa-check-circle me-2"></i> Addresses Gender Inequality</li>';
                 } else {
-                    equalityHtml += '<li class="list-group-item list-group-item-light"><i class="fas fa-info-circle me-2"></i> No Explicit Focus on Gender Inequality</li>';
+                    equalityHtml +=
+                        '<li class="list-group-item list-group-item-light"><i class="fas fa-info-circle me-2"></i> No Explicit Focus on Gender Inequality</li>';
                 }
-                
+
                 equalityHtml += '</ul>';
-                
+
                 $('#gender-equality-focus').html(equalityHtml);
-                
+
                 // Gender notes
                 if (data.gender_notes) {
                     $('#gender-notes').html('<i class="fas fa-info-circle me-2"></i> ' + data.gender_notes);
                 } else {
-                    $('#gender-notes').html('<i class="fas fa-info-circle me-2"></i> No additional gender impact notes available.');
+                    $('#gender-notes').html(
+                        '<i class="fas fa-info-circle me-2"></i> No additional gender impact notes available.');
                 }
-                
+
                 // Create hidden inputs to store the gender impact data
                 var hiddenInputs = '';
-                hiddenInputs += '<input type="hidden" name="gender_benefits_men" value="' + (data.benefits_men ? '1' : '0') + '">';
-                hiddenInputs += '<input type="hidden" name="gender_benefits_women" value="' + (data.benefits_women ? '1' : '0') + '">';
-                hiddenInputs += '<input type="hidden" name="gender_benefits_all" value="' + (data.benefits_all ? '1' : '0') + '">';
-                hiddenInputs += '<input type="hidden" name="gender_addresses_inequality" value="' + (data.addresses_gender_inequality ? '1' : '0') + '">';
-                
+                hiddenInputs += '<input type="hidden" name="gender_benefits_men" value="' + (data.benefits_men ?
+                    '1' : '0') + '">';
+                hiddenInputs += '<input type="hidden" name="gender_benefits_women" value="' + (data.benefits_women ?
+                    '1' : '0') + '">';
+                hiddenInputs += '<input type="hidden" name="gender_benefits_all" value="' + (data.benefits_all ?
+                    '1' : '0') + '">';
+                hiddenInputs += '<input type="hidden" name="gender_addresses_inequality" value="' + (data
+                    .addresses_gender_inequality ? '1' : '0') + '">';
+
                 if (data.men_count !== null) {
                     hiddenInputs += '<input type="hidden" name="gender_men_count" value="' + data.men_count + '">';
                 }
-                
+
                 if (data.women_count !== null) {
-                    hiddenInputs += '<input type="hidden" name="gender_women_count" value="' + data.women_count + '">';
+                    hiddenInputs += '<input type="hidden" name="gender_women_count" value="' + data.women_count +
+                        '">';
                 }
-                
-                hiddenInputs += '<input type="hidden" name="gender_notes" value="' + (data.gender_notes || '') + '">';
-                
+
+                hiddenInputs += '<input type="hidden" name="gender_notes" value="' + (data.gender_notes || '') +
+                    '">';
+
                 $('#gender-notes').append(hiddenInputs);
             }
-            
+
             // Function to analyze file for SDGs
             function analyzeForSdgs(file) {
                 // Show the AI detection panel
                 $('#ai-detection-results').removeClass('d-none');
                 $('#ai-loading-indicator').removeClass('d-none');
                 $('#ai-detection-content').addClass('d-none');
-                
+
                 // Hide the manual selection initially
                 $('#manual-sdg-selection').addClass('d-none');
                 $('#sub-categories').addClass('d-none');
-                
+
                 // Create FormData for SDG analysis
                 var formData = new FormData();
                 formData.append('file', file);
                 formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
-                
+
                 // Send to API for analysis
                 $.ajax({
                     url: '/api/sdg-ai/analyze',
@@ -648,7 +645,7 @@
                             // Hide loading indicator and show content
                             $('#ai-loading-indicator').addClass('d-none');
                             $('#ai-detection-content').removeClass('d-none');
-                            
+
                             // Display results
                             displayAiResults(response.data);
                         } else {
@@ -662,7 +659,7 @@
                                 '<button class="btn btn-primary mt-2" id="show-manual-selection-error">Switch to Manual Selection</button>' +
                                 '</div>'
                             );
-                            
+
                             // Add event handler for the manual selection button
                             $('#show-manual-selection-error').on('click', function() {
                                 switchToManualMode();
@@ -705,7 +702,8 @@
                                 '<div class="alert alert-warning">' +
                                 '<h5><i class="fas fa-exclamation-triangle me-2"></i>Server Error</h5>' +
                                 '<p>There was a problem with the AI service. Please use manual selection instead.</p>' +
-                                '<p class="small text-muted">Error details: ' + xhr.status + ' ' + xhr.statusText + '</p>' +
+                                '<p class="small text-muted">Error details: ' + xhr.status + ' ' +
+                                xhr.statusText + '</p>' +
                                 '<button class="btn btn-primary mt-2" id="show-manual-selection-error">Switch to Manual Selection</button>' +
                                 '</div>'
                             );
@@ -715,7 +713,8 @@
                                 '<div class="alert alert-warning">' +
                                 '<h5><i class="fas fa-exclamation-triangle me-2"></i>Analysis Error</h5>' +
                                 '<p>There was a problem analyzing your research. Please use manual selection.</p>' +
-                                '<p class="small text-muted">Error details: ' + xhr.status + ' ' + xhr.statusText + '</p>' +
+                                '<p class="small text-muted">Error details: ' + xhr.status + ' ' +
+                                xhr.statusText + '</p>' +
                                 '<button class="btn btn-primary mt-2" id="show-manual-selection-error">Switch to Manual Selection</button>' +
                                 '</div>'
                             );
@@ -728,50 +727,51 @@
                     }
                 });
             }
-            
+
             // Function to switch to manual SDG selection mode
             function switchToManualMode() {
                 // Hide the AI detection panel
                 $('#ai-detection-results').addClass('d-none');
-                
+
                 // Store any AI-detected subcategory IDs that might be available
                 var aiDetectedSubcategoryIds = [];
                 $('.ai-detected-subcategory-input').each(function() {
                     aiDetectedSubcategoryIds.push($(this).val());
                 });
                 window.aiDetectedSubcategoryIds = aiDetectedSubcategoryIds;
-                
+
                 // Show the manual selection options
                 $('#manual-sdg-selection').removeClass('d-none');
                 $('#sub-categories').removeClass('d-none');
-                
+
                 // Update button text
-                $('#show-manual-selection-top').html('<i class="fas fa-check-circle"></i> Manual Selection Mode Active');
+                $('#show-manual-selection-top').html(
+                    '<i class="fas fa-check-circle"></i> Manual Selection Mode Active');
                 $('#show-manual-selection-top').addClass('btn-success').removeClass('btn-outline-primary');
                 $('#show-manual-selection-top').prop('disabled', true);
-                
+
                 // Trigger change to load subcategories with AI selections pre-checked
                 var selectedSdgs = $('#sdg').val();
                 if (selectedSdgs && selectedSdgs.length > 0) {
                     $('#sdg').trigger('change');
                 }
             }
-            
+
             // Function to display AI results
             function displayAiResults(results) {
                 // Clear previous results
                 var sdgsList = $('#detected-sdgs-list');
                 var subcategoriesList = $('#detected-subcategories-list');
-                
+
                 sdgsList.empty();
                 subcategoriesList.empty();
-                
+
                 // Clear any existing hidden inputs to avoid duplicates
                 $('.ai-detected-subcategory-input').remove();
-                
+
                 // Create a Set to track unique subcategory IDs
                 var addedSubcategoryIds = new Set();
-                
+
                 // Display detected SDGs
                 if (results.sdgs && results.sdgs.length > 0) {
                     var sdgHtml = '<div class="list-group">';
@@ -783,34 +783,39 @@
                         } else if (sdg.confidence < 0.4) {
                             confidenceClass = 'bg-danger';
                         }
-                        
+
                         // Format confidence as percentage
                         var confidencePercent = Math.round(sdg.confidence * 100) + '%';
-                        
-                        sdgHtml += '<div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">';
-                        sdgHtml += '<div><i class="fas fa-check-circle text-success me-2"></i>' + sdg.name + '</div>';
-                        sdgHtml += '<div><span class="badge ' + confidenceClass + ' rounded-pill me-2">' + confidencePercent + '</span>';
-                        sdgHtml += '<span class="badge bg-primary rounded-pill">SDG ' + sdg.id + '</span></div>';
+
+                        sdgHtml +=
+                            '<div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">';
+                        sdgHtml += '<div><i class="fas fa-check-circle text-success me-2"></i>' + sdg.name +
+                            '</div>';
+                        sdgHtml += '<div><span class="badge ' + confidenceClass + ' rounded-pill me-2">' +
+                            confidencePercent + '</span>';
+                        sdgHtml += '<span class="badge bg-primary rounded-pill">SDG ' + sdg.id +
+                            '</span></div>';
                         sdgHtml += '</div>';
-                        
+
                         // Automatically select the SDG in the select element
                         $('#sdg option[value="' + sdg.id + '"]').prop('selected', true);
                     });
                     sdgHtml += '</div>';
-                    
+
                     // Add a helpful message
                     sdgHtml += '<div class="mt-3 alert alert-success">';
-                    sdgHtml += '<i class="fas fa-info-circle me-2"></i>The SDG AI has analyzed your research and found ';
+                    sdgHtml +=
+                        '<i class="fas fa-info-circle me-2"></i>The SDG AI has analyzed your research and found ';
                     sdgHtml += results.sdgs.length + ' relevant Sustainable Development Goals. ';
-                    
+
                     if (results.sdgs.length > 1) {
                         sdgHtml += 'SDGs are listed in order of relevance.';
                     }
-                    
+
                     sdgHtml += '</div>';
-                    
+
                     sdgsList.html(sdgHtml);
-                    
+
                     // Update Select2 to reflect the changes but don't show the sections
                     $('#sdg').trigger('change.select2');
                 } else {
@@ -818,7 +823,7 @@
                         '<div class="alert alert-warning">No SDGs were detected in this document. Please select SDGs manually.</div>'
                     );
                 }
-                
+
                 // Display detected subcategories
                 if (results.subcategories && results.subcategories.length > 0) {
                     var subHtml = '<div class="list-group">';
@@ -827,10 +832,10 @@
                         if (addedSubcategoryIds.has(sub.id)) {
                             return;
                         }
-                        
+
                         // Add to tracking set
                         addedSubcategoryIds.add(sub.id);
-                        
+
                         // Calculate confidence class
                         var confidenceClass = 'bg-success';
                         if (sub.confidence < 0.7) {
@@ -838,46 +843,51 @@
                         } else if (sub.confidence < 0.4) {
                             confidenceClass = 'bg-danger';
                         }
-                        
+
                         // Format confidence as percentage
-                        var confidencePercent = sub.confidence ? Math.round(sub.confidence * 100) + '%' : 'N/A';
-                        
+                        var confidencePercent = sub.confidence ? Math.round(sub.confidence * 100) + '%' :
+                            'N/A';
+
                         subHtml += '<div class="list-group-item list-group-item-action">';
                         subHtml += '<div class="d-flex w-100 justify-content-between mb-1">';
-                        subHtml += '<h6 class="mb-1"><i class="fas fa-bullseye text-info me-2"></i>Target ' + sub.name + '</h6>';
-                        subHtml += '<span class="badge ' + confidenceClass + ' rounded-pill">' + confidencePercent + '</span>';
+                        subHtml +=
+                            '<h6 class="mb-1"><i class="fas fa-bullseye text-info me-2"></i>Target ' + sub
+                            .name + '</h6>';
+                        subHtml += '<span class="badge ' + confidenceClass + ' rounded-pill">' +
+                            confidencePercent + '</span>';
                         subHtml += '</div>';
                         subHtml += '<p class="mb-1">' + sub.description + '</p>';
                         // Add hidden input with class for easy identification/removal
-                        subHtml += '<input type="hidden" name="sdg_sub_category[]" value="' + sub.id + '" class="ai-detected-subcategory-input">';
+                        subHtml += '<input type="hidden" name="sdg_sub_category[]" value="' + sub.id +
+                            '" class="ai-detected-subcategory-input">';
                         subHtml += '</div>';
                     });
                     subHtml += '</div>';
-                    
+
                     // Add helpful message
                     subHtml += '<div class="mt-3 alert alert-info">';
                     subHtml += '<i class="fas fa-info-circle me-2"></i>The AI has detected ';
                     subHtml += results.subcategories.length + ' relevant SDG targets. ';
                     subHtml += 'You can modify these selections using the button below.';
                     subHtml += '</div>';
-                    
+
                     subcategoriesList.html(subHtml);
-                    
+
                     // Also add checkboxes to the hidden manual selection area
                     $('#sub-category-checkboxes').empty(); // Clear existing checkboxes
-                    
+
                     // Reset the set before using it again for checkboxes
                     addedSubcategoryIds.clear();
-                    
+
                     results.subcategories.forEach(function(sub) {
                         // Skip duplicates
                         if (addedSubcategoryIds.has(sub.id)) {
                             return;
                         }
-                        
+
                         // Add to tracking set
                         addedSubcategoryIds.add(sub.id);
-                        
+
                         $('#sub-category-checkboxes').append(
                             '<div class="form-check">' +
                             '<input class="form-check-input" type="checkbox" name="sdg_sub_category[]" value="' +
@@ -894,15 +904,15 @@
                     );
                 }
             }
-            
+
             // Show/hide manual selection when requested
             $('#show-manual-selection').on('click', function() {
                 var isHidden = $('#manual-sdg-selection').hasClass('d-none');
-                
+
                 if (isHidden) {
                     // Show manual selection
                     switchToManualMode();
-                    
+
                     // Change button text
                     $(this).html('<i class="fas fa-robot"></i> Return to AI Selection');
                 } else {
@@ -910,17 +920,17 @@
                     $('#manual-sdg-selection').addClass('d-none');
                     $('#sub-categories').addClass('d-none');
                     $('#ai-detection-results').removeClass('d-none');
-                    
+
                     // Change button text
                     $(this).html('<i class="fas fa-edit"></i> Modify AI Selection');
                 }
             });
-            
+
             // Handle the manual selection fallback button
             $('#show-manual-selection-top').on('click', function() {
                 switchToManualMode();
             });
-            
+
             // Handle SDG select change for subcategories
             $('#sdg').on('change', function() {
                 var selectedSdgs = $(this).val();
@@ -937,18 +947,22 @@
                                 data.forEach(function(subCategory) {
                                     // Check if this subcategory was previously selected by AI
                                     var isChecked = '';
-                                    
-                                    if (window.aiDetectedSubcategoryIds && 
-                                        window.aiDetectedSubcategoryIds.includes(subCategory.id.toString())) {
+
+                                    if (window.aiDetectedSubcategoryIds &&
+                                        window.aiDetectedSubcategoryIds.includes(
+                                            subCategory.id.toString())) {
                                         isChecked = 'checked';
                                     }
-                                    
+
                                     $('#sub-category-checkboxes').append(
                                         '<div class="form-check">' +
                                         '<input class="form-check-input" type="checkbox" name="sdg_sub_category[]" value="' +
-                                        subCategory.id + '" id="subCategory' + subCategory.id + '" ' + isChecked + '>' +
-                                        '<label class="form-check-label" for="subCategory' + subCategory.id + '">' +
-                                        subCategory.sub_category_name + ': ' + subCategory.sub_category_description +
+                                        subCategory.id + '" id="subCategory' +
+                                        subCategory.id + '" ' + isChecked + '>' +
+                                        '<label class="form-check-label" for="subCategory' +
+                                        subCategory.id + '">' +
+                                        subCategory.sub_category_name + ': ' +
+                                        subCategory.sub_category_description +
                                         '</label>' +
                                         '</div>'
                                     );
@@ -957,7 +971,7 @@
                             } else {
                                 $('#sub-categories').hide();
                             }
-                            
+
                             // Clear the saved AI selections after applying them
                             window.aiDetectedSubcategoryIds = null;
                         },
@@ -970,6 +984,19 @@
                 } else {
                     $('#sub-categories').hide();
                 }
+            });
+
+            // Add submit handlers
+            document.getElementById('confirmSubmitReview').addEventListener('click', function() {
+                document.getElementById('submit_type').value = 'review';
+                document.getElementById('research-form').submit();
+                $('#submitReviewModal').modal('hide');
+            });
+
+            document.getElementById('confirmPublish').addEventListener('click', function() {
+                document.getElementById('submit_type').value = 'publish';
+                document.getElementById('research-form').submit();
+                $('#publishModal').modal('hide');
             });
         });
     </script>

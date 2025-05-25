@@ -210,53 +210,36 @@ class ProjectController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+      public function store(ProjectRequest $request)
     {
-        // Validate the request
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'sdg' => 'required|array',
-            'sdg.*' => 'exists:sdgs,id',
-            'status_id' => 'required|exists:project_research_statuses,id',
-            'description' => 'required',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'location_address' => 'required|string',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'target_beneficiaries' => 'nullable|string|max:500'
-        ]);
+        $user = Auth::user();
     
-        // Handle image upload
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $imageName = time().'.'.$image->extension();
-            $image->storeAs('projectimages', $imageName, 'public');
+        try {
+            DB::beginTransaction();
     
-            // Create new image record
-            $projectImg = Projectimg::create([
-                'image_path' => $imageName,
+            // Handle file upload as binary data
+            $file = $request->file('image');
+            $fileData = file_get_contents($file);
+    
+            // Create project image record with binary data
+            $projectimg = Projectimg::create([
+                'image' => $fileData, // Store binary data directly
             ]);
     
-            // Create new project record
+            // Create project record with review_status_id as 4 (Pending Review)
             $project = Project::create([
-                'sdg_sub_category_id' => $request->sdg_sub_category ? json_encode($request->sdg_sub_category) : null,
-                'projectimg_id' => $projectImg->id,
-                'user_id' => Auth::id(),
-                'review_status_id' => 1, // Set to "Pending" by default
-                'status_id' => $request->status_id,
                 'title' => $request->title,
                 'description' => $request->description,
-                'is_publish' => $request->is_publish,
+                'status_id' => $request->status_id, // Update to use status_id
+                'is_publish' => 0,
+                'user_id' => $user->id, // Set the user_id
+                'projectimg_id' => $projectimg->id,
+                'location_address' => $request->location_address,
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
-                'location_address' => $request->location_address,
-                'target_beneficiaries' => $request->target_beneficiaries,
+                'review_status_id' => 4 // Set review status to 'Pending Review'
             ]);
-    
-            // Attach SDGs to project
-            $project->sdg()->attach($request->sdg);
-            
-            // Create gender impact record if data is available
+     // Create gender impact record if data is available
             if ($request->has('gender_benefits_men') || $request->has('gender_benefits_women')) {
                 $genderImpact = new GenderImpact([
                     'project_id' => $project->id,
@@ -270,29 +253,86 @@ class ProjectController extends Controller
                 ]);
                 $genderImpact->save();
             }
-
-            // Check if contributor exist to activity log
-            $activityLog = new ActivityLog();
-            $activityLog->user_id = auth()->id();
-            $activityLog->contribution_type = 'Project';
-            $activityLog->contribution_id = $project->id;
-            $activityLog->save();
-    
-            // Create a notification for all admins
-            $admins = User::where('user_role_id', 1)->get();
-            foreach ($admins as $admin) {
-                $notification = new Notification();
-                $notification->user_id = $admin->id;
-                $notification->message = 'New Project/Program has been submitted by ' . auth()->user()->name;
-                $notification->save();
+            // Attach SDGs to the project
+            $project->sdg()->attach($request->sdg);
+            
+            // Attach selected sub-categories to the project, ensuring unique values
+            if ($request->has('sdg_sub_category')) {
+                $uniqueSubCategories = array_unique($request->sdg_sub_category);
+                $project->sdgSubCategories()->attach($uniqueSubCategories);
             }
-
-            // Redirect to index page
-            return redirect()->route('contributor.projects.index')->with('success', 'Projects/Programs created successfully');
+            
+            $sdgs = $project->sdg()->pluck('name')->implode(', ');
+            $publishStatus = $project->is_publish == 1 ? 'Published' : 'Draft';
+    
+            RoleAction::create([
+                'content_id' => $project->id,
+                'content_type' => Project::class,
+                'user_id' => $user->id,
+                'role' => 'contributor',
+                'action' => 'submitted for review',
+                'created_at' => now()
+            ]);
+    
+            $type = 'project';
+            $status = 'submitted for review';
+            $projectTitle = $project->title;
+    
+            // Retrieve all reviewers
+            $reviewers = User::where('role', 'reviewer')->get();
+    
+            // Create notifications for each reviewer
+            foreach ($reviewers as $reviewer) {
+                Notification::create([
+                    'user_id' => $reviewer->id,
+                    'notifiable_type' => User::class,
+                    'notifiable_id' => $reviewer->id,
+                    'type' => $type,
+                    'related_type' => Project::class,
+                    'related_id' => $project->id,
+                    'data' => json_encode([
+                        'message' => "A new $type titled '" . addslashes($projectTitle) . "' has been submitted for review.",
+                        'contributor' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
+                        'role' => 'contributor',
+                        'type' => $type,
+                        'status' => $status,
+                    ]),
+                    'created_at' => now(),
+                ]);
             }
     
-        return back()->with('error', 'Image upload required');
+            // Add Activity Log entry
+            ActivityLog::create([
+                'log_name' => 'Project Submission',
+                'description' => "Project titled '" . addslashes($projectTitle) . "' submitted for review by " . $user->first_name . ' ' . $user->last_name,
+                ' subject_type' => Project::class,
+                'subject_id' => $project->id,
+                'event' => 'submitted for review',
+                'causer_type' => User::class,
+                'causer_id' => $user->id,
+                'properties' => json_encode([
+                    'project_title' => $projectTitle,
+                    'description' => $project->description,
+                    'status_id' => $project->status_id, // Update to log status_id
+                    'is_publish' => $publishStatus,
+                    'sdgs' => $sdgs,
+                    'location_address' => $project->location_address,
+                    'latitude' => $project->latitude,
+                    'longitude' => $project->longitude,
+                ]),
+                'created_at' => now(),
+            ]);
+    
+            DB::commit();
+        } catch (\Exception $ex) {
+            DB::rollBack();
+            dd($ex->getMessage());
+        }
+    
+        session()->flash('alert-success', 'Project/Program Submitted Successfully!');
+        return to_route('contributor.projects.index');
     }
+    
 
     /**
      * Analyze gender impacts from the project title and description
@@ -327,7 +367,7 @@ class ProjectController extends Controller
                 'success' => false,
                 'message' => 'Error analyzing gender impact: ' . $e->getMessage()
             ], 500);
-    }
+        }
     }
 
     /**
@@ -390,39 +430,70 @@ class ProjectController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
-{
-        // Validate the request
-    $request->validate([
-            'title' => 'required|string|max:255',
-            'sdg' => 'required|array',
-            'sdg.*' => 'exists:sdgs,id',
-            'status_id' => 'required|exists:project_research_statuses,id',
-            'description' => 'required',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'location_address' => 'required|string',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'target_beneficiaries' => 'nullable|string|max:500'
-        ]);
 
-        // Find the project
-        $project = Project::findOrFail($id);
+       public function update(Request $request, Project $project)
+{
+    $request->validate([
+        'title' => ['required', 'min:2', 'max:255'],
+        'sdg' => ['required'],
+        'status_id' => ['required', 'exists:project_research_statuses,id'], // Update validation rule
+        'is_publish' => ['nullable'],
+        'image' => ['image', 'mimes:png,jpg,jpeg,gif,svg,webp'],
+        'description' => ['required', 'min:10'],
+        'review_status_id' => ['nullable'],
+        'location_address' => ['required', 'string', 'max:255'],
+        'latitude' => ['required', 'numeric', 'between:-90,90'],
+        'longitude' => ['required', 'numeric', 'between:-180,180'],
+    ]);
+
+    $user = Auth::user();
+
+    try {
+        DB::beginTransaction();
+
+        Log::info('About to handle image upload');
+
+        // Initialize the variable outside the conditional to avoid reference issues
+        $projectimg = $project->projectimg;
+
+        if ($request->hasFile('image')) {
+            // Get the uploaded file and convert it to binary data
+            $file = $request->file('image');
+            $fileData = file_get_contents($file); // Convert the file to binary data
+
+            if ($projectimg) {
+                // Update the existing project image with new binary data
+                $projectimg->update([
+                    'image' => $fileData, // Replace the binary data
+                ]);
+            } else {
+                // Create a new project image record with binary data
+                $projectimg = Projectimg::create([
+                    'image' => $fileData, // Store binary data
+                    'project_id' => $project->id, // Associate with the project
+                ]);
+            }
+            Log::info('Image upload handled successfully');
+        } else {
+            Log::info('No image file uploaded, proceeding without image');
+        }
+
+        $projectimgId = $projectimg ? $projectimg->id : $project->projectimg_id;
 
         // Update project details
         $project->update([
-            'sdg_sub_category_id' => $request->sdg_sub_category ? json_encode($request->sdg_sub_category) : null,
-            'status_id' => $request->status_id,
             'title' => $request->title,
             'description' => $request->description,
-            'is_publish' => $request->is_publish,
+            'status_id' => $request->status_id, // Update to use status_id
+            'review_status_id' => 4,
+            'is_publish' => 0,
+            'user_id' => $user->id, // Ensure the user_id remains the same
+            'projectimg_id' => $projectimgId,
+            'location_address' => $request->location_address,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
-            'location_address' => $request->location_address,
-            'target_beneficiaries' => $request->target_beneficiaries,
         ]);
-
-        // Update or create gender impact record if data is available
+ // Update or create gender impact record if data is available
         if ($request->has('gender_benefits_men') || $request->has('gender_benefits_women')) {
             $genderImpact = GenderImpact::updateOrCreate(
                 ['project_id' => $project->id],
@@ -437,42 +508,101 @@ class ProjectController extends Controller
                 ]
             );
         }
-
-        // Handle image upload if new image was provided
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $imageName = time().'.'.$image->extension();
-            $image->storeAs('projectimages', $imageName, 'public');
-
-            // Update or create new image record
-            if ($project->projectimg_id) {
-                $projectImg = Projectimg::findOrFail($project->projectimg_id);
-                $projectImg->update([
-                    'image_path' => $imageName,
-                ]);
-            } else {
-                $projectImg = Projectimg::create([
-                    'image_path' => $imageName,
-                ]);
-                $project->update([
-                    'projectimg_id' => $projectImg->id,
-                ]);
-            }
-        }
-
         // Update SDGs
         $project->sdg()->sync($request->sdg);
+        
+        // Sync selected sub-categories, ensuring unique values
+        if ($request->has('sdg_sub_category')) {
+            $uniqueSubCategories = array_unique($request->sdg_sub_category);
+            $project->sdgSubCategories()->sync($uniqueSubCategories);
+        } else {
+            $project->sdgSubCategories()->detach(); // Detach if no sub-categories are selected
+        }
+        
+        $sdgs = $project->sdg()->pluck('name')->implode(', ');
+        $publishStatus = $project->is_publish == 1 ? 'Published' : 'Draft';
+        Log::info('Project update handled successfully');
 
-        // Record activity log
-        $activityLog = new ActivityLog();
-        $activityLog->user_id = auth()->id();
-        $activityLog->contribution_type = 'Project Update';
-        $activityLog->contribution_id = $project->id;
-        $activityLog->save();
+        RoleAction::create([
+            'content_id' => $project->id,
+            'content_type' => Project::class,
+            'user_id' => $user->id,
+            'role' => 'contributor',
+            'action' => 'submitted for review',
+            'created_at' => now()
+        ]);
 
-        // Redirect to index page
-        return redirect()->route('contributor.projects.index')->with('success', 'Project/Program updated successfully');
+        $type = 'project';
+        $status = 'resubmitted for review';
+        $projectTitle = $project->title;
+
+        // Retrieve all reviewers
+        $reviewers = User::where('role', 'reviewer')->get();
+
+        // Create notifications for each reviewer
+        foreach ($reviewers as $reviewer) {
+            Notification::create([
+                'user_id' => $reviewer->id,
+                'notifiable_type' => User::class,
+                'notifiable_id' => $reviewer->id,
+                'type' => $type,
+                'related_type' => Project::class,
+                'related_id' => $project->id,
+                'data' => json_encode([
+                    'message' => "The project titled '" . addslashes($projectTitle) . "' has been resubmitted for review.",
+                    'contributor' => $user->first_name . ' ' . $user->last_name,
+                    'role' => 'contributor',
+                    'type' => $type,
+                    'status' => $status,
+                ]),
+                'created_at' => now(),
+            ]);
+        }
+
+        // Log the activity for the project update
+        $properties = [
+            'project_id' => $project->id,
+            'title' => $project->title,
+            'description' => $project->description,
+            'status_id' => $project->status_id, // Update to log status_id
+            'sdgs' => $sdgs,
+            'publish_status' => $publishStatus,
+            'location' => [
+                'address' => $project->location_address,
+                'latitude' => $project->latitude,
+                'longitude' => $project->longitude,
+            ],
+            'image' => $projectimg->image ?? null,
+            'updated_by' => [
+                'user_id' => $user->id,
+                'name' => $user->first_name . ' ' . $user->last_name,
+                'role' => $user->role,
+            ],
+            'timestamp' => now(),
+        ];
+
+        ActivityLog::create([
+            'log_name' => 'Project Resubmission',
+            'description' => 'Project titled "' . addslashes($project->title) . '" resubmitted for review by contributor',
+            'subject_type' => Project::class,
+            'subject_id' => $project->id,
+            'event' => 'resubmitted for review',
+            'causer_type' => User::class,
+            'causer_id' => $user->id,
+            'properties' => json_encode($properties),
+            'created_at' => now(),
+        ]);
+
+        DB::commit();
+    } catch (\Exception $ex) {
+        DB::rollBack();
+        dd($ex->getMessage());
+    }
+
+    session()->flash('alert-success', 'Project/Program Updated Successfully!');
+    return to_route('contributor.projects.index');
 }
+ 
 
 
     /**
@@ -787,7 +917,7 @@ class ProjectController extends Controller
             '11' => 'Sustainable Cities and Communities',
             '12' => 'Responsible Consumption and Production',
             '13' => 'Climate Action',
-            '14' => 'Life Below Water',
+            '14' => 'Life Below Water', 
             '15' => 'Life on Land',
             '16' => 'Peace, Justice and Strong Institutions',
             '17' => 'Partnerships for the Goals'

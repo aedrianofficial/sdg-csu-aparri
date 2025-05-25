@@ -21,8 +21,7 @@ class Research extends Model
         'title',
         'description',
         'is_publish',
-        'file_link',
-        'target_beneficiaries',
+        'file_link'
     ];
 
     // Relationship to Research Files
