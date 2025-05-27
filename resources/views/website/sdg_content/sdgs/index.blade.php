@@ -52,6 +52,9 @@
                                             </ul>
                                         </div>
 
+                                        <!-- Gender Impact Summary -->
+                                        @include('website.sdg_content.partials.gender_impact_summary', ['genderImpact' => $project->genderImpact])
+
                                         <a href="{{ route('website.display_single_project', $project->id) }}"
                                             class="btn btn-primary mt-auto continue-reading">Continue
                                             Reading</a>
@@ -89,6 +92,9 @@
                                                 </li>
                                             </ul>
                                         </div>
+
+                                        <!-- Gender Impact Summary -->
+                                        @include('website.sdg_content.partials.gender_impact_summary', ['genderImpact' => $singleResearch->genderImpact])
 
                                         <a href="{{ route('website.display_single_research', $singleResearch->id) }}"
                                             class="btn btn-secondary mt-auto continue-reading">

@@ -69,6 +69,9 @@
                                                         </ul>
                                                     </div>
 
+                                                    <!-- Gender Impact Summary -->
+                                                    @include('website.sdg_content.partials.gender_impact_summary', ['genderImpact' => $item->genderImpact])
+
                                                     <a href="{{ route('website.display_single_research', $item->id) }}"
                                                         class="btn btn-secondary mt-auto continue-reading">
                                                         <i class="fas fa-arrow-right"></i> Continue Reading

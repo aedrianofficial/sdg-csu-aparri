@@ -132,6 +132,9 @@
                     </div>
                 </div>
 
+                <!-- Gender Impact Analysis -->
+                @include('website.sdg_content.partials.gender_impact_analysis', ['genderImpact' => $project->genderImpact])
+
                 <div id="map" class="card card-primary card-outline" style="height: 400px; border-radius: 10px;">
                 </div>
 

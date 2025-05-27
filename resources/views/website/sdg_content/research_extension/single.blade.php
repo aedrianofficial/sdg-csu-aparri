@@ -319,6 +319,9 @@
                     </div>
                 </div>
 
+                <!-- Gender Impact Analysis -->
+                @include('website.sdg_content.partials.gender_impact_analysis', ['genderImpact' => $research->genderImpact])
+
                 <div class="row mt-4">
                     <div class="col-12">
                         <h3>Related Reports</h3>

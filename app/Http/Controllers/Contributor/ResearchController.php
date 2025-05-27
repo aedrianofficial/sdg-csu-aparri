@@ -284,6 +284,7 @@ class ResearchController extends Controller
             'men_count' => null,
             'women_count' => null,
             'gender_notes' => null,
+            'target_beneficiaries' => $request->target_beneficiaries,
         ];
         
         try {
@@ -354,6 +355,7 @@ class ResearchController extends Controller
                                 'men_count' => $genderResults['men_count'],
                                 'women_count' => $genderResults['women_count'],
                                 'gender_notes' => $genderResults['gender_notes'],
+                                'target_beneficiaries' => $request->target_beneficiaries,
                             ];
                             
                             Log::info('Gender analysis used for research submission', [
@@ -565,6 +567,7 @@ class ResearchController extends Controller
             'men_count' => null,
             'women_count' => null,
             'gender_notes' => null,
+            'target_beneficiaries' => $request->target_beneficiaries,
         ];
     
         try {
@@ -615,6 +618,7 @@ class ResearchController extends Controller
                                 'men_count' => $genderResults['men_count'],
                                 'women_count' => $genderResults['women_count'],
                                 'gender_notes' => $genderResults['gender_notes'],
+                                'target_beneficiaries' => $request->target_beneficiaries,
                             ];
                             
                             Log::info('Gender analysis used for research update', [

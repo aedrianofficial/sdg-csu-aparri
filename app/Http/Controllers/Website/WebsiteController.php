@@ -86,20 +86,20 @@ class WebsiteController extends Controller
             'description' => $sdgs[$id] ?? 'No description available'
         ];
 
-        // Get published projects related to this SDG
+        // Get published projects related to this SDG with gender impact data
         $projects = Project::whereHas('sdg', function($query) use ($id) {
                 $query->where('sdgs.id', $id);
             })
             ->where('is_publish', Project::Published)
-            ->with(['projectimg', 'sdg'])
+            ->with(['projectimg', 'sdg', 'genderImpact'])
             ->get();
 
-        // Get published research related to this SDG
+        // Get published research related to this SDG with gender impact data
         $researches = Research::whereHas('sdg', function($query) use ($id) {
                 $query->where('sdgs.id', $id);
             })
             ->where('is_publish', Research::Published)
-            ->with(['researchCategory', 'sdg'])
+            ->with(['researchCategory', 'sdg', 'genderImpact'])
             ->get();
 
             // Get all SDGs with research count
@@ -126,8 +126,9 @@ class WebsiteController extends Controller
 
     public function projectsByCoordinates($latitude, $longitude)
     {
-    // Fetch published projects based on the given coordinates
-    $projects = Project::where('is_publish', 1)
+    // Fetch published projects based on the given coordinates with gender impact data
+    $projects = Project::with('genderImpact')
+        ->where('is_publish', 1)
         ->where('latitude', $latitude)
         ->where('longitude', $longitude)
         ->orderBy('id', 'desc')
@@ -301,15 +302,17 @@ class WebsiteController extends Controller
                 return $sdg;
             });
         
-            // Fetch paginated published projects for the selected SDG and year
+            // Fetch paginated published projects for the selected SDG and year with gender impact data
             $projects = $sdg->project()
+                ->with('genderImpact')
                 ->where('is_publish', 1)
                 ->whereYear('projects.created_at', $year)
                 ->orderBy('id', 'desc')
                 ->paginate(4);
         
-            // Fetch paginated published research for the selected SDG and year
+            // Fetch paginated published research for the selected SDG and year with gender impact data
             $research = $sdg->research()
+                ->with('genderImpact')
                 ->where('is_publish', 1)
                 ->whereYear('research.created_at', $year)
                 ->orderBy('id', 'desc')
@@ -513,8 +516,9 @@ class WebsiteController extends Controller
 
     public function display_single_project($project_id)
 {
-    // Fetch the specific project
-    $project = Project::where('id', $project_id)
+    // Fetch the specific project with gender impact data
+    $project = Project::with('genderImpact')
+        ->where('id', $project_id)
         ->where('is_publish', 1) // Ensure the project is published
         ->firstOrFail();
 
@@ -568,8 +572,9 @@ class WebsiteController extends Controller
             }
         ])->get();
     
-        // Fetch published projects and paginate
-        $projects = Project::where('is_publish', 1)
+        // Fetch published projects with gender impact data and paginate
+        $projects = Project::with('genderImpact')
+            ->where('is_publish', 1)
             ->orderBy('id', 'desc')
             ->paginate(4);
     
@@ -589,8 +594,9 @@ class WebsiteController extends Controller
             }
         ])->get();
 
-        // Fetch paginated published projects for the selected SDG
+        // Fetch paginated published projects for the selected SDG with gender impact data
         $projects = $sdg->project()
+            ->with('genderImpact')
             ->where('is_publish', 1) // Filter only published projects
             ->orderBy('id', 'desc')
             ->paginate(4);
@@ -612,8 +618,8 @@ class WebsiteController extends Controller
             }
         ])->get();
     
-        // Fetch the specific published research
-        $research = Research::with('researchcategory')
+        // Fetch the specific published research with gender impact data
+        $research = Research::with(['researchcategory', 'genderImpact'])
             ->where('id', $research_id)
             ->where('is_publish', 1) // Ensure it's published
             ->firstOrFail();
@@ -674,10 +680,11 @@ class WebsiteController extends Controller
         }
     ])->get();
 
-    // Fetch published research items and paginate
-    $research = Research::where('is_publish', 1)
-        ->orderBy('id', 'desc')
-        ->paginate(4);
+            // Fetch published research items with gender impact data and paginate
+        $research = Research::with('genderImpact')
+            ->where('is_publish', 1)
+            ->orderBy('id', 'desc')
+            ->paginate(4);
 
     return view('website.sdg_content.research_extension.index', [
         'research' => $research,
@@ -704,8 +711,9 @@ public function display_research_sdg(Sdg $sdg)
         }
     ])->get();
 
-    // Fetch published research items for the selected SDG and paginate
+    // Fetch published research items for the selected SDG with gender impact data and paginate
     $research = $sdg->research()
+        ->with('genderImpact')
         ->where('is_publish', 1)
         ->orderBy('id', 'desc')
         ->paginate(4);
@@ -734,8 +742,9 @@ public function display_research_category(Researchcategory $researchcategory)
         }
     ])->get();
 
-    // Fetch published research items for the selected category and paginate
+    // Fetch published research items for the selected category with gender impact data and paginate
     $research = $researchcategory->research()
+        ->with('genderImpact')
         ->where('is_publish', 1)
         ->orderBy('id', 'desc')
         ->paginate(4);

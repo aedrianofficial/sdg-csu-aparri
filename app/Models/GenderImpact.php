@@ -19,6 +19,7 @@ class GenderImpact extends Model
         'men_count',
         'women_count',
         'gender_notes',
+        'target_beneficiaries',
     ];
 
     protected $casts = [

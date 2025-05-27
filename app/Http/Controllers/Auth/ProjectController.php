@@ -280,6 +280,7 @@ class ProjectController extends Controller
                     'men_count' => $request->gender_men_count ? (int)$request->gender_men_count : null,
                     'women_count' => $request->gender_women_count ? (int)$request->gender_women_count : null,
                     'gender_notes' => $request->gender_notes,
+                    'target_beneficiaries' => $request->target_beneficiaries,
                 ]);
                 $genderImpact->save();
             }
